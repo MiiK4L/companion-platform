@@ -1,0 +1,80 @@
+name: 🐛 Rapport de bug
+description: Signaler un dysfonctionnement dans le firmware, le matériel, l'OS, une app, un module ou la documentation.
+title: "[bug] "
+labels:
+  - "type:bug"
+  - "status:backlog"
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Merci de prendre le temps de signaler ce bug. Avant de soumettre, vérifiez qu'un ticket similaire n'existe pas déjà dans les Issues ou les Discussions.
+
+  - type: dropdown
+    id: domaine
+    attributes:
+      label: Domaine concerné
+      description: Quelle partie du monorepo est affectée par ce bug ?
+      options:
+        - firmware
+        - hardware
+        - os
+        - cx-bus
+        - app
+        - module
+        - docs
+        - ci
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description du bug
+      description: Décrivez clairement et précisément le problème observé.
+      placeholder: "Ce qui ne fonctionne pas, et dans quel contexte..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Étapes de reproduction
+      description: Listez les étapes précises permettant de reproduire le problème de façon fiable.
+      placeholder: |
+        1. ...
+        2. ...
+        3. ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: attendu
+    attributes:
+      label: Comportement attendu
+      description: Que devrait-il se passer normalement ?
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Version / tag concerné
+      description: Indiquez le tag ou la version concernée (ex. fw-1.2.0, hw-0.3.0, os-0.1.0, mod-cx-display-1.0.0...).
+      placeholder: "ex. fw-1.2.0"
+    validations:
+      required: true
+
+  - type: textarea
+    id: environnement
+    attributes:
+      label: Environnement
+      description: |
+        Décrivez l'environnement de reproduction : révision matérielle, outils de build, système d'exploitation hôte, version d'ESP-IDF, modules CX-Bus connectés, etc.
+      placeholder: |
+        - Révision matérielle : mainboard-v1
+        - OS hôte : ...
+        - Toolchain / ESP-IDF : ...
+        - Modules CX-Bus connectés : ...
+    validations:
+      required: false

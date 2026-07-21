@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 Discussions Companion Platform
+    url: https://github.com/MiiK4L/companion-platform/discussions
+    about: Pour les questions ouvertes, les idées non formalisées ou les échanges avec la communauté, utilisez les Discussions plutôt qu'une Issue.

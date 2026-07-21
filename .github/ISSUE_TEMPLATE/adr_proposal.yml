@@ -1,0 +1,47 @@
+name: 📐 Proposition de décision d'architecture (ADR)
+description: Proposer une nouvelle décision d'architecture à discuter et, le cas échéant, à formaliser par le coordinateur du projet.
+title: "[adr] "
+labels:
+  - "type:adr"
+  - "status:backlog"
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Les Architecture Decision Records (ADR) documentent les choix structurants du projet. Ce formulaire sert à proposer une piste de réflexion ; la rédaction finale de l'ADR reste de la responsabilité du coordinateur du projet.
+
+  - type: textarea
+    id: contexte
+    attributes:
+      label: Contexte / problème
+      description: Quel est le contexte, la contrainte ou le problème qui motive cette décision ?
+    validations:
+      required: true
+
+  - type: textarea
+    id: options
+    attributes:
+      label: Options envisagées
+      description: Listez les différentes options possibles, avec leurs avantages et inconvénients respectifs.
+      placeholder: |
+        - Option A : ...
+        - Option B : ...
+        - Option C : ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: recommandation
+    attributes:
+      label: Recommandation
+      description: Quelle option recommandez-vous, et pourquoi ?
+    validations:
+      required: true
+
+  - type: textarea
+    id: impacts
+    attributes:
+      label: Impacts
+      description: Quels domaines seraient impactés (firmware, hardware, os, cx-bus, apps, modules, docs) ? Cette décision remet-elle en cause des ADR existantes ?
+    validations:
+      required: true
