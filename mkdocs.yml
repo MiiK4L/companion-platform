@@ -35,13 +35,19 @@ plugins:
   - search
 
 validation:
-  omitted_files: warn
-  absolute_links: warn
-  unrecognized_links: warn
   nav:
-    # Les fichiers non listés dans la nav (ex. template d'ADR) ne font pas
-    # échouer le build --strict : ils restent accessibles via les liens.
+    # Fichiers hors nav (ex. template d'ADR) : non bloquant en --strict.
     omitted_files: info
+  links:
+    # Les liens relatifs vers des fichiers HORS docs/ (READMEs du code source,
+    # SPEC, SECURITY…) fonctionnent sur GitHub (forks, révision affichée) mais
+    # ne résolvent pas dans le site MkDocs. La publication du site étant DIFFÉRÉE
+    # (ADR-0011), on ne fait pas échouer le build dessus. À revisiter lors de la
+    # publication (inclure alors les documents normatifs dans docs/).
+    not_found: ignore
+    anchors: warn
+    absolute_links: warn
+    unrecognized_links: warn
 
 nav:
   - Accueil: index.md

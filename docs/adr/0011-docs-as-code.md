@@ -31,10 +31,17 @@ avec le code, ni relu en Pull Request**, ce qui le désynchronise vite du projet
 
 ## 3. Décision
 
-La documentation est **docs-as-code** : Markdown dans `docs/`, site généré par
-**MkDocs Material**, publié sur **GitHub Pages** via GitHub Actions. Le Wiki
-GitHub, s'il est utilisé, ne sera qu'une **vitrine** renvoyant vers le site ; il
-n'est jamais la source de vérité.
+On sépare deux choses :
+
+- **Décision acceptée (stable)** : la documentation est **docs-as-code** —
+  Markdown dans `docs/`, relue en PR, et **construite en CI avec `mkdocs build
+  --strict`** (le build valide la doc à chaque PR). Le Wiki GitHub n'est jamais
+  la source de vérité.
+- **Publication (différée)** : la mise en ligne (ex. GitHub Pages) est **reportée**
+  jusqu'à une **décision explicite du mainteneur** et jusqu'à ce que l'hébergement
+  choisi soit **disponible**. Sur l'offre/visibilité actuelle (dépôt privé, Free),
+  GitHub Pages n'est **pas disponible** ; **aucune publication n'est déclenchée
+  automatiquement**. Le workflow ne déploie que sur **déclenchement manuel**.
 
 ## 4. Raisons du choix
 
@@ -45,8 +52,8 @@ fonctionnalité » et pour la reprise par un tiers.
 ## 5. Conséquences
 
 ### Positives
-- Documentation fiable, versionnée, relue, vérifiée en CI, publiée
-  automatiquement.
+- Documentation fiable, versionnée, relue et **vérifiée en CI** (build strict).
+  La publication reste un acte **volontaire et différé** (pas d'auto-publication).
 
 ### Négatives / compromis acceptés
 - Édition via PR (moins « instantanée » que le Wiki) — compromis assumé au

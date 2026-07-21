@@ -1,12 +1,15 @@
 name: Documentation
 
-# Construit systématiquement le site de documentation (push sur main et
-# Pull Requests), et le déploie sur GitHub Pages uniquement lors d'un push
-# sur main. Le déploiement ne s'exécute jamais sur une Pull Request.
+# Construit systématiquement le site de documentation (push sur main et Pull
+# Requests) pour VALIDER la doc en CI (mkdocs build --strict).
 #
-# Les GitHub Actions sont épinglées à un SHA de commit (reproductible et
-# sécurisé) ; le commentaire indique la version lisible correspondante.
-# Les montées de version sont gérées par Dependabot (.github/dependabot.yml).
+# La PUBLICATION (GitHub Pages) est DIFFÉRÉE (voir ADR-0011) : elle n'est PAS
+# déclenchée automatiquement sur push/merge. Le déploiement ne s'exécute que sur
+# déclenchement MANUEL (workflow_dispatch), et uniquement lorsque l'hébergement
+# est disponible et que le mainteneur le décide.
+#
+# GitHub Actions épinglées au SHA (reproductible + sécurisé) ; commentaire =
+# version lisible. Montées de version gérées par Dependabot.
 
 on:
   push:
@@ -15,6 +18,7 @@ on:
   pull_request:
     branches:
       - main
+  workflow_dispatch: {}
 
 permissions:
   contents: read
@@ -44,15 +48,17 @@ jobs:
       - name: Construire le site en mode strict
         run: mkdocs build --strict
 
-      - name: Publier l'artefact du site
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      - name: Publier l'artefact du site (déploiement manuel uniquement)
+        if: github.event_name == 'workflow_dispatch'
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
           path: site
 
+  # Déploiement DÉSACTIVÉ par défaut : ne s'exécute QUE sur déclenchement manuel
+  # (workflow_dispatch). Aucune publication automatique au push/merge.
   deploy:
-    name: Déployer sur GitHub Pages
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    name: Déployer sur GitHub Pages (manuel)
+    if: github.event_name == 'workflow_dispatch'
     needs: build
     runs-on: ubuntu-latest
     permissions:
