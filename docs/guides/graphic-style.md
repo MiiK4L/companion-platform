@@ -12,7 +12,7 @@ IPS piloté par **LVGL** (voir ADR-0003).
   cohérence entre apps malgré la diversité des cas d'usage — Tamagotchi,
   outils réseau, homelab, etc.).
 - Rappel : le personnage/mascotte **officiel** relève de l'identité
-  visuelle réservée du projet — voir [`LICENSING.md`](https://github.com/MiiK4L/companion-platform/blob/main/LICENSING.md)
+  visuelle réservée du projet — voir [`LICENSING.md`](../../LICENSING.md)
   et `assets/README.md`. Ce guide décrit la charte à respecter, pas une
   licence d'utilisation de la mascotte elle-même.
 
@@ -49,6 +49,6 @@ IPS piloté par **LVGL** (voir ADR-0003).
 
 ## Voir aussi
 
-- [`assets/README.md`](https://github.com/MiiK4L/companion-platform/blob/main/assets/README.md)
-- [`LICENSING.md`](https://github.com/MiiK4L/companion-platform/blob/main/LICENSING.md)
+- [`assets/README.md`](../../assets/README.md)
+- [`LICENSING.md`](../../LICENSING.md)
 - `docs/adr/` (ADR-0003)

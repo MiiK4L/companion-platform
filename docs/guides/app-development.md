@@ -55,13 +55,13 @@ capteurs, jeux...).
 
 - À compléter — Phase 3 : différence entre app officielle (ce dépôt,
   Apache-2.0) et app tierce (licence au choix de l'auteur) — voir
-  [`LICENSING.md`](https://github.com/MiiK4L/companion-platform/blob/main/LICENSING.md).
+  [`LICENSING.md`](../../LICENSING.md).
 - À compléter — Phase 3 : processus de soumission d'une app tierce, si un
   canal de distribution communautaire est mis en place.
 
 ## Voir aussi
 
-- [`apps/README.md`](https://github.com/MiiK4L/companion-platform/blob/main/apps/README.md)
+- [`apps/README.md`](../../apps/README.md)
 - [`docs/guides/code-style.md`](code-style.md)
 - [`docs/guides/module-development.md`](module-development.md)
 - `docs/adr/` (ADR-0001, ADR-0002, ADR-0007)

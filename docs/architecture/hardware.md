@@ -26,7 +26,7 @@ produit aux phases 2–4 ; ce document fixe les principes. Décisions liées :
 └──────────────────────────────────────────────────────────┘
 ```
 
-Détail et statut : [`hardware/mainboard-v1/README.md`](https://github.com/MiiK4L/companion-platform/blob/main/hardware/mainboard-v1/README.md).
+Détail et statut : [`hardware/mainboard-v1/README.md`](../../hardware/mainboard-v1/README.md).
 
 ## Principes non négociables
 
@@ -35,7 +35,7 @@ Détail et statut : [`hardware/mainboard-v1/README.md`](https://github.com/MiiK4
    l'infrastructure générique.
 2. **Cœur de calcul remplaçable** (XIAO socketé, [ADR-0004](../adr/0004-coeur-de-calcul-socket.md)).
 3. **Un connecteur d'extension unique**, identique pour tous les modules
-   ([standard CX-Bus](https://github.com/MiiK4L/companion-platform/blob/main/standards/cx-bus/README.md)).
+   ([standard CX-Bus](../../standards/cx-bus/README.md)).
 4. **Écran abstrait** : contrôleur interchangeable, jamais vu par les apps
    ([ADR-0003](../adr/0003-technologie-et-abstraction-ecran.md)).
 
@@ -73,5 +73,5 @@ Voir [ADR-0008](../adr/0008-architecture-alimentation.md).
 
 Le connecteur, le brochage, l'alimentation, la détection, le protocole, le
 format mécanique et l'identification (CX-Bus Manifest en EEPROM) sont définis
-par le standard : [`standards/cx-bus/`](https://github.com/MiiK4L/companion-platform/blob/main/standards/cx-bus/README.md). La
+par le standard : [`standards/cx-bus/`](../../standards/cx-bus/README.md). La
 spécification détaillée est produite en **Phase 1**.

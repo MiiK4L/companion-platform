@@ -3,7 +3,7 @@
 Ce guide détaille, côté technique, comment préparer, tester et soumettre
 une contribution de code à Companion Platform. Pour le workflow Git
 général, les Conventional Commits et le style de PR, voir d'abord
-[`CONTRIBUTING.md`](https://github.com/MiiK4L/companion-platform/blob/main/CONTRIBUTING.md) à la racine du dépôt — ce guide
+[`CONTRIBUTING.md`](../../CONTRIBUTING.md) à la racine du dépôt — ce guide
 le complète avec des détails techniques.
 
 ## 1. Préparer son environnement
@@ -51,7 +51,7 @@ le complète avec des détails techniques.
 
 ## Voir aussi
 
-- [`CONTRIBUTING.md`](https://github.com/MiiK4L/companion-platform/blob/main/CONTRIBUTING.md)
+- [`CONTRIBUTING.md`](../../CONTRIBUTING.md)
 - [`docs/guides/code-style.md`](code-style.md)
 - [`docs/guides/build-and-flash.md`](build-and-flash.md)
 - `docs/adr/` pour le processus de décision d'architecture

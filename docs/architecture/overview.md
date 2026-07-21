@@ -57,12 +57,12 @@ applicatif n'est soudé** : tout capteur passe par un **module CX-Bus**. Détail
 
 ## 5. Vue logicielle (résumé)
 
-Le firmware se comporte comme un petit système d'exploitation, organisé en
-couches (bootloader → noyau → HAL → drivers → services → apps). Le
-**Module Manager** détecte et identifie les modules CX-Bus, l'**App Manager**
-gère le cycle de vie des applications (runtime Lua), et le service **Companion**
-transforme n'importe quel état système en expression du personnage. Détails :
-[architecture logicielle](software-os.md).
+Le firmware se comporte comme un petit système d'exploitation, structuré en
+**ports / adaptateurs** (apps → Companion SDK → services → ports ← adaptateurs →
+silicium). Le **Module Manager** détecte et identifie les modules CX-Bus,
+l'**App Manager** gère le cycle de vie des applications (runtime Lua), et le
+service **Companion** transforme n'importe quel état système en expression du
+personnage. Détails : [architecture logicielle](software-os.md).
 
 ## 6. Modularité « type console »
 
@@ -78,6 +78,6 @@ il paraît fatigué ; plutôt que « serveur injoignable », il paraît inquiet.
 - [Architecture logicielle / OS](software-os.md)
 - [Inversion des dépendances](dependency-inversion.md)
 - [Glossaire](glossary.md)
-- [Standard CX-Bus](https://github.com/MiiK4L/companion-platform/blob/main/standards/cx-bus/README.md)
+- [Standard CX-Bus](../../standards/cx-bus/README.md)
 - [Décisions d'architecture (ADR)](../adr/README.md)
 - [Feuille de route](../roadmap.md)

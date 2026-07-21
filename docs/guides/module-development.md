@@ -58,12 +58,12 @@ standard **CX-Bus (Companion eXpansion Bus)** (voir ADR-0005/0006 et
 - À compléter — Phase 3 : module officiel (ce dépôt, matériel
   CERN-OHL-S-2.0 + firmware Apache-2.0) vs module tiers (licence au choix
   de l'auteur, à déclarer explicitement) — voir
-  [`LICENSING.md`](https://github.com/MiiK4L/companion-platform/blob/main/LICENSING.md).
+  [`LICENSING.md`](../../LICENSING.md).
 
 ## Voir aussi
 
-- [`modules/README.md`](https://github.com/MiiK4L/companion-platform/blob/main/modules/README.md)
-- [`hardware/README.md`](https://github.com/MiiK4L/companion-platform/blob/main/hardware/README.md)
-- [`tools/README.md`](https://github.com/MiiK4L/companion-platform/blob/main/tools/README.md)
+- [`modules/README.md`](../../modules/README.md)
+- [`hardware/README.md`](../../hardware/README.md)
+- [`tools/README.md`](../../tools/README.md)
 - `standards/cx-bus/`
 - `docs/adr/` (ADR-0005, ADR-0006)
