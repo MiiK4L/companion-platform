@@ -5,6 +5,10 @@
 > Les valeurs électriques, mécaniques et le brochage définitifs sont marqués « ⏳ À définir »
 > avec la phase de projet où ils seront tranchés. Aucune valeur figurée ici n'est normative
 > tant qu'elle porte ce marqueur.
+>
+> Le **gel en 1.0.0 n'interviendra qu'après satisfaction des critères de sortie** (prototypes
+> de sûreté électrique, connecteur, hot-plug, endurance — voir la roadmap). D'ici là, le
+> document évolue en versions **0.x** puis **1.0.0-rc**.
 
 Références de décision : ADR-0005, ADR-0006, ADR-0008.
 
@@ -102,7 +106,7 @@ brochage exact (numéro de broche ↔ signal) est figé en Phase 1 après choix 
 | UART | `TX`, `RX` | Liaison série optionnelle pour modules le nécessitant. |
 | GPIO / IRQ | `IRQ`, GPIO polyvalent(s) | Interruption module → Host, usage général. |
 | Détection de présence | `PRSNT` / `DETECT` | Indique la présence physique d'un module (voir §7). |
-| Enable | `MOD_EN` | Power-gating : activation/coupure de l'alimentation du module (voir §6). |
+| *(pas de broche d'enable côté module)* | — | Le slot reçoit un **rail commuté** par le Host. L'enable du load switch est un **signal interne au Host** et n'est **pas** exposé au module (voir §6). |
 
 **Contrainte structurante.** Le MCU (Seeed XIAO ESP32-S3, socketé — ADR-0004) n'expose que
 **11 GPIO**. Le brochage CX-Bus doit s'inscrire dans le budget GPIO global du Host, ce qui
@@ -120,57 +124,75 @@ séquencement d'alimentation. Référence : ADR-0008.
 
 **Principes :**
 
-- Rails candidats : `VBAT` (batterie brute) et `3V3` (régulé). À confirmer en §5.
-- **Power-gating** : l'alimentation du connecteur module DOIT être coupable par le Host via
-  `MOD_EN`, afin de préserver l'autonomie lorsqu'aucun module n'est actif.
-- **Séquencement** : à l'insertion, les contacts d'alimentation/masse DOIVENT être établis
-  avant les signaux ; l'activation logique (`MOD_EN`) intervient après stabilisation.
-- **Budget de courant** : un plafond par module DOIT être défini pour protéger la jauge de
-  batterie et le régulateur du Host.
+- **Rail régulé `3V3`** : candidat principal, **commuté** vers le slot par le Host.
+- **`VBAT` (batterie brute) : candidat à ÉVALUER, PAS un rail acquis.** Exposer directement la
+  batterie sur un connecteur tiers introduit des risques (court-circuit, décharge profonde,
+  incompatibilité de tension). Sa présence sur le connecteur est **conditionnée à une analyse de
+  sécurité** (Phase 1) ; à défaut, seul `3V3` commuté est exposé.
+- **Power-gating** : l'alimentation du slot DOIT pouvoir être coupée par le Host via un **load
+  switch** dont l'enable est un **signal interne au Host** (le module ne reçoit qu'un rail
+  commuté — voir §5).
+- **Séquencement** : les contacts d'alimentation/masse DOIVENT être établis avant les signaux ;
+  la mise sous tension n'intervient qu'après stabilisation, dans le cadre des exigences de
+  sûreté du §7.
+- **Budget de courant** : un plafond par module DOIT être défini (protection du régulateur et de
+  l'alimentation du Host).
 
-**Critères de décision :** courant max soutenable par le régulateur Host, impact sur
-l'autonomie, comportement en sous-tension batterie, protection contre les courts-circuits
-d'un module tiers.
+**Critères de décision :** courant max soutenable par le Host, impact sur l'autonomie,
+comportement en sous-tension batterie, protection contre court-circuit/surintensité d'un module
+tiers, sûreté d'une éventuelle exposition de `VBAT`.
 
-> ⏳ **À définir — Phase 1/2** : tensions exactes des rails, budget de courant nominal et
-> crête par module, composant de power-gating (load switch), rampe de séquencement.
+> ⏳ **À définir — Phase 1/2** : rails réellement exposés (et sort de `VBAT`), tensions, budget de
+> courant nominal/crête par module, load switch, rampe d'inrush et de séquencement.
 
-## 7. Détection de présence & hot-plug
+## 7. Détection de présence, hot-plug & sûreté électrique ⏳
 
-**Intention.** Permettre au Host de détecter en sécurité l'insertion et le retrait d'un
-module, y compris à chaud.
+> ⚠️ **La Phase 0 ne définit PAS de « séquence sûre ».** Un connecteur mécanique et électrique
+> hot-plug partageant des bus (I²C, SPI) avec l'écran et les périphériques internes du Host pose
+> des risques réels qui **doivent être étudiés et démontrés par prototype en Phase 1** avant
+> tout gel. Cette section fixe les **exigences de sûreté à satisfaire**, pas une solution acquise.
 
-**Mécanisme de détection.** Une ligne dédiée (`PRSNT`/`DETECT`) signale la présence physique
-d'un module. Le principe retenu est une broche de détection plus courte électriquement (ou
-lue via l'expander I²C côté Host), établie en dernier à l'insertion et rompue en premier au
-retrait, ce qui borne la fenêtre d'activité des signaux.
+**Risques identifiés à couvrir** (un module non alimenté peut déjà être raccordé aux lignes de
+signaux) : back-powering par les diodes de protection ; lignes maintenues à l'état bas ;
+corruption du bus I²C partagé ; perturbation de l'écran sur le SPI partagé ; courant d'appel non
+contrôlé ; court-circuit ou panne d'un module tiers affectant le Host ; ESD à l'insertion.
 
-**Séquence d'insertion sûre (principe) :**
+**Exigences à étudier et à valider par prototype (Phase 1) :**
 
-1. Contacts d'alimentation et de masse établis.
-2. Contacts de signaux établis.
-3. Ligne de présence active → le Host détecte le module.
-4. Le Host applique `MOD_EN` (mise sous tension via power-gating).
-5. Le Host lit le **CX-Bus Manifest** en EEPROM I²C et identifie le module (§8).
+- **bus isolé ou commuté** vers le slot (l'accès du module aux bus n'est activé qu'après
+  identification/validation) ;
+- **état haute impédance** des signaux du côté module tant qu'il est hors tension ;
+- **résistances série** et **protections ESD** sur les lignes exposées ;
+- **protection contre surintensité et court-circuit** du rail alimentant le slot ;
+- **limitation du courant d'appel** et **rampe d'alimentation** (inrush) ;
+- **décharge contrôlée** du rail après coupure ;
+- comportement défini si un **périphérique bloque SDA ou SCL** (bus stuck) ;
+- **ordre réel des contacts** selon le connecteur retenu (§4) ;
+- comportement lors d'un **retrait pendant une transaction** ;
+- **masses établies en premier / rompues en dernier** (selon le sens d'insertion) ;
+- **niveaux logiques et tolérance** des signaux lorsque `VBAT` ou `3V3` sont présents.
 
-**Séquence de retrait sûre (principe) :**
+**Détection de présence.** Une ligne dédiée (`PRSNT`/`DETECT`) signalera la présence physique
+d'un module (broche plus courte électriquement, ou lecture via l'expander I²C du Host). Le
+mécanisme exact, les temporisations de debounce et les garanties de non-corruption du bus
+partagé sont **⏳ à définir — Phase 1/2**, conditionnés aux résultats des prototypes de sûreté.
 
-1. Perte du signal de présence → le Host coupe `MOD_EN`.
-2. Le Host libère les ressources logicielles associées au module.
-3. Rupture physique des signaux puis de l'alimentation.
+## 8. Identification — CX-Bus Manifest ⏳
 
-> ⏳ **À définir — Phase 1/2** : implémentation exacte de la détection (broche courte vs
-> expander), temporisations de debounce, garanties de non-corruption du bus partagé pendant
-> l'insertion.
+Chaque Module porte un **CX-Bus Manifest** décrivant son identité et ses capacités. Le format
+s'inspire de la spécification EEPROM des HAT Raspberry Pi (antériorité). **L'EEPROM I²C est le
+mécanisme candidat, non figé** : il n'est pas acté tant que la lecture du Manifest ne peut pas
+se faire **sans alimenter tout le matériel non fiable du module** (contrainte de sûreté, §7).
 
-## 8. Identification — CX-Bus Manifest
+**Options à étudier (Phase 1) pour lire le Manifest en sécurité :**
 
-Chaque Module DOIT embarquer un **CX-Bus Manifest** stocké dans une EEPROM I²C, décrivant
-son identité et ses capacités. Le format s'inspire de la spécification EEPROM des HAT
-Raspberry Pi (antériorité).
+- EEPROM sur un **petit rail d'identification séparé et limité en courant** ;
+- alimentation complète **préchargée et limitée** avant validation ;
+- **isolation des autres périphériques** du module pendant l'identification ;
+- **contrôleur ou mécanisme alternatif** d'identification.
 
-La structure logique des champs, les règles de lecture et un exemple illustratif non
-normatif sont définis dans le document dédié : [`cx-bus-manifest.md`](./cx-bus-manifest.md).
+La structure logique des champs, le modèle de confiance et un exemple illustratif non normatif
+sont dans le document dédié : [`cx-bus-manifest.md`](./cx-bus-manifest.md).
 
 ## 9. Protocole de communication
 
