@@ -1,12 +1,14 @@
 # Feuille de route
 
-La roadmap suit une logique stricte, **sans jamais sauter d'étape** :
+La roadmap suit une **progression ordonnée** (les étapes ne sont pas sautées à la
+légère) :
 
 > Vision → Architecture → Documentation → Validation → Implémentation → Tests → Optimisation
 
-Chaque phase se termine par une **porte de validation** (revue + décisions
-tracées en ADR) avant de passer à la suivante. On privilégie toujours une
-fondation solide à un prototype rapide.
+Le processus reste **itératif** : une mesure ou un prototype peut justifier un
+**retour à une étape antérieure** (réviser une décision, refaire un budget). Chaque
+phase se termine par une **porte de validation** (revue + décisions tracées en
+ADR). On privilégie une fondation solide à un prototype rapide.
 
 ## État d'avancement
 
@@ -33,16 +35,36 @@ fondation solide à un prototype rapide.
 
 ### Phase 0 — Fondations *(en cours de validation)*
 Architecture globale, arborescence du dépôt, 13 ADR, gouvernance, licences,
-CI documentaire (MkDocs + Pages), gestion de projet (Projects, Milestones,
-Labels). **Porte :** validation de l'architecture par le mainteneur, puis push
-initial propre.
+**CI documentaire (build MkDocs strict, sans publication automatique)**,
+gestion de projet (**Milestones, Labels**). **Porte :** validation de
+l'architecture par le mainteneur, puis push initial propre.
 
 ### Phase 1 — Spécification CX-Bus & composants
-Figer la [spec CX-Bus 1.0](https://github.com/MiiK4L/companion-platform/blob/main/standards/cx-bus/SPEC-CX-Bus-1.0.md) (connecteur,
-brochage, alimentation, Manifest binaire), sélectionner les composants (écran,
-RTC, accéléromètre, jauge, expander, load switch), établir le **budget GPIO** et
-le **budget énergétique**. **Porte :** ADR de sélection des composants + spec
-CX-Bus 1.0 gelée.
+Faire **converger** (sans figer prématurément) la [spec CX-Bus](../standards/cx-bus/SPEC-CX-Bus-1.0.md)
+et sélectionner les **composants de production** (écran, RTC, accéléromètre,
+alimentation…), avec **sourcing en temps réel** (prix, stock, cycle de vie,
+distributeurs, **≥ 2 alternatives réellement compatibles**). Établir le **budget
+GPIO** et un **premier budget énergétique** (mesuré, non décrété). Un **lot dédié
+à la sûreté électrique et au threat model CX-Bus** est ajouté.
+
+**Prototypes exploratoires et petits PCB de validation sont autorisés en Phase 1**
+(les schémas de production restent en Phase 2). Prototypes prévus : P1 bring-up
+GPIO/bus, P2 écran+LVGL (RAM/conso), P3 deep sleep & réveils, P4 Δt RTC, P5 jauge,
+P6 hot-plug, P7 Manifest, P8 runtime Lua & install dynamique, P9 endurance
+connecteur — **complétés** par : **bus isolé / module non alimenté**,
+**court-circuit & surintensité (alim de labo)**, **module bloquant SDA/SCL**,
+**retrait pendant une transaction**, **partage SPI avec l'écran**.
+
+> ⚠️ On **distingue les composants de prototype des composants de production**. Un
+> changement de composant n'est **pas** un « swap indolore » : le modèle
+> ports/adaptateurs réduit l'impact *logiciel*, mais pas les impacts électriques,
+> mécaniques ou de performance.
+
+**Porte de sortie :** le tag **`spec-v1.0.0`** n'est promis qu'**après** critères
+de sortie satisfaits (schéma du chemin d'alimentation, prototype de connecteur,
+mesures d'inrush, tests d'insertion/retrait, test de bus bloqué, endurance
+mécanique minimale). D'ici là : versions **0.x / 1.0.0-rc**. Les décisions de
+composants sont tracées par ADR (regroupées quand c'est cohérent).
 
 ### Phases 2–4 — Électronique & mécanique
 Schémas (ERC), PCB v1 (DRC, Gerbers, BOM), boîtier imprimable 3D co-conçu.
