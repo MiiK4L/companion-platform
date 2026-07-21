@@ -2,7 +2,8 @@
 
 - **Statut** : Accepté
 - **Date** : 2026-07-21
-- **Décideurs** : Expert documentation, expert CI/CD
+- **Décideur** : Mainteneur du projet (MiiK4L)
+- **Expertises consultées** : Expert documentation, expert CI/CD
 - **Phase de roadmap** : 0
 - **Domaines impactés** : docs, ci
 - **Tags** : documentation, mkdocs, github-pages, wiki

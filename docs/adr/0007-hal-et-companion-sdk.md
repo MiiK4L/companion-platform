@@ -2,7 +2,8 @@
 
 - **Statut** : Accepté
 - **Date** : 2026-07-21
-- **Décideurs** : Architecte logiciel embarqué, architecte firmware
+- **Décideur** : Mainteneur du projet (MiiK4L)
+- **Expertises consultées** : Architecte logiciel embarqué, architecte firmware
 - **Phase de roadmap** : 0
 - **Domaines impactés** : firmware, os, apps
 - **Tags** : hal, sdk, portabilité, découplage, tests

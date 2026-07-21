@@ -1,8 +1,9 @@
 # ADR-0009 : RTC externe et persistance d'état hors tension
 
-- **Statut** : Accepté (principes) ; composant figé en Phase 1
+- **Statut** : Accepté
 - **Date** : 2026-07-21
-- **Décideurs** : Architecte firmware, expert basse consommation
+- **Décideur** : Mainteneur du projet (MiiK4L)
+- **Expertises consultées** : Architecte firmware, expert basse consommation
 - **Phase de roadmap** : 0 → 1
 - **Domaines impactés** : hardware, firmware, apps
 - **Tags** : rtc, persistance, deep-sleep, tamagotchi
@@ -32,14 +33,21 @@ il faut une base de temps fiable et peu gourmande.
 
 ## 3. Décision
 
-- **RTC externe basse consommation** (candidat **PCF8563**) comme base de temps
-  fiable, maintenu et capable de réveiller le système (alarme).
+> **Portée du statut.** Seul le *principe* ci-dessous est **Accepté**. Les éléments listés en §6 (Décisions différées) sont au statut **Proposé** et seront actés par de futures ADR une fois validés par prototype.
+
+Principe accepté : disposer d'une **base de temps fiable** associée à une
+**persistance d'état**, avec une **évolution par Δt au réveil** plutôt que par
+un fonctionnement continu.
 - L'évolution « hors tension » est calculée par **différence de temps au
-  réveil** (Δt entre dernier arrêt et réveil), et non par un fonctionnement
-  continu : on lit le RTC au réveil, on applique l'évolution correspondante.
+  réveil** (Δt entre dernier arrêt et réveil), et non par une tâche de fond
+  permanente : on lit l'horloge au réveil, on applique l'évolution
+  correspondante.
 - Persistance : **NVS** pour l'état/réglages, **LittleFS** pour données et
   sauvegardes d'apps.
-- Le composant RTC exact est **figé en Phase 1**.
+
+Les éléments spécifiques — la **nécessité d'un RTC externe** (vs RTC interne),
+le **modèle PCF8563**, la précision et la consommation — relèvent des décisions
+différées (§6) : ils ne sont pas actés comme définitifs par la présente ADR.
 
 ## 4. Raisons du choix
 
@@ -63,16 +71,15 @@ mécanismes éprouvés de l'écosystème.
   persistant » indépendantes du composant.
 - Les apps conçoivent leur logique d'évolution en fonction de Δt (contrat SDK).
 
-## 7. Réserves — à valider en Phase 1 (non figé)
+## 6. Décisions différées (statut : Proposé — à valider par prototype)
 
-> Ce qui est **acté** : le **principe** d'un RTC externe basse consommation +
-> persistance, et le modèle d'évolution par **Δt au réveil**. Ce qui **reste à
-> choisir/prouver** :
-> - l'**opportunité** d'un RTC externe (vs RTC interne) et le **modèle exact**
->   (PCF8563 proposé, non figé) ;
-> - la **précision réelle** et la **consommation** mesurées ;
-> - le partage du bus I²C et le budget de broches (interruption de réveil) ;
-> - la robustesse de la reprise d'état après coupure (tests).
+Éléments au statut **Proposé**, qui feront l'objet de futures ADR une fois
+validés (prototype P4) :
+- l'**opportunité et la nécessité** d'un RTC externe (vs RTC interne) et le
+  **modèle exact** (PCF8563 proposé) ;
+- la **précision réelle** et la **consommation** mesurées ;
+- le partage du bus I²C et le budget de broches (interruption de réveil) ;
+- la robustesse de la reprise d'état après coupure (tests).
 
-## 6. Liens
-- [ADR-0008](0008-architecture-alimentation.md) · [ADR-0007](0007-hal-et-companion-sdk.md) · [apps/tamagotchi](https://github.com/MiiK4L/companion-platform/blob/main/apps/tamagotchi/README.md)
+## 7. Liens
+- [ADR-0008](0008-architecture-alimentation.md) · [ADR-0007](0007-hal-et-companion-sdk.md) · [apps/tamagotchi](../../apps/tamagotchi/README.md)

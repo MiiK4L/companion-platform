@@ -2,7 +2,8 @@
 
 - **Statut** : Accepté
 - **Date** : 2026-07-21
-- **Décideurs** : Architecte firmware, expert ESP32, expert basse consommation
+- **Décideur** : Mainteneur du projet (MiiK4L)
+- **Expertises consultées** : Architecte firmware, expert ESP32, expert basse consommation
 - **Phase de roadmap** : 0
 - **Domaines impactés** : firmware, os
 - **Tags** : firmware, rtos, esp32, fondation
@@ -70,14 +71,14 @@ pas déléguée au framework.
   applicative dans les limites du contrat du Companion SDK, sans garantie
   absolue (voir ADR-0007).
 
-## 7. Réserves — à valider ultérieurement (non figé)
+## 6. Portée — éléments non requis en prototypage
 
-> Ce qui est **acté** : **ESP-IDF/FreeRTOS** comme fondation, confinés sous la
-> HAL. Ce qui **n'est pas un prérequis de prototypage** :
+> La décision (ESP-IDF/FreeRTOS comme fondation, confinés aux adaptateurs) est
+> **Acceptée** et stable. Précision de portée :
 > - **Secure Boot**, **Flash Encryption** et **signature OTA** sont des cibles
 >   de maturité « production », activées progressivement — **pas** exigées
 >   pendant le prototypage (elles compliquent le flashage/debug). Leur activation
 >   fera l'objet d'une décision dédiée le moment venu.
 
-## 6. Liens
+## 7. Liens
 - [ADR-0007](0007-hal-et-companion-sdk.md) · [ADR-0002](0002-modele-execution-applications.md)

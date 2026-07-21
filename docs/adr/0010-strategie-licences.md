@@ -2,7 +2,8 @@
 
 - **Statut** : Accepté
 - **Date** : 2026-07-21
-- **Décideurs** : Mainteneur, expert documentation, expert juridique open source
+- **Décideur** : Mainteneur du projet (MiiK4L)
+- **Expertises consultées** : Mainteneur, expert documentation, expert juridique open source
 - **Phase de roadmap** : 0
 - **Domaines impactés** : tous
 - **Tags** : licences, open-source, gouvernance

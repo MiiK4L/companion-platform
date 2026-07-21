@@ -1,8 +1,9 @@
 # ADR-NNNN : Titre court de la décision
 
-- **Statut** : Proposé | Accepté | Remplacé par [ADR-XXXX] | Déprécié
+- **Statut** : Proposé | Accepté | Rejeté | Remplacé par ADR-XXXX
 - **Date** : AAAA-MM-JJ
-- **Décideurs** : (rôles / personnes)
+- **Décideur** : Mainteneur du projet (MiiK4L)
+- **Expertises consultées** : (domaines pertinents : firmware, électronique, énergie…)
 - **Phase de roadmap** : (0–15)
 - **Domaines impactés** : firmware | hardware | os | cx-bus | apps | docs | ci
 - **Tags** : (mots-clés)

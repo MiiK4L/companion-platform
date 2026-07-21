@@ -1,10 +1,9 @@
 # ADR-0003 : Écran TFT IPS couleur abstrait par un moteur graphique
 
-- **Statut** : Accepté (orientation) — la **famille** d'écran (TFT IPS couleur)
-  et l'abstraction sont actées ; le **contrôleur exact**, les **dimensions /
-  résolution** et le **budget RAM de LVGL** sont à valider en Phase 1.
+- **Statut** : Accepté
 - **Date** : 2026-07-21
-- **Décideurs** : Expert UX/UI embarquée, architecte électronique, expert énergie
+- **Décideur** : Mainteneur du projet (MiiK4L)
+- **Expertises consultées** : Expert UX/UI embarquée, architecte électronique, expert énergie
 - **Phase de roadmap** : 0
 - **Domaines impactés** : hardware, os, apps
 - **Tags** : écran, ui, lvgl, énergie
@@ -37,16 +36,20 @@ coût. Deux objectifs du cahier des charges sont en tension directe :
 
 ## 3. Décision
 
-**TFT IPS couleur**, avec les exigences d'architecture suivantes :
-- abstraction **complète** du matériel d'affichage via un **moteur graphique**
-  (LVGL retenu comme candidat) ;
-- **aucune application ne dépend directement du contrôleur LCD** ;
+> **Portée du statut.** Seul le *principe* ci-dessous est **Accepté**. Les éléments listés en §6 (Décisions différées) sont au statut **Proposé** et seront actés par de futures ADR une fois validés par prototype.
+
+Principe d'**interface graphique abstraite** accepté :
+- abstraction **complète** du matériel d'affichage via un **moteur graphique**,
+  de sorte qu'**aucune application ne dépend directement du contrôleur d'écran** ;
 - interface fondée sur des **widgets et sprites**, pas sur des accès pixel ;
-- le **contrôleur d'écran est interchangeable** (ST7789, GC9A01, ILI9341…) sans
-  modifier les applications ;
-- **politique d'économie d'énergie agressive** : extinction automatique du
-  rétroéclairage, power-gating si possible, deep sleep système — de sorte que le
-  choix d'un TFT n'impacte pas significativement l'autonomie en usage réel.
+- le **contrôleur d'écran est interchangeable** sans modifier les applications ;
+- **politique d'économie d'énergie agressive** de l'écran : extinction
+  automatique du rétroéclairage, power-gating si possible, deep sleep système.
+
+Les choix spécifiques — **famille TFT IPS couleur**, moteur **LVGL**,
+**contrôleur** exact (ST7789 / GC9A01 / ILI9341 / autre), **dimensions /
+résolution** et **budget RAM** — relèvent des décisions différées (§6) : ils ne
+sont pas actés comme définitifs par la présente ADR.
 
 ## 4. Raisons du choix
 
@@ -70,16 +73,17 @@ protège aussi l'approvisionnement (un contrôleur peut disparaître du marché)
   rétroéclairage.
 - La HAL doit exposer une interface « display » indépendante du contrôleur.
 
-## 7. Réserves — à valider en Phase 1 (non figé)
+## 6. Décisions différées (statut : Proposé — à valider par prototype)
 
-> Ce qui est **acté** : écran **couleur TFT IPS**, abstraction par moteur
-> graphique, indépendance des apps vis-à-vis du contrôleur, gestion d'énergie
-> agressive. Ce qui **reste à mesurer/choisir** :
-> - le **contrôleur** précis (ST7789 / GC9A01 / ILI9341 / autre) ;
-> - les **dimensions et la résolution** définitives ;
-> - le **budget RAM réel de LVGL** (buffers, tampon(s) de rafraîchissement) et
->   son impact sur la mémoire disponible ;
-> - la **consommation réelle** de l'écran par mode, mesurée sur prototype.
+Éléments au statut **Proposé**, qui feront l'objet de futures ADR une fois
+validés (prototype P2) :
+- le choix de la famille **TFT IPS couleur** ;
+- le choix du moteur graphique **LVGL** ;
+- le **contrôleur** précis (ST7789 / GC9A01 / ILI9341 / autre) ;
+- les **dimensions et la résolution** définitives ;
+- le **budget RAM** (buffers, tampon(s) de rafraîchissement) et son impact sur
+  la mémoire disponible ;
+- la **consommation réelle** de l'écran par mode, mesurée sur prototype.
 
-## 6. Liens
+## 7. Liens
 - [ADR-0007](0007-hal-et-companion-sdk.md) · [ADR-0008](0008-architecture-alimentation.md)

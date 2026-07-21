@@ -21,14 +21,14 @@ dossier.
 |-----|-------|--------|-------|
 | [0000](0000-adopter-les-adr.md) | Adopter les ADR pour tracer les décisions | Accepté | 0 |
 | [0001](0001-framework-firmware-esp-idf.md) | Framework firmware : ESP-IDF comme fondation | Accepté | 0 |
-| [0002](0002-modele-execution-applications.md) | Modèle d'exécution des applications : hybride natif + Lua | Accepté (orientation) | 0 |
-| [0003](0003-technologie-et-abstraction-ecran.md) | Écran TFT IPS couleur abstrait par un moteur graphique | Accepté (orientation) | 0 |
-| [0004](0004-coeur-de-calcul-socket.md) | Cœur de calcul XIAO ESP32-S3 socketé et remplaçable | Accepté (orientation) | 0 |
-| [0005](0005-standard-cx-bus-et-identification.md) | Standard d'extension CX-Bus et identification par EEPROM | Accepté (principes) | 0 |
+| [0002](0002-modele-execution-applications.md) | Runtime hybride extensible (principe) ; Lua + install dynamique = Proposé | Accepté | 0 |
+| [0003](0003-technologie-et-abstraction-ecran.md) | Interface graphique abstraite (principe) ; TFT/LVGL/format = Proposé | Accepté | 0 |
+| [0004](0004-coeur-de-calcul-socket.md) | Cœur de calcul remplaçable (principe) ; socketage = Proposé | Accepté | 0 |
+| [0005](0005-standard-cx-bus-et-identification.md) | Modules auto-identifiés + connecteur unique (principe) ; EEPROM/hot-plug = Proposé | Accepté | 0 |
 | [0006](0006-nommage-cx-bus.md) | Nommage du standard : CX-Bus (abandon de « MCP ») | Accepté | 0 |
 | [0007](0007-hal-et-companion-sdk.md) | Inversion des dépendances : HAL + Companion SDK | Accepté | 0 |
-| [0008](0008-architecture-alimentation.md) | Architecture d'alimentation : jauge + power-gating | Accepté (principes) | 0 |
-| [0009](0009-rtc-externe-et-persistance-etat.md) | RTC externe et persistance d'état hors tension | Accepté (principes) | 0 |
+| [0008](0008-architecture-alimentation.md) | Gestion d'énergie explicite (principe) ; jauge/budget/batterie = Proposé | Accepté | 0 |
+| [0009](0009-rtc-externe-et-persistance-etat.md) | Base de temps fiable + persistance + Δt (principe) ; RTC externe/PCF8563 = Proposé | Accepté | 0 |
 | [0010](0010-strategie-licences.md) | Stratégie de licences multi-composants | Accepté | 0 |
 | [0011](0011-docs-as-code.md) | Documentation as code plutôt que Wiki GitHub | Accepté | 0 |
 | [0012](0012-monorepo-et-versioning.md) | Monorepo et versioning SemVer par domaine | Accepté | 0 |

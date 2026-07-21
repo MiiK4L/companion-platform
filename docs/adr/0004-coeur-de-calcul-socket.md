@@ -1,10 +1,9 @@
 # ADR-0004 : Cœur de calcul XIAO ESP32-S3 socketé et remplaçable
 
-- **Statut** : Accepté (orientation) — le principe d'un cœur **remplaçable** est
-  acté ; le **socketage** concret (fiabilité mécanique/électrique du contact,
-  impact épaisseur) est à confirmer par prototype/mesure en Phase 1.
+- **Statut** : Accepté
 - **Date** : 2026-07-21
-- **Décideurs** : Architecte système, expert PCB, architecte électronique
+- **Décideur** : Mainteneur du projet (MiiK4L)
+- **Expertises consultées** : Architecte système, expert PCB, architecte électronique
 - **Phase de roadmap** : 0
 - **Domaines impactés** : hardware
 - **Tags** : mcu, xiao, esp32-s3, modularité, réparabilité
@@ -40,8 +39,16 @@ remplaçable ?
 
 ## 3. Décision
 
-Le cœur de calcul **XIAO ESP32-S3 est socketé** (embases femelles standard
-2,54 mm sur la carte mère « CX-Bus Host »), donc **remplaçable sans dessouder**.
+> **Portée du statut.** Seul le *principe* ci-dessous est **Accepté**. Les éléments listés en §6 (Décisions différées) sont au statut **Proposé** et seront actés par de futures ADR une fois validés par prototype.
+
+Principe accepté : le cœur de calcul (XIAO ESP32-S3) doit être **remplaçable**,
+c'est-à-dire **non soudé définitivement** à la carte mère, afin de garantir la
+longévité et la réparabilité de la plateforme.
+
+La mise en œuvre concrète par **socketage** (embases femelles standard 2,54 mm
+sur la carte mère « CX-Bus Host ») est la solution pressentie, mais relève des
+décisions différées (§6) : sa fiabilité mécanique/électrique et son impact sur
+l'épaisseur ne sont pas actés comme définitifs par la présente ADR.
 
 ## 4. Raisons du choix
 
@@ -65,15 +72,16 @@ opération de remplacement, et laisse la porte ouverte à une future carte custo
   stratégie de bus dans [ADR-0005](0005-standard-cx-bus-et-identification.md) et
   la carte mère.
 
-## 7. Réserves — à valider en Phase 1 (non figé)
+## 6. Décisions différées (statut : Proposé — à valider par prototype)
 
-> Ce qui est **acté** : l'**exigence** d'un cœur de calcul remplaçable (non
-> soudé définitivement) pour la longévité. Ce qui **reste à prouver** :
-> - la fiabilité du **contact socketé** en usage nomade (vibrations, insertions,
->   résistance de contact) ;
-> - l'**impact réel sur l'épaisseur** et le boîtier ;
-> - l'alternative éventuelle (Option C : carte custom) reste ouverte si le
->   prototype révèle un problème.
+Éléments au statut **Proposé**, qui feront l'objet de futures ADR une fois
+validés :
+- le **socketage** concret du XIAO (embases 2,54 mm) et la fiabilité du
+  **contact socketé** en usage nomade (vibrations, insertions, résistance de
+  contact) — à valider par prototype ;
+- l'**impact réel sur l'épaisseur** et le boîtier ;
+- l'alternative éventuelle (Option C : carte custom) reste ouverte si le
+  prototype révèle un problème.
 
-## 6. Liens
+## 7. Liens
 - [ADR-0005](0005-standard-cx-bus-et-identification.md) · [ADR-0008](0008-architecture-alimentation.md)

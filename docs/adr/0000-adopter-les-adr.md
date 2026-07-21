@@ -2,7 +2,8 @@
 
 - **Statut** : Accepté
 - **Date** : 2026-07-21
-- **Décideurs** : Mainteneur (Mickaël), bureau d'études
+- **Décideur** : Mainteneur du projet (MiiK4L)
+- **Expertises consultées** : Mainteneur (Mickaël), bureau d'études
 - **Phase de roadmap** : 0
 - **Domaines impactés** : docs, tous
 - **Tags** : gouvernance, traçabilité, méthode
@@ -37,8 +38,32 @@ relu en revue, et durable.
 
 Toute décision d'architecture importante est enregistrée sous forme d'**ADR**
 en Markdown dans `docs/adr/`, au format **MADR** défini par
-[`template.md`](template.md). Une ADR acceptée est **immuable** : on la remplace
-par une nouvelle ADR plutôt que de la réécrire.
+[`template.md`](template.md). Le **contenu** d'une ADR **Acceptée** est
+**immuable** : pour revenir dessus, on crée une **nouvelle** ADR qui la
+**remplace** (on ne réécrit pas une décision acceptée).
+
+### Statuts autorisés
+
+Une ADR porte **un seul** statut, choisi parmi :
+
+| Statut | Sens |
+|--------|------|
+| **Proposé** | Décision envisagée, **pas encore actée** (peut être invalidée, ex. tant qu'un prototype ne l'a pas confirmée). |
+| **Accepté** | Décision **stable et engageante**. Immuable dans son contenu. |
+| **Rejeté** | Option étudiée puis écartée (conservée pour la trace). |
+| **Remplacé par ADR-xxxx** | Anciennement acceptée, supplantée par une nouvelle ADR. |
+
+**Règle de rigueur** : on n'enregistre **Accepté** que ce qui est réellement
+stable. Un choix qui dépend encore d'une mesure ou d'un prototype reste
+**Proposé**. Lorsqu'une ADR mêle un **principe stable** et des **hypothèses à
+valider**, seul le principe est *Accepté* ; les hypothèses sont listées comme
+**Proposé** dans une section « Décisions différées » et feront l'objet de futures
+ADR une fois validées.
+
+### Ordre des sections
+
+Les sections sont numérotées de façon **croissante et continue** ; la section
+**Liens** est toujours la **dernière**.
 
 ## 4. Raisons du choix
 

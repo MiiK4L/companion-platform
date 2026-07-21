@@ -1,10 +1,9 @@
 # ADR-0002 : Modèle d'exécution des applications — hybride natif + Lua
 
-- **Statut** : Accepté (orientation d'architecture) — le choix du runtime **Lua**
-  et la **faisabilité réelle de l'installation dynamique** d'apps sont à valider
-  par prototype en Phase 1.
+- **Statut** : Accepté
 - **Date** : 2026-07-21
-- **Décideurs** : Architecte logiciel embarqué, expert optimisation mémoire
+- **Décideur** : Mainteneur du projet (MiiK4L)
+- **Expertises consultées** : Architecte logiciel embarqué, expert optimisation mémoire
 - **Phase de roadmap** : 0
 - **Domaines impactés** : os, apps, firmware
 - **Tags** : runtime, apps, lua, wasm, extensibilité
@@ -46,15 +45,21 @@ contribuer des apps sans toucher au cœur.
 
 ## 3. Décision
 
-Modèle **hybride** :
+> **Portée du statut.** Seul le *principe* ci-dessous est **Accepté**. Les éléments listés en §6 (Décisions différées) sont au statut **Proposé** et seront actés par de futures ADR une fois validés par prototype.
+
+Principe **hybride** accepté :
 - Les **services critiques** (OS, noyau, drivers, HAL, gestion des modules,
   sécurité, alimentation, communications) restent **natifs**.
 - Les **applications, jeux, widgets et extensions** s'exécutent dans un
-  **runtime de script**, et sont **installables indépendamment du firmware**.
-- Le runtime de la **V1 est Lua** (légèreté, simplicité d'intégration).
+  **runtime de script**, et sont conçus pour être **installables indépendamment
+  du firmware**.
 - L'architecture est bâtie autour d'une **abstraction de runtime** afin de
-  pouvoir ajouter **WASM** (ou un autre runtime) plus tard **sans modifier le
-  reste de l'OS**.
+  pouvoir changer ou ajouter un moteur (Lua, WASM ou autre) plus tard **en
+  limitant l'impact sur le reste de l'OS**.
+
+Le choix du runtime concret de la V1 (**Lua** pressenti) et la **faisabilité de
+l'installation dynamique** d'apps relèvent des décisions différées (§6) : ils ne
+sont pas actés comme définitifs par la présente ADR.
 
 ## 4. Raisons du choix
 
@@ -74,18 +79,19 @@ la logique « qualité et évolutivité avant rapidité ».
 - Les apps scriptées sont plus lentes que du natif (acceptable pour de l'UI/jeux).
 
 ### Impacts futurs
-- Le Companion SDK doit exposer une API stable, liable à la fois en natif et en
-  Lua (voir [ADR-0007](0007-hal-et-companion-sdk.md)).
+- Le Companion SDK doit exposer une API stable, utilisable depuis C natif comme
+  depuis Lua (voir [ADR-0007](0007-hal-et-companion-sdk.md)).
 - Un futur backend WASM se branche derrière l'abstraction de runtime.
 
-## 7. Réserves — à valider en Phase 1 (non figé)
+## 6. Décisions différées (statut : Proposé — à valider par prototype)
 
-> Ce qui est **acté** : le modèle **hybride** (cœur natif + apps scriptées) et le
-> principe d'**abstraction de runtime**. Ce qui **reste à prouver** :
-> - le choix définitif du runtime **Lua** (empreinte RAM/flash réelle, intégration) ;
-> - les **capacités réalistes d'installation dynamique** d'apps sur ESP32-S3
->   (mécanisme, limites, sécurité) — à démontrer par prototype avant d'être
->   considérées comme une fonctionnalité garantie.
+Éléments au statut **Proposé**, qui feront l'objet de futures ADR une fois
+validés :
+- le choix du runtime **Lua** comme moteur de script de la V1 (empreinte
+  RAM/flash réelle, intégration) — à valider (prototype P8) ;
+- la **faisabilité de l'installation dynamique** d'apps sur ESP32-S3
+  (mécanisme, limites, sécurité) — à démontrer par prototype (P8) avant d'être
+  considérée comme une fonctionnalité garantie.
 
-## 6. Liens
+## 7. Liens
 - [ADR-0007](0007-hal-et-companion-sdk.md) · [ADR-0001](0001-framework-firmware-esp-idf.md)

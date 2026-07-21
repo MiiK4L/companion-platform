@@ -1,11 +1,9 @@
 # ADR-0005 : Standard d'extension CX-Bus et identification par EEPROM
 
-- **Statut** : Accepté (principes) — le mécanisme d'**identification par EEPROM**
-  et le **connecteur unique** sont actés ; **connecteur physique, brochage,
-  budget de courant et stratégie de hot-plug** sont spécifiés/validés en Phase 1
-  (cf. marqueurs ⏳ de la SPEC).
+- **Statut** : Accepté
 - **Date** : 2026-07-21
-- **Décideurs** : Architecte système, architecte électronique, expert protocoles
+- **Décideur** : Mainteneur du projet (MiiK4L)
+- **Expertises consultées** : Architecte système, architecte électronique, expert protocoles
 - **Phase de roadmap** : 0 (spécification détaillée en Phase 1)
 - **Domaines impactés** : hardware, cx-bus, os, modules
 - **Tags** : cx-bus, modularité, identification, eeprom, hot-plug
@@ -40,22 +38,27 @@ sans que la carte mère embarque aucun capteur applicatif.
 
 ## 3. Décision
 
+> **Portée du statut.** Seul le *principe* ci-dessous est **Accepté**. Les éléments listés en §6 (Décisions différées) sont au statut **Proposé** et seront actés par de futures ADR une fois validés par prototype.
+
 Création du standard **CX-Bus** (voir [ADR-0006](0006-nommage-cx-bus.md) pour le
-nom). Principes actés en Phase 0 :
-- **connecteur unique** ; interface identique pour tous les modules ;
-- chaque module embarque une **EEPROM I²C** contenant un descripteur normalisé,
-  le **CX-Bus Manifest** (magic, version de protocole, vendor/product ID,
-  version matérielle, nom, auteur, UUID, capacités, brochage requis, liste des
-  apps exposées, CRC) ;
-- séquence au démarrage / hot-plug : *détection présence → alimentation module →
-  lecture EEPROM → validation Manifest → chargement drivers → apparition des
-  apps* ;
+nom). Principe accepté :
+- des **modules auto-identifiés** : chaque module est capable de se décrire lui-même ;
+- une **interface d'extension unique** : un connecteur unique et une interface
+  identique pour tous les modules ;
 - support de type C (modules à MCU) possible par-dessus, sans l'imposer aux
   modules passifs.
 
+Le mécanisme d'auto-identification pressenti est une **EEPROM I²C** par module
+contenant un descripteur normalisé, le **CX-Bus Manifest** (magic, version de
+protocole, vendor/product ID, version matérielle, nom, auteur, UUID, capacités,
+brochage requis, liste des apps exposées, CRC). Ce mécanisme, le **format
+binaire** du Manifest et la **séquence de hot-plug** détaillée ne sont **pas**
+actés comme définitifs par la présente ADR : ils relèvent des décisions
+différées (§6).
+
 Le format binaire exact, le brochage, le connecteur physique et le format
-mécanique sont **spécifiés en Phase 1** dans
-[`standards/cx-bus/SPEC-CX-Bus-1.0.md`](https://github.com/MiiK4L/companion-platform/blob/main/standards/cx-bus/SPEC-CX-Bus-1.0.md).
+mécanique sont spécifiés dans
+[`standards/cx-bus/SPEC-CX-Bus-1.0.md`](../../standards/cx-bus/SPEC-CX-Bus-1.0.md).
 
 ## 4. Raisons du choix
 
@@ -80,16 +83,21 @@ un écosystème de modules tiers.
   règles de compatibilité ascendante à définir en Phase 1.
 - Toute application « module » (GPS, CO₂, réseau…) s'appuie sur ce mécanisme.
 
-## 7. Réserves — à valider en Phase 1 (non figé)
+## 6. Décisions différées (statut : Proposé — à valider par prototype)
 
-> Ce qui est **acté** : identification par **EEPROM I²C** (CX-Bus Manifest),
-> connecteur **unique** et interface identique pour tous les modules. Ce qui
-> **reste à trancher** (tous marqués ⏳ dans la SPEC) :
-> - la **famille de connecteur** physique (card-edge/board-to-board/FPC/pogo) ;
-> - le **brochage** définitif et les niveaux logiques ;
-> - le **budget de courant** par module et le power-gating ;
-> - la **stratégie de hot-plug** exacte (détection, séquencement, debounce) ;
-> - le **plan d'adressage I²C** et l'arbitrage du SPI partagé.
+Éléments au statut **Proposé**, qui feront l'objet de futures ADR une fois
+validés expérimentalement — notamment tant que les **contraintes électriques**
+(sûreté, isolation, back-powering) ne sont pas démontrées (cf. SPEC §7 et le lot
+sûreté électrique de Phase 1) :
+- l'**identification par EEPROM I²C** (CX-Bus Manifest) comme mécanisme
+  définitif, et le **format binaire** du Manifest ;
+- la **stratégie de hot-plug** détaillée (détection présence, alimentation
+  module, lecture EEPROM, validation Manifest, chargement drivers, apparition
+  des apps ; séquencement, debounce) ;
+- la **famille de connecteur** physique (card-edge/board-to-board/FPC/pogo) ;
+- le **brochage** définitif et les niveaux logiques ;
+- le **budget de courant** par module et le power-gating ;
+- le **plan d'adressage I²C** et l'arbitrage du SPI partagé.
 
-## 6. Liens
-- [ADR-0006](0006-nommage-cx-bus.md) · [ADR-0004](0004-coeur-de-calcul-socket.md) · [SPEC CX-Bus 1.0](https://github.com/MiiK4L/companion-platform/blob/main/standards/cx-bus/SPEC-CX-Bus-1.0.md)
+## 7. Liens
+- [ADR-0006](0006-nommage-cx-bus.md) · [ADR-0004](0004-coeur-de-calcul-socket.md) · [SPEC CX-Bus 1.0](../../standards/cx-bus/SPEC-CX-Bus-1.0.md)

@@ -2,7 +2,8 @@
 
 - **Statut** : Accepté
 - **Date** : 2026-07-21
-- **Décideurs** : Expert GitHub, chef de projet technique
+- **Décideur** : Mainteneur du projet (MiiK4L)
+- **Expertises consultées** : Expert GitHub, chef de projet technique
 - **Phase de roadmap** : 0
 - **Domaines impactés** : tous, ci
 - **Tags** : monorepo, versioning, semver, git

@@ -2,7 +2,8 @@
 
 - **Statut** : Accepté
 - **Date** : 2026-07-21
-- **Décideurs** : Mainteneur, expert documentation
+- **Décideur** : Mainteneur du projet (MiiK4L)
+- **Expertises consultées** : Mainteneur, expert documentation
 - **Phase de roadmap** : 0
 - **Domaines impactés** : cx-bus, docs
 - **Tags** : nommage, marque, standard
