@@ -1,0 +1,77 @@
+site_name: Companion Platform
+site_description: >-
+  Plateforme électronique de poche open source, modulaire et évolutive,
+  basée sur Seeed XIAO ESP32-S3.
+site_url: https://miik4l.github.io/companion-platform/
+repo_url: https://github.com/MiiK4L/companion-platform
+repo_name: MiiK4L/companion-platform
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  language: fr
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-night
+        name: Basculer en mode sombre
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-sunny
+        name: Basculer en mode clair
+  features:
+    - navigation.instant
+    - navigation.sections
+    - navigation.top
+    - content.action.edit
+
+plugins:
+  - search
+
+validation:
+  omitted_files: warn
+  absolute_links: warn
+  unrecognized_links: warn
+  nav:
+    # Les fichiers non listés dans la nav (ex. template d'ADR) ne font pas
+    # échouer le build --strict : ils restent accessibles via les liens.
+    omitted_files: info
+
+nav:
+  - Accueil: index.md
+  - Architecture:
+      - Vue d'ensemble: architecture/overview.md
+      - Matériel: architecture/hardware.md
+      - Système d'exploitation: architecture/software-os.md
+      - Inversion des dépendances: architecture/dependency-inversion.md
+      - Glossaire: architecture/glossary.md
+  - Standard CX-Bus: standards/cx-bus.md
+  - Décisions (ADR):
+      - Registre des ADR: adr/README.md
+      - "ADR-0000 · Adopter les ADR": adr/0000-adopter-les-adr.md
+      - "ADR-0001 · Framework firmware (ESP-IDF)": adr/0001-framework-firmware-esp-idf.md
+      - "ADR-0002 · Runtime des applications": adr/0002-modele-execution-applications.md
+      - "ADR-0003 · Écran & abstraction": adr/0003-technologie-et-abstraction-ecran.md
+      - "ADR-0004 · Cœur socketé": adr/0004-coeur-de-calcul-socket.md
+      - "ADR-0005 · Standard CX-Bus & EEPROM": adr/0005-standard-cx-bus-et-identification.md
+      - "ADR-0006 · Nommage CX-Bus": adr/0006-nommage-cx-bus.md
+      - "ADR-0007 · HAL & Companion SDK": adr/0007-hal-et-companion-sdk.md
+      - "ADR-0008 · Alimentation": adr/0008-architecture-alimentation.md
+      - "ADR-0009 · RTC & persistance": adr/0009-rtc-externe-et-persistance-etat.md
+      - "ADR-0010 · Licences": adr/0010-strategie-licences.md
+      - "ADR-0011 · Docs-as-code": adr/0011-docs-as-code.md
+      - "ADR-0012 · Monorepo & versioning": adr/0012-monorepo-et-versioning.md
+  - Roadmap: roadmap.md
+  - Guides:
+      - Contribuer au code: guides/contributing-code.md
+      - Style de code: guides/code-style.md
+      - Développer une app: guides/app-development.md
+      - Développer un module: guides/module-development.md
+      - Build et flash: guides/build-and-flash.md
+      - Charte graphique: guides/graphic-style.md

@@ -1,0 +1,39 @@
+# Stratégie de mise à jour des dépendances.
+#
+# Toutes les dépendances du projet sont ÉPINGLÉES pour la reproductibilité :
+#   - GitHub Actions : épinglées au SHA de commit (sécurisé) dans les workflows,
+#     avec un commentaire indiquant la version lisible ;
+#   - dépendances Python de la documentation : verrou complet dans
+#     docs/requirements.txt.
+#
+# Dependabot ouvre automatiquement des Pull Requests hebdomadaires pour proposer
+# les montées de version. Chaque montée est donc RELUE et validée comme tout
+# autre changement (CI verte + revue), jamais appliquée en aveugle. Pour les
+# Actions, Dependabot met à jour à la fois le SHA et le commentaire de version.
+#
+# (Renovate est une alternative possible ; Dependabot est retenu car natif à
+# GitHub et sans service tiers à autoriser.)
+
+version: 2
+updates:
+  # GitHub Actions utilisées par les workflows CI
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "ci"
+    labels:
+      - "type:chore"
+      - "domain:ci"
+
+  # Dépendances Python du site de documentation (verrou épinglé)
+  - package-ecosystem: "pip"
+    directory: "/docs"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "chore"
+    labels:
+      - "type:chore"
+      - "domain:docs"
