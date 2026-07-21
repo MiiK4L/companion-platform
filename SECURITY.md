@@ -1,84 +1,68 @@
 # Politique de sécurité
 
-Companion Platform est un appareil électronique connecté (Wi-Fi/BLE via
-Seeed XIAO ESP32-S3) destiné à durer des années et à accueillir de
-nombreuses apps et modules tiers. La sécurité du firmware, du processus de
-mise à jour et de l'écosystème CX-Bus est donc traitée avec sérieux, dès les
-premières phases du projet.
+Companion Platform est un appareil connecté (Wi-Fi/BLE via Seeed XIAO ESP32-S3),
+conçu pour durer et pour accueillir des apps et des modules **tiers**. La
+sécurité est prise au sérieux, mais ce document décrit un **état de projet en
+Phase 0** : plusieurs mécanismes sont **prévus**, non implémentés, et le
+**modèle de menace est encore en construction**.
 
 ## Périmètre
 
-Sont couverts par cette politique :
+Sont concernés : le **firmware** (kernel, adaptateurs/drivers, services, Companion
+SDK), le **processus de mise à jour** (OTA prévu), le standard **CX-Bus**
+(identification et communication des modules), et les **outils** officiels
+(`tools/`) manipulant des artefacts de build/flash/provisioning.
 
-- Le **firmware** (kernel, HAL, drivers, services, Companion SDK).
-- Le **processus de mise à jour** du firmware, notamment les mécanismes
-  **OTA (Over-The-Air)** prévus dans la roadmap.
-- Les mécanismes matériels de démarrage sécurisé prévus pour l'ESP32-S3 :
-  **Secure Boot** et **Flash Encryption** (à activer en configuration de
-  production lorsque la plateforme atteindra la maturité correspondante).
-- Le protocole et le standard **CX-Bus** (identification des modules,
-  communication inter-cartes).
-- Les outils officiels (`tools/`) lorsqu'ils manipulent des artefacts de
-  build, de flash ou de provisioning.
-
-Ne sont **pas couverts** par cette politique (à traiter comme des bugs
-fonctionnels classiques via les Issues, pas comme des vulnérabilités) :
-
-- Les apps ou modules tiers non maintenus par le projet, sauf si la faille
-  provient d'une API du Companion SDK ou de la HAL elle-même.
-- Les problèmes purement esthétiques ou d'ergonomie sans impact sur la
-  sécurité.
-
-> **État du projet.** Les mécanismes Secure Boot, Flash Encryption et OTA
-> sécurisé sont **prévus** mais pas nécessairement tous implémentés à ce
-> stade du projet. Consultez `docs/roadmap.md` et les ADR concernées pour
-> l'état d'avancement réel. Un signalement reste pertinent même sur des
-> mécanismes en cours de conception.
+> **Secure Boot, Flash Encryption et OTA signé ne constituent pas, à eux seuls,
+> la sécurité des applications.** Ce sont des cibles de **production** (ESP-IDF),
+> non requises en prototypage. La confiance envers les **modules physiques**, les
+> **Manifests** et les **paquets Lua** relève du modèle de menace ci-dessous, qui
+> est une problématique distincte.
 
 ## Signaler une vulnérabilité
 
-**Merci de ne pas ouvrir d'Issue publique pour une vulnérabilité de
-sécurité.** La divulgation publique avant correction expose l'ensemble des
-utilisateurs de la plateforme.
+**N'ouvrez pas d'Issue publique** pour une vulnérabilité.
 
-Pour signaler une vulnérabilité de façon responsable, utilisez les
-**GitHub Security Advisories privés** du dépôt :
+- **État actuel : le dépôt est privé.** Le *Private Vulnerability Reporting* de
+  GitHub n'est **pas disponible** dans la configuration actuelle (offre/visibilité) —
+  vérifié le 2026-07-21 (l'API renvoie 404). Aucun canal public n'est donc encore
+  publié, et **aucune adresse de contact n'est inventée ici**.
+- **Avant le passage en public**, un **canal privé valide sera établi et publié**
+  dans ce fichier : activation du *Private Vulnerability Reporting* sur le dépôt
+  public (onglet **Security → Report a vulnerability**) et/ou un contact de
+  sécurité dédié. Cette section sera mise à jour à ce moment-là.
+- Tant que le dépôt reste privé, seul le mainteneur y a accès ; un signalement se
+  fait directement auprès de lui par un moyen privé convenu.
 
-1. Rendez-vous sur l'onglet **Security** du dépôt GitHub.
-2. Cliquez sur **Report a vulnerability** pour ouvrir un avis de sécurité
-   privé, visible uniquement par les mainteneurs.
-3. Décrivez le problème avec autant de détails que possible :
-   - Composant concerné (firmware, HAL, driver, OTA, CX-Bus, outil...).
-   - Version ou tag concerné (ex. `fw-1.2.0`, `os-0.1.0`).
-   - Étapes de reproduction, preuve de concept si disponible.
-   - Impact estimé (exécution de code, déni de service, fuite
-     d'information, contournement de Secure Boot, etc.).
+Merci de ne pas tester une vulnérabilité sur du matériel ou une infrastructure
+de tiers sans autorisation.
 
-Si GitHub Security Advisories n'est pas accessible pour une raison
-quelconque, contactez l'équipe via un canal privé listé dans les
-Discussions du dépôt, en indiquant clairement qu'il s'agit d'un
-signalement de sécurité.
+## Versions supportées
 
-Merci de ne pas tester une vulnérabilité potentielle sur du matériel ou une
-infrastructure appartenant à des tiers sans leur autorisation.
+Aucune release publique n'existe encore. Un **tableau des versions supportées**
+sera ajouté ici dès la première release (par domaine : `fw-`, `spec-`, etc.).
 
-## Délais de réponse indicatifs
+## Modèle de menace (à développer)
 
-Ces délais sont des objectifs, pas des garanties contractuelles :
+Un modèle de menace **dédié** sera élaboré (Phase 1+). Il devra couvrir au moins :
 
-| Étape                                            | Délai indicatif        |
-|---------------------------------------------------|-------------------------|
-| Accusé de réception du signalement                 | Sous 5 jours ouvrés      |
-| Première évaluation (sévérité, périmètre confirmé) | Sous 14 jours            |
-| Publication d'un correctif ou d'une mitigation     | Selon sévérité, généralement sous 90 jours |
-| Divulgation publique coordonnée                    | Après correctif disponible, en accord avec la personne ayant signalé |
+| Menace | Enjeu |
+|--------|-------|
+| **Modules physiques non fiables** | Un module tiers peut être défectueux ou malveillant (électrique et logique — voir SPEC §7 et §8). |
+| **Manifests falsifiés** | Le CRC ne garantit **pas** l'authenticité ; un Manifest peut être forgé (voir `standards/cx-bus/cx-bus-manifest.md`). |
+| **Paquets Lua non fiables** | Provenance, intégrité, permissions et exécution de code applicatif. |
+| **Permissions des apps** | Ce à quoi une app (native ou Lua) a droit via le SDK. |
+| **Clés de signature** | Gestion, stockage et rotation d'éventuelles clés. |
+| **Downgrade** | Empêcher le retour forcé à une version vulnérable. |
+| **Récupération après mise à jour échouée** | Robustesse de l'OTA (rollback sûr). |
 
-Les vulnérabilités critiques (exécution de code à distance, contournement
-de Secure Boot, compromission de la chaîne de mise à jour OTA) sont
-traitées en priorité et peuvent accélérer ce calendrier.
+> ⚠️ **Le runtime Lua n'est PAS présumé « sandboxé ».** Lua intégré n'est pas
+> automatiquement une sandbox sûre : l'isolation, les permissions et les limites
+> de ressources sont une **question de sécurité ouverte**, à concevoir et à
+> **prouver** — pas une propriété acquise.
 
-## Reconnaissance
+## Divulgation
 
-Sauf demande contraire de votre part, les personnes ayant signalé une
-vulnérabilité de façon responsable seront créditées dans les notes de
-version du correctif correspondant.
+Les vulnérabilités seront traitées de façon responsable, avec divulgation
+coordonnée après correctif. Les délais et un processus formel seront précisés
+lorsque le canal de signalement public sera en place.
