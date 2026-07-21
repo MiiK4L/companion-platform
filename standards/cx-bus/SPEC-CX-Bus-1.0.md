@@ -35,6 +35,12 @@ compatibilité ascendante. **Hors périmètre :** la logique applicative des mod
 du Companion SDK côté apps, et le détail des schémas électriques du Host (traités dans
 `hardware/`).
 
+**Topologie V1 : 1 Host = 1 slot CX-Bus = 1 Module simultané.** Le **chaînage**, les **hubs**
+et les **Host multi-slots** sont **hors périmètre V1** (sauf décision contraire ultérieure).
+En conséquence, les seules collisions à traiter en V1 sont : (a) le **module contre les
+périphériques internes du Host** ; (b) **plusieurs périphériques présents sur un même module**.
+Cela simplifie fortement le plan d'adressage (§9).
+
 ## 2. Terminologie
 
 | Terme | Définition |
@@ -209,10 +215,11 @@ et NE DOIT PAS initier de transaction perturbant un bus partagé sans y être in
 - **I²C partagé** : adressage par adresse esclave. L'EEPROM Manifest et les périphériques du
   module DOIVENT présenter des adresses ne créant pas de collision sur le bus.
 
-**Adressage I²C.** Le Manifest déclare les adresses I²C utilisées par le module. Une
-stratégie de gestion des collisions (adresses réservées, ou multiplexage/expander côté Host)
-est nécessaire pour autoriser plusieurs modules ou éviter les conflits avec les
-périphériques du Host.
+**Adressage I²C.** Le Manifest déclare les adresses I²C utilisées par le module. Compte tenu de
+la **topologie V1 (un seul module**, §1), la stratégie de gestion des collisions se limite à
+éviter les conflits entre **le module et les périphériques internes du Host** (adresses
+réservées, ou isolation/expander côté Host) et entre **périphériques d'un même module**. Le
+multi-module (chaînage/hub) est hors périmètre V1.
 
 > ⏳ **À définir — Phase 1** : plan d'adressage I²C réservé, protocole applicatif au-dessus
 > du transport (le cas échéant), débits SPI/I²C garantis, gestion des interruptions `IRQ`.
