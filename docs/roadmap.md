@@ -86,6 +86,7 @@ Optimisation énergie/mémoire mesurée contre les budgets ; documentation
 complète, guides finalisés, première release publique.
 
 ## Versions
-Versioning SemVer **par domaine** (tags `hw-`, `fw-`, `os-`, `spec-`, `mod-`,
-`app-`) avec matrice de compatibilité. Voir
+Versioning SemVer **par domaine**, syntaxe uniforme **`<domaine>-vX.Y.Z`** (tags
+`hw-`, `fw-`, `sdk-`, `spec-`, `mod-`, `app-`), avec matrice de compatibilité.
+Le firmware est **un seul artefact** (`fw-`) : pas de tag `os-` séparé. Voir
 [ADR-0012](adr/0012-monorepo-et-versioning.md).

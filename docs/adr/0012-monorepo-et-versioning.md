@@ -34,16 +34,24 @@ contribution et la stratégie de versions/tags.
 
 **Monorepo** unique. Découplage assuré par l'arborescence (`firmware/`,
 `hardware/`, `apps/`, `modules/`, `standards/`, `docs/`, `case/`, `tools/`).
-Versioning **SemVer par domaine** via **tags préfixés** :
+Versioning **SemVer par domaine** via **tags préfixés**. **Syntaxe uniforme :
+`<domaine>-vMAJEUR.MINEUR.CORRECTIF`** (toujours avec le `v`).
 
 | Domaine | Préfixe de tag | Exemple |
 |---------|----------------|---------|
 | Matériel (carte mère) | `hw-` | `hw-v1.0.0` |
-| Firmware | `fw-` | `fw-v0.3.1` |
-| OS / noyau | `os-` | `os-v0.3.1` |
+| Firmware (image complète) | `fw-` | `fw-v0.3.1` |
+| Companion SDK (contrat applicatif) | `sdk-` | `sdk-v0.2.0` |
 | Standard CX-Bus | `spec-` | `spec-v1.0.0` |
 | Module | `mod-<nom>-` | `mod-gps-v1.0.0` |
 | Application | `app-<nom>-` | `app-tamagotchi-v1.0.0` |
+
+**Un seul artefact firmware.** Le kernel, les services, le runtime et les
+adaptateurs/drivers sont livrés **ensemble dans une seule image** : ils partagent
+**un unique tag `fw-`**. Il n'existe **pas** de tag `os-` séparé (l'« OS » est
+inclus dans le firmware, cohérent avec `firmware/`). Un tag **`sdk-` distinct**
+n'est utilisé que si le **contrat public du Companion SDK** évolue de façon
+indépendante (compatibilité applicative), sinon il suit le firmware.
 
 Une **matrice de compatibilité** (docs) reliera les versions entre elles.
 

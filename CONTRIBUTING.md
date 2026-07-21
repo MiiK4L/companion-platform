@@ -97,15 +97,18 @@ compréhensible isolément. Squashez les commits de correction triviale
 
 ## SemVer par domaine
 
-Le versionnage sémantique s'applique indépendamment par domaine, via des
-tags préfixés :
+Le versionnage sémantique s'applique indépendamment par domaine, via des tags
+préfixés, avec une **syntaxe uniforme `<domaine>-vX.Y.Z`** (toujours le `v`) :
 
-- `hw-x.y.z` — matériel (mainboard, cartes filles)
-- `fw-x.y.z` — firmware (kernel, HAL, drivers, services)
-- `os-x.y.z` — système / runtime hybride
-- `spec-x.y.z` — spécifications (ex. CX-Bus)
-- `mod-x.y.z` — modules CX-Bus
-- `app-x.y.z` — apps officielles
+- `hw-vX.Y.Z` — matériel (mainboard, cartes filles)
+- `fw-vX.Y.Z` — firmware, **image complète** (kernel, services, runtime, adaptateurs/drivers)
+- `sdk-vX.Y.Z` — Companion SDK, **si** son contrat évolue indépendamment du firmware
+- `spec-vX.Y.Z` — spécifications (ex. CX-Bus)
+- `mod-<nom>-vX.Y.Z` — modules CX-Bus
+- `app-<nom>-vX.Y.Z` — apps officielles
+
+Il n'y a **pas** de tag `os-` : l'« OS » est inclus dans le firmware (voir
+[ADR-0012](docs/adr/0012-monorepo-et-versioning.md)).
 
 Indiquez dans votre PR si votre changement impacte une version publique
 d'un de ces domaines, afin que le mainteneur puisse planifier le tag
