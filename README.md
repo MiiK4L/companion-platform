@@ -65,7 +65,7 @@ applications automatiquement.
 | Dossier | Contenu | Licence |
 |---------|---------|---------|
 | [`docs/`](docs/) | Documentation (docs-as-code, MkDocs) + [ADR](docs/adr/README.md) | CC-BY-4.0 |
-| [`standards/cx-bus/`](standards/cx-bus/) | Le standard d'extension CX-Bus | CC-BY-4.0 / CERN-OHL-S |
+| [`standards/cx-bus/`](standards/cx-bus/) | Le standard d'extension CX-Bus (documents) | CC-BY-4.0 |
 | [`hardware/`](hardware/) | Schémas, PCB (KiCad), BOM, Gerbers | CERN-OHL-S-2.0 |
 | [`firmware/`](firmware/) | Noyau, HAL, drivers, services, Companion SDK | Apache-2.0 |
 | [`apps/`](apps/) | Une application par dossier (Lua) | Apache-2.0 (officielles) |

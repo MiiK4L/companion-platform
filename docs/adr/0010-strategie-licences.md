@@ -61,7 +61,7 @@ l'identité visuelle protège la marque le temps que le projet mûrisse.
   `LICENSING.md`.
 
 ### Impacts futurs
-- La CI pourra vérifier la présence des en-têtes SPLD/SPDX (Phase ultérieure).
+- La CI pourra vérifier la présence des en-têtes SPDX (Phase ultérieure).
 - Une future ouverture de l'identité visuelle fera l'objet d'une nouvelle ADR.
 
 ## 6. Liens

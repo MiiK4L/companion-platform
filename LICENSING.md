@@ -25,18 +25,24 @@ Le standard **CX-Bus** lui-même (`standards/cx-bus/`), en tant que
 spécification documentaire, est publié sous **CC-BY-4.0**, afin que
 n'importe qui puisse concevoir un module compatible.
 
-## Le cas particulier de l'identité visuelle
+## Le cas particulier de l'identité visuelle — copyright ≠ marque
 
-Le nom du projet, son logo, sa mascotte et les illustrations officielles
-qui l'accompagnent sont **réservés** : ils ne sont couverts ni par
-Apache-2.0, ni par CERN-OHL-S, ni par CC-BY-4.0. Cela signifie qu'en l'état
-actuel, tous les droits sur ces éléments sont conservés par le projet.
+Il faut distinguer deux natures de droits, souvent confondues :
 
-Cette réserve n'empêche pas la réutilisation du code, du matériel ou de la
-documentation : elle protège uniquement la marque et son identité visuelle
-distinctive, afin d'éviter toute confusion sur ce qui constitue une
-version « officielle » de la plateforme. Une politique de marque plus
-détaillée pourra être publiée séparément à mesure que le projet mûrit.
+- **Copyright (droit d'auteur)** sur les **œuvres graphiques** : logo, mascotte,
+  illustrations officielles. Ces œuvres sont **« tous droits réservés »** : elles
+  ne sont couvertes ni par Apache-2.0, ni par CERN-OHL-S, ni par CC-BY-4.0. Les
+  **droits appartiennent à leurs auteurs respectifs** (le ou les contributeurs
+  qui les ont créées), et non à une entité « projet » abstraite.
+- **Marque (nom / logo en tant que signe distinctif)** : le **nom** « Companion
+  Platform » et le logo relèvent du **droit des marques**, pas d'une réserve de
+  copyright. Un **nom seul** n'est d'ailleurs pas protégeable par le droit
+  d'auteur de la même façon qu'une illustration. Aucune marque n'est déposée à ce
+  stade ; l'objectif est d'éviter la confusion sur ce qui est « officiel ».
+
+Ces réserves n'empêchent pas la réutilisation du **code**, du **matériel** ou de
+la **documentation** sous leurs licences respectives. Une politique de marque
+formelle pourra être publiée séparément à mesure que le projet mûrit.
 
 ## Apps et modules tiers
 
@@ -106,9 +112,17 @@ dans le dossier [`LICENSES/`](LICENSES/) :
 - [`LICENSES/CERN-OHL-S-2.0.txt`](LICENSES/CERN-OHL-S-2.0.txt)
 - [`LICENSES/CC-BY-4.0.txt`](LICENSES/CC-BY-4.0.txt)
 
-Le fichier [`LICENSE`](LICENSE) à la racine du dépôt contient le texte
-Apache-2.0, applicable par défaut au code du monorepo (firmware, os,
-apps officielles, tools, tests) en l'absence d'indication contraire.
+Le fichier [`LICENSE`](LICENSE) à la racine contient le texte Apache-2.0.
+
+> ⚠️ **La présence de `LICENSE` (Apache-2.0) à la racine ne signifie PAS que tout
+> le dépôt est sous Apache-2.0.** C'est la licence **par défaut du code**
+> (`firmware/`, `apps/` officielles, `tools/`, `tests/`). Le **matériel**
+> (`hardware/`, `case/`), la **documentation** (`docs/`, `standards/`) et
+> l'**identité visuelle** ont leurs propres licences (tableau ci-dessus).
+
+**Méthode retenue : en-têtes SPDX par fichier** (`SPDX-License-Identifier`), qui
+priment sur toute règle par défaut. L'adoption ultérieure de **REUSE**
+(`.reuse/dep5`) pourra automatiser et vérifier cette conformité.
 
 ## En cas de doute
 
