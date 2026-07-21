@@ -12,12 +12,12 @@ valeur qu'une contribution rapide mais isolée.
 
 ## Avant de commencer
 
-- Parcourez les [Issues](../../issues) et les
-  [Discussions](../../discussions) pour vérifier qu'un sujet similaire
-  n'existe pas déjà.
-- Pour un changement significatif (nouvelle app, nouveau module, changement
-  de HAL, nouvelle dépendance), ouvrez d'abord une Issue ou une Discussion
-  afin de valider l'approche avant d'investir du temps dans le code.
+- Parcourez les [Issues du dépôt](https://github.com/MiiK4L/companion-platform/issues)
+  pour vérifier qu'un sujet similaire n'existe pas déjà. *(Les GitHub Discussions
+  ne sont pas activées à ce stade ; elles pourront l'être au passage en public.)*
+- Pour un changement significatif (nouvelle app, nouveau module, changement d'un
+  port de plateforme, nouvelle dépendance), ouvrez d'abord une **Issue** afin de
+  valider l'approche avant d'investir du temps dans le code.
 - Si votre changement remet en cause une décision d'architecture existante
   (runtime hybride, HAL, Companion SDK, CX-Bus...), consultez le dossier
   `docs/adr/` et envisagez de proposer une nouvelle ADR via le modèle
@@ -87,6 +87,14 @@ Une PR peut contenir plusieurs commits, mais chacun doit rester cohérent et
 compréhensible isolément. Squashez les commits de correction triviale
 (« fix typo », « oups ») avant de soumettre la PR.
 
+> **Types de commits vs labels — différence volontaire.** Les *types de commit*
+> suivent Conventional Commits (`feat`, `fix`, `docs`, `chore`…). Les *labels*
+> GitHub emploient une granularité orientée tri (`type:feature`, `type:bug`,
+> `type:adr`, `type:docs`…). C'est **intentionnel** : les commits décrivent la
+> *nature technique* du changement, les labels servent la *catégorisation* et la
+> recherche. Correspondance usuelle : `feat`→`type:feature`, `fix`→`type:bug`,
+> `adr`→`type:adr`, `docs`→`type:docs`.
+
 ## SemVer par domaine
 
 Le versionnage sémantique s'applique indépendamment par domaine, via des
@@ -139,11 +147,16 @@ renvoyée pour complément avant revue de fond.
   discutée puis formalisée, consultez `docs/adr/` et le modèle d'Issue
   « 📐 Proposition de décision d'architecture ».
 
-## Certificate of Origin (DCO) — recommandé
+## Certificate of Origin (DCO) — optionnel, non appliqué à ce stade
 
-Il est recommandé de signer vos commits (« sign-off ») afin de certifier
-que vous êtes l'auteur de la contribution ou que vous avez le droit de la
-soumettre sous la licence du projet, conformément au
+Le *sign-off* DCO est **entièrement optionnel** aujourd'hui : **aucune
+vérification automatique (CI DCO) n'est en place** et une PR n'est pas rejetée
+faute de sign-off. Si le projet décide plus tard de le **rendre obligatoire**,
+une **politique explicite et une CI dédiée** seront ajoutées et annoncées ici.
+
+En attendant, vous **pouvez** signer vos commits pour certifier que vous êtes
+l'auteur de la contribution ou avez le droit de la soumettre sous la licence du
+projet, conformément au
 [Developer Certificate of Origin](https://developercertificate.org/).
 
 Ajoutez `-s` à vos commits :

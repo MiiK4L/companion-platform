@@ -1,5 +1,7 @@
+# Les Issues vierges sont désactivées : utilisez un des gabarits (bug, demande
+# de fonctionnalité, proposition d'ADR).
+#
+# Les GitHub Discussions ne sont PAS activées à ce stade (dépôt privé). Aucun
+# lien de contact vers les Discussions n'est proposé ici ; il pourra être ajouté
+# lorsque les Discussions seront activées (passage en public).
 blank_issues_enabled: false
-contact_links:
-  - name: 💬 Discussions Companion Platform
-    url: https://github.com/MiiK4L/companion-platform/discussions
-    about: Pour les questions ouvertes, les idées non formalisées ou les échanges avec la communauté, utilisez les Discussions plutôt qu'une Issue.
