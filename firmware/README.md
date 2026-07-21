@@ -1,65 +1,63 @@
 # Firmware — Companion Platform
 
-> Statut : **Phase 0 — Fondations**. Ce document fige l'organisation en couches et les règles
-> de dépendance. Les API détaillées sont marquées « ⏳ À définir » dans les couches concernées.
+> Statut : **Phase 0 — Fondations**. Ce document fige le **modèle de dépendances** et le rôle
+> de chaque composant. Les API détaillées sont marquées « ⏳ À définir » dans les couches concernées.
 
-Le firmware de la Companion Platform est organisé en **couches strictement empilées**,
-gouvernées par le **principe d'inversion des dépendances matérielles**. C'est la clé de la
-durabilité : MCU, RTOS, écran et runtime doivent tous être remplaçables sans réécrire les apps.
+Le firmware suit un modèle **ports / adaptateurs** (voir
+[docs/architecture/dependency-inversion.md](../docs/architecture/dependency-inversion.md)),
+et non une pile de couches strictes. Les **ports** (interfaces abstraites) sont portables et ne
+connaissent aucune implémentation ; les **adaptateurs** concrets dépendent des ports qu'ils
+implémentent. Objectif : préserver la compatibilité applicative dans les limites du contrat du
+Companion SDK lorsqu'une pièce bas niveau change — un **objectif**, pas une garantie absolue.
 
 Références de décision : ADR-0001, ADR-0002, ADR-0007.
 
-## Principe d'inversion des dépendances
-
-Les dépendances vont **du haut vers le bas, sans jamais sauter une couche** :
+## Modèle de dépendances
 
 ```
-        ┌─────────────────────────────────────────────┐
-        │                   apps/                      │   Lua & natives
-        │        (Tamagotchi, apps de modules…)        │
-        └───────────────────────┬─────────────────────┘
-                                 │  ne dépendent QUE du SDK
-        ┌───────────────────────▼─────────────────────┐
-        │              companion-sdk/                  │   API stable
-        └───────────────────────┬─────────────────────┘
-        ┌───────────────────────▼─────────────────────┐
-        │                 services/                    │   Module/App Manager, UI, Power…
-        └───────────────────────┬─────────────────────┘
-        ┌───────────────────────▼─────────────────────┐
-        │                  kernel/                     │   ordonnancement, énergie, événements, état
-        └───────────────────────┬─────────────────────┘
-        ┌───────────────────────▼─────────────────────┐
-        │                   hal/                       │   abstraction matérielle
-        └───────────────────────┬─────────────────────┘
-        ┌───────────────────────▼─────────────────────┐
-        │                 drivers/                     │   ST7789, PCF8563, jauge, expander…
-        └───────────────────────┬─────────────────────┘
-        ┌───────────────────────▼─────────────────────┐
-        │            silicium / ESP-IDF / FreeRTOS     │   fondation confinée
-        └─────────────────────────────────────────────┘
+   Applications (Lua chargées par le runtime · ou natives compilées)
+                    │ ne dépendent que du
+   Companion SDK    ▼   (façade/contrat fournie par les services)
+                    │
+   Services         ▼   dépendent des ports abstraits
+                    │
+   Ports (hal/)     ▼   interfaces PORTABLES, sans ESP-IDF
+                    ▲   implémentés par
+   Adaptateurs      │   cible ESP32-S3/ESP-IDF  +  host/mock (tests)
+                    ▼   s'appuient sur
+   Drivers / ESP-IDF / FreeRTOS / silicium
 ```
 
-Règle fondamentale : **apps → Companion SDK → HAL → drivers → silicium.** Aucune couche ne
-saute une autre, et les dépendances ne remontent jamais.
+Règles essentielles (détail dans le document d'architecture) :
 
-## ESP-IDF confiné aux couches basses
+1. Les apps ne dépendent que du **Companion SDK**.
+2. Le SDK est une **façade fournie par les services** ; il ne dépend pas des drivers.
+3. Les **services** dépendent des **ports abstraits**, jamais d'ESP-IDF ni de drivers concrets.
+4. Les **adaptateurs/drivers** dépendent des ports qu'ils **implémentent**.
+5. Le paquet des **ports (`hal/`) reste portable**, sans ESP-IDF.
+6. Le **point de composition** (au démarrage, dans `kernel/`) assemble ports ↔ adaptateurs.
+7. Une dépendance **peut contourner un niveau** s'il n'y a pas de raison fonctionnelle de le
+   traverser ; ce qui est interdit, c'est qu'une abstraction dépende d'un détail concret.
 
-**ESP-IDF est la fondation** du firmware (ADR-0001), mais son usage est **confiné aux couches
-basses** : seules la **HAL** et les **drivers** connaissent ESP-IDF/FreeRTOS. Les couches
-supérieures (kernel, services, SDK, apps) n'incluent **jamais** un en-tête ESP-IDF ni un appel
-FreeRTOS directement (ADR-0007). Cela permet de porter la plateforme vers un autre MCU/RTOS en
-ne réécrivant que HAL + drivers.
+## ESP-IDF confiné aux adaptateurs
 
-## Organisation des couches
+**ESP-IDF est la fondation** du firmware (ADR-0001), mais son usage est **confiné aux
+adaptateurs cible et aux drivers**. Les **ports**, les **services**, le **SDK** et les **apps**
+n'incluent **jamais** un en-tête ESP-IDF ni un appel FreeRTOS directement (ADR-0007). Porter la
+plateforme vers un autre MCU/RTOS revient alors à écrire un nouvel **adaptateur cible**.
 
-| Couche | Rôle | Connaît ESP-IDF ? |
-|--------|------|-------------------|
-| [`hal/`](./hal/README.md) | Abstraction matérielle (écran, entrées, bus, énergie, timers, stockage). | Oui |
-| [`drivers/`](./drivers/README.md) | Pilotes concrets implémentant les interfaces HAL. | Oui |
-| [`kernel/`](./kernel/README.md) | Ordonnancement, énergie, bus d'événements, état & persistance. | Non |
+## Organisation
+
+| Dossier | Rôle | Connaît ESP-IDF ? |
+|---------|------|-------------------|
+| [`hal/`](./hal/README.md) | **Ports de plateforme** : interfaces abstraites (display, input, clock, storage, bus, power, scheduler…). | **Non** |
+| [`drivers/`](./drivers/README.md) | **Adaptateurs cible + drivers concrets** implémentant les ports (ST7789, PCF8563, jauge, expander…). | Oui |
+| [`kernel/`](./kernel/README.md) | Mécanismes centraux (ordonnancement, énergie, événements, état) + **point de composition**. | Non |
 | [`services/`](./services/README.md) | Module Manager, App Manager, UI, Power, Storage, Connectivity, Companion. | Non |
-| [`companion-sdk/`](./companion-sdk/README.md) | Surface d'API stable exposée aux apps. | Non |
+| [`companion-sdk/`](./companion-sdk/README.md) | Façade/contrat d'API stable exposée aux apps. | Non |
+
+Les **adaptateurs host** (mocks des ports pour les tests PC) vivent sous [`tests/`](../tests/README.md).
 
 ## Licence
 
-Le firmware est publié sous **Apache-2.0**. La documentation sous **CC-BY-4.0**.
+Firmware sous **Apache-2.0**. Documentation sous **CC-BY-4.0**.

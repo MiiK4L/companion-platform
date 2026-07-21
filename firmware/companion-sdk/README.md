@@ -13,10 +13,11 @@ Références de décision : ADR-0001, ADR-0002, ADR-0007.
 > Aucune app **NE DÉPEND** d'ESP-IDF, de FreeRTOS ou de la HAL directement. Une app dépend
 > **uniquement du Companion SDK.**
 
-C'est ce qui rend MCU, RTOS, écran et runtime remplaçables sans réécrire les apps. Le SDK
-est conçu pour rester **stable** dans le temps même si les couches inférieures évoluent ; il
-sert aussi bien les apps **natives** que les apps **Lua** (runtime hybride en V1, abstraction
-prête pour WASM — ADR-0002).
+C'est ce qui **vise** à rendre MCU, RTOS, écran et runtime remplaçables en **préservant la
+compatibilité applicative dans les limites du contrat et des capacités garanties par le SDK** —
+un objectif, pas une garantie absolue. Le SDK est conçu pour rester **stable** dans le temps
+même si les implémentations sous-jacentes évoluent ; il sert les apps **natives** (compilées
+dans l'image) comme les apps **Lua** (chargées par le runtime — ADR-0002).
 
 ## Grands domaines d'API
 

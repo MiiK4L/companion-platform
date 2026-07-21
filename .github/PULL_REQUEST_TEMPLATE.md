@@ -41,7 +41,7 @@ maintenabilité priment toujours sur la rapidité de fusion.
 - [ ] La documentation associée a été mise à jour (docs/, ADR, README locaux...).
 - [ ] Les conventions du projet sont respectées (Conventional Commits, SemVer par domaine, nommage).
 - [ ] Les tests pertinents ont été ajoutés ou mis à jour, et passent localement.
-- [ ] Aucune dépendance directe à ESP-IDF/FreeRTOS n'a été introduite en dehors du HAL et des drivers (les apps et le SDK restent découplés du matériel, conformément au principe d'inversion des dépendances).
+- [ ] Aucune abstraction (port, service, SDK, app) ne dépend d'un détail concret : ESP-IDF/FreeRTOS et drivers restent confinés aux adaptateurs cible (modèle ports/adaptateurs).
 - [ ] Des captures d'écran ou GIFs sont fournis ci-dessous si le changement affecte une interface utilisateur (écran, LVGL, apps).
 
 ## Captures d'écran / démonstration (si applicable)

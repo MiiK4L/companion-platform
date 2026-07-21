@@ -31,17 +31,20 @@ L'architecture repose sur quatre choix structurants, chacun tracé par une ADR :
 
 ## 3. Le principe qui tient tout ensemble
 
-**Inversion des dépendances matérielles** :
+Un modèle **ports / adaptateurs** (inversion des dépendances) :
 
 ```
-apps  →  Companion SDK  →  HAL  →  drivers  →  silicium (ESP-IDF / FreeRTOS)
+apps → Companion SDK → services → ports abstraits ◄─ adaptateurs (ESP32-S3/ESP-IDF · host/mock)
+                                                          └─ drivers · ESP-IDF · FreeRTOS · silicium
 ```
 
-Aucune couche ne saute une autre. Les applications ne connaissent que le
-**Companion SDK** ; elles ignorent tout de l'ESP32, du RTOS, du contrôleur
-d'écran ou du runtime. Conséquence directe : **MCU, RTOS, écran et runtime sont
-tous remplaçables sans réécrire les apps**. C'est notre assurance de longévité.
-Voir [le détail](dependency-inversion.md).
+Les **ports** (interfaces) sont portables et ne dépendent d'aucune
+implémentation ; les **adaptateurs** concrets dépendent des ports qu'ils
+implémentent. Les applications ne connaissent que le **Companion SDK** (façade
+fournie par les services). L'objectif : **préserver la compatibilité applicative
+dans les limites du contrat garanti par le SDK** lorsqu'une pièce bas niveau
+change (silicium, RTOS, écran, runtime) — un objectif de conception, pas une
+garantie absolue. Voir [le détail](dependency-inversion.md).
 
 ## 4. Vue matérielle (résumé)
 

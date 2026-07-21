@@ -8,31 +8,35 @@ n'est jamais dans le noyau, c'est une application. Décisions liées :
 
 ## Couches
 
+Le firmware suit un modèle **ports / adaptateurs** (et non une pile stricte) —
+voir [inversion des dépendances](dependency-inversion.md) :
+
 ```
-Bootloader (ESP-IDF, Secure Boot + OTA signé — cible)
-   │
-Noyau (kernel) : ordonnancement (au-dessus de FreeRTOS, jamais exposé),
-   │             gestion d'énergie & deep sleep, bus d'événements,
-   │             gestion d'état & persistance (NVS / LittleFS)
-   │
-HAL : abstraction matérielle (voir inversion des dépendances)
-   │
-Drivers : implémentations concrètes
-   │
-Services : Module Manager · App Manager · UI (LVGL) · Power ·
-   │        Storage · Connectivity (Wi-Fi/BT) · Companion
-   │
-Companion SDK : API stable pour les apps (natif + Lua)
-   │
-Applications & Jeux (Lua) — Tamagotchi, réseau, homelab, électronique, capteurs…
+Applications (Lua chargées par le runtime · natives compilées dans l'image)
+        │  ne dépendent que du
+Companion SDK — façade/contrat fournie par les services
+        │
+Services — Module Manager · App Manager · UI (LVGL) · Power · Storage · Connectivity · Companion
+        │  dépendent des
+Ports abstraits (hal/) — display · input · clock · storage · bus · power · scheduler
+        ▲  implémentés par
+        │
+Adaptateurs — cible ESP32-S3 / ESP-IDF   ·   host/mock (tests)
+        │  s'appuient sur
+Drivers · ESP-IDF · FreeRTOS · silicium
 ```
 
+Le **point de composition** (`kernel/`) assemble ports ↔ adaptateurs au
+démarrage. Le bootloader ESP-IDF est propre à la cible ; **Secure Boot, Flash
+Encryption et OTA signé sont des cibles de production, non requis en
+prototypage** (voir [`SECURITY.md`](../../SECURITY.md)).
+
 Détail des responsabilités dans les READMEs de couches :
-[`firmware/`](https://github.com/MiiK4L/companion-platform/blob/main/firmware/README.md), [`hal`](https://github.com/MiiK4L/companion-platform/blob/main/firmware/hal/README.md),
-[`drivers`](https://github.com/MiiK4L/companion-platform/blob/main/firmware/drivers/README.md),
-[`kernel`](https://github.com/MiiK4L/companion-platform/blob/main/firmware/kernel/README.md),
-[`services`](https://github.com/MiiK4L/companion-platform/blob/main/firmware/services/README.md),
-[`companion-sdk`](https://github.com/MiiK4L/companion-platform/blob/main/firmware/companion-sdk/README.md).
+[`firmware/`](../../firmware/README.md), [`hal`](../../firmware/hal/README.md),
+[`drivers`](../../firmware/drivers/README.md),
+[`kernel`](../../firmware/kernel/README.md),
+[`services`](../../firmware/services/README.md),
+[`companion-sdk`](../../firmware/companion-sdk/README.md).
 
 ## Services clés
 
@@ -69,5 +73,8 @@ et applique l'évolution correspondant au **Δt** écoulé (le Tamagotchi
 
 ## Sécurité (périmètre)
 
-Secure Boot et Flash Encryption (fonctions ESP-IDF), OTA **signé**, et à terme
-vérification de l'intégrité des apps installées. Détail : [`SECURITY.md`](https://github.com/MiiK4L/companion-platform/blob/main/SECURITY.md).
+Secure Boot, Flash Encryption (fonctions ESP-IDF) et OTA signé sont des **cibles
+de production**, non requis en prototypage, et **ne constituent pas à eux seuls
+la sécurité des apps** : la confiance envers les modules physiques, les Manifests
+et les paquets Lua relève d'un **modèle de menace distinct**. Détail et périmètre :
+[`SECURITY.md`](../../SECURITY.md).

@@ -1,42 +1,46 @@
-# HAL — Hardware Abstraction Layer
+# `hal/` — Ports de plateforme (interfaces abstraites)
 
 > Statut : **Phase 0 — Fondations**. Les interfaces détaillées sont marquées « ⏳ À définir ».
 
-La **HAL** (couche d'abstraction matérielle) définit **quoi** le matériel doit savoir faire,
-sous forme d'interfaces stables, indépendamment de **comment** c'est réalisé sur un MCU donné.
-Elle est le point de découplage entre le matériel et le reste du firmware.
+Ce dossier contient les **ports de plateforme** : les **interfaces abstraites** qui définissent
+**quoi** le firmware attend du matériel et du système, indépendamment de **comment** c'est
+réalisé. C'est le cœur du modèle ports/adaptateurs (voir
+[dependency-inversion](../../docs/architecture/dependency-inversion.md)).
+
+> Le nom historique « HAL » (*Hardware Abstraction Layer*) est conservé pour le dossier, mais
+> son contenu est strictement **des interfaces** — pas des implémentations.
 
 Références de décision : ADR-0001, ADR-0007.
 
-## Responsabilités
+## Contenu
 
-La HAL expose des interfaces abstraites pour :
+Interfaces abstraites (ports) pour :
 
-- **Écran** : primitives de sortie graphique (surface de rendu pour LVGL, ADR-0003).
-- **Entrées** : boutons et événements d'entrée.
-- **Bus** : I²C, SPI, UART (transport brut, arbitrage des bus partagés).
-- **Énergie** : modes basse consommation, deep sleep, sources de réveil, power-gating.
-- **Timers** : temporisations, horloge monotone.
-- **Stockage** : accès mémoire non volatile (flash/NVS abstraite).
+- **display** : surface de rendu (support du moteur graphique, ADR-0003).
+- **input** : boutons et événements d'entrée.
+- **bus** : I²C, SPI, UART (transport, arbitrage des bus partagés).
+- **power** : modes basse consommation, deep sleep, sources de réveil, power-gating.
+- **clock** : horloge monotone, temporisations, alarmes.
+- **storage** : mémoire non volatile abstraite.
+- **scheduler** : abstraction des tâches (au-dessus du RTOS, jamais exposée telle quelle).
 
 ## Règles de dépendance
 
-- La HAL est, **avec les drivers**, la **seule couche autorisée à connaître ESP-IDF/FreeRTOS**
-  (ADR-0007). Elle traduit les besoins abstraits en primitives fournies par les drivers.
-- La HAL **NE DOIT PAS** dépendre des couches supérieures (kernel, services, SDK, apps).
-- Les couches supérieures dépendent des **interfaces** de la HAL, jamais d'une implémentation
-  matérielle concrète.
-- La HAL définit les interfaces ; les **drivers** les implémentent pour un composant donné.
+- Les ports sont **portables** : ils **NE connaissent PAS** ESP-IDF/FreeRTOS et **ne dépendent
+  d'aucune implémentation** ni d'aucun driver (règle 5 du modèle).
+- Ce sont les **adaptateurs** (dossier [`drivers/`](../drivers/README.md), cible ; et les mocks
+  host sous [`tests/`](../../tests/README.md)) qui **implémentent** ces ports.
+- Les services, le kernel et le SDK dépendent de ces **interfaces**, jamais d'une implémentation
+  concrète. Le choix de l'implémentation est fait par le **point de composition** au démarrage.
 
-## Testabilité (implémentation mockée)
+## Testabilité
 
-La HAL rend possible les **tests sur machine hôte** (host) : en fournissant une
-implémentation **mockée** des interfaces, le kernel, les services et le SDK peuvent être
-compilés et testés sans matériel réel ni ESP-IDF. C'est un objectif structurant de la couche.
+Parce que les ports sont abstraits et portables, on peut fournir des **adaptateurs host (mocks)**
+qui les implémentent sur PC : services et SDK se compilent et se testent **sans matériel ni
+ESP-IDF**. C'est un objectif structurant (voir [`tests/`](../../tests/README.md)).
 
-> ⏳ **À définir — Phases ultérieures** : signatures exactes des interfaces (écran, bus,
-> énergie, stockage…), conventions d'erreur, modèle de configuration matérielle, banc de
-> mocks host.
+> ⏳ **À définir — Phases ultérieures** : signatures exactes des ports, conventions d'erreur,
+> modèle de configuration, injection par le point de composition.
 
 ## Licence
 

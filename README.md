@@ -39,15 +39,17 @@ tracée sous forme d'[ADR](docs/adr/README.md).
 | Modularité | Standard d'extension **CX-Bus** + identification EEPROM | [0005](docs/adr/0005-standard-cx-bus-et-identification.md) · [0006](docs/adr/0006-nommage-cx-bus.md) |
 | Fondation firmware | **ESP-IDF** confiné sous **HAL + Companion SDK** | [0001](docs/adr/0001-framework-firmware-esp-idf.md) · [0007](docs/adr/0007-hal-et-companion-sdk.md) |
 
-Le principe qui tient tout ensemble — **l'inversion des dépendances
-matérielles** :
+Le principe qui tient tout ensemble — un modèle **ports / adaptateurs** :
 
 ```
-apps  →  Companion SDK  →  HAL  →  drivers  →  silicium (ESP-IDF / FreeRTOS)
+apps → Companion SDK → services → ports abstraits ◄─ adaptateurs (ESP32-S3/ESP-IDF · host/mock)
+                                                          └─ drivers · ESP-IDF · FreeRTOS · silicium
 ```
 
-Aucune couche ne saute une autre : **MCU, RTOS, écran et runtime sont
-remplaçables sans réécrire les applications**.
+Les abstractions (ports) ne dépendent d'aucune implémentation ; les adaptateurs
+concrets dépendent des ports qu'ils implémentent. L'objectif : **préserver la
+compatibilité applicative dans les limites du contrat garanti par le Companion
+SDK** quand une pièce bas niveau change — un objectif, pas une garantie absolue.
 [En savoir plus](docs/architecture/dependency-inversion.md).
 
 ## Matériel en bref

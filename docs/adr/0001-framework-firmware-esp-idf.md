@@ -41,9 +41,10 @@ fallait clarifier.
 ## 3. Décision
 
 **ESP-IDF (FreeRTOS)** est la fondation du firmware de la V1. Toutefois,
-ESP-IDF et FreeRTOS sont **confinés aux couches basses** (HAL + drivers +
-noyau) et **jamais exposés** aux applications ni aux services métier, qui ne
-dépendent que du Companion SDK (voir [ADR-0007](0007-hal-et-companion-sdk.md)).
+ESP-IDF et FreeRTOS sont **confinés aux adaptateurs cible et aux drivers** (et au
+**point de composition** qui les assemble au démarrage), et **jamais exposés**
+aux ports abstraits, aux services, au SDK ni aux applications, qui n'en dépendent
+pas (modèle ports/adaptateurs — voir [ADR-0007](0007-hal-et-companion-sdk.md)).
 
 ## 4. Raisons du choix
 
@@ -64,8 +65,10 @@ pas déléguée au framework.
   Companion SDK qui offrira une API confortable aux développeurs d'apps.
 
 ### Impacts futurs
-- Un portage futur vers Zephyr ou un autre MCU reste possible : il suffirait de
-  réimplémenter la HAL, sans toucher aux apps (voir ADR-0007).
+- Un portage futur vers Zephyr ou un autre MCU reste possible en écrivant un
+  nouvel **adaptateur cible** ; l'objectif est de préserver la compatibilité
+  applicative dans les limites du contrat du Companion SDK, sans garantie
+  absolue (voir ADR-0007).
 
 ## 7. Réserves — à valider ultérieurement (non figé)
 

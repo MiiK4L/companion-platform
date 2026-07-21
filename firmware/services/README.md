@@ -30,12 +30,12 @@ de l'app Tamagotchi, qui, elle, est une app Lua consommant le SDK (voir
 
 ## Règles de dépendance
 
-- Les services dépendent du **kernel** et de la **HAL** (via le kernel), jamais d'ESP-IDF/
-  FreeRTOS directement (ADR-0007).
-- Les services **NE DOIVENT PAS** dépendre du SDK ni des apps : ils sont **exposés** aux apps
-  au travers du Companion SDK, qui constitue la seule surface visible côté application.
-- Les services ne se contournent pas entre eux au mépris des responsabilités (ex. une app ne
-  parle jamais au Module Manager en direct ; elle passe par le SDK).
+- Les services dépendent des **ports abstraits** ([`hal/`](../hal/README.md)) et des mécanismes
+  du **kernel** — jamais d'ESP-IDF/FreeRTOS ni d'un driver concret directement (ADR-0007). Les
+  implémentations leur sont fournies par le **point de composition** au démarrage.
+- Les services **NE DOIVENT PAS** dépendre du SDK ni des apps : le **Companion SDK** est la
+  façade qu'ils **fournissent**, seule surface visible côté application.
+- Une app ne parle jamais à un service en direct (ex. Module Manager) : elle passe par le SDK.
 
 > ⏳ **À définir — Phases ultérieures** : API interne de chaque service, protocole du Module
 > Manager, intégration du runtime Lua dans l'App Manager, modèle d'état du Companion.

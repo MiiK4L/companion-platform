@@ -14,15 +14,16 @@ tests/
 (La structure précise se stabilisera avec le choix définitif du framework
 de test ; ce README sera mis à jour en conséquence.)
 
-## Pourquoi la HAL permet de tester sur PC
+## Pourquoi les ports permettent de tester sur PC
 
-Le principe directeur du projet est l'inversion des dépendances
-matérielles : `apps → Companion SDK → HAL → drivers → silicium` (voir
-ADR-0001/0007). Parce que le code métier (kernel, services, Companion SDK)
-ne dépend que d'interfaces HAL abstraites — et jamais directement
-d'ESP-IDF ou de FreeRTOS — il devient possible de fournir une
-**implémentation mockée de la HAL** qui tourne sur machine hôte, sans
-matériel ESP32-S3 réel.
+Le firmware suit un modèle **ports / adaptateurs** (voir ADR-0007 et
+`docs/architecture/dependency-inversion.md`). Parce que le code métier
+(kernel, services, Companion SDK) ne dépend que des **ports abstraits** —
+et jamais directement d'ESP-IDF, de FreeRTOS ou d'un driver concret — il
+devient possible de fournir des **adaptateurs host (mocks)** qui
+implémentent ces ports et tournent sur machine hôte, sans matériel
+ESP32-S3 réel. Le **point de composition** injecte, au démarrage des
+tests, les adaptateurs host à la place des adaptateurs cible.
 
 Cela permet :
 
@@ -48,9 +49,9 @@ vrais modules CX-Bus.
 
 ## Ce qui ne va pas ici
 
-- Les mocks/implémentations HAL utilisées en production (si une
-  implémentation HAL « host » est nécessaire au runtime, elle vit dans
-  `firmware/hal/`, pas ici).
+- Les **adaptateurs cible de production** (ESP32-S3) : ils vivent dans
+  `firmware/drivers/`, pas ici. Ce dossier n'héberge que les adaptateurs
+  host (mocks) et les suites de tests.
 - Les tests spécifiques à une app ou un module, qui peuvent vivre
   localement dans le dossier de l'app/module concerné si plus pertinent.
 
