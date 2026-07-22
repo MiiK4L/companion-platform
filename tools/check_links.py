@@ -9,11 +9,17 @@ Contrairement à `mkdocs build --strict` (qui ne voit que `docs/`), ce contrôle
 valide les liens relatifs de **tous** les fichiers Markdown, y compris ceux qui
 pointent vers le code source (`firmware/`, `standards/`, `SECURITY.md`, …).
 
-Règles :
-- ignore les liens externes (http/https/mailto), absolus (`/…`) et ancres pures (`#…`) ;
-- résout chaque lien relatif contre le dossier du fichier ;
-- signale les cibles inexistantes ;
-- code de sortie 1 s'il existe au moins un lien cassé (utilisable en CI).
+Portée exacte :
+- résout chaque lien Markdown **relatif** contre le dossier du fichier et
+  vérifie l'**existence de la cible** (fichier ou dossier) ;
+- signale les cibles inexistantes ; code de sortie 1 si au moins un lien est
+  cassé (utilisable en CI).
+
+Ce qu'il ne vérifie PAS (limites connues, améliorations possibles) :
+- les **ancres** (`#fragment`) : la partie fragment est ignorée, l'existence de
+  l'ancre dans le fichier cible n'est pas contrôlée ;
+- les **liens externes** (http/https/mailto/tel) : ignorés, non requêtés ;
+- les liens **absolus** (`/…`) : ignorés.
 
 Usage : python3 tools/check_links.py
 """
