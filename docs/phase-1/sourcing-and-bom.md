@@ -44,23 +44,38 @@ Ce ne sont **pas des choix** : la colonne « Candidat A » n'indique aucune pré
 un point de départ pour l'étude comparative. Chaque candidat devra être qualifié via un
 protocole de test avant toute décision.
 
+Chaque **ligne regroupe des alternatives d'une même fonction** (une alternative doit
+remplir exactement la même fonction que les autres de sa ligne). Les fonctions autrefois
+mélangées (technologie d'écran, contrôleur, moteur graphique, pilote, chargeur simple vs
+power-path, régulateur, load switch, buffer I²C, traducteur de niveau, multiplexeur,
+connecteur) sont désormais **séparées**. Les références sont **candidates** et seront
+vérifiées (MPN, cycle de vie, stock) **au moment du lot**.
+
 | Fonction | Candidat A | Candidat B | Candidat C / repli |
 |---|---|---|---|
-| Contrôleur écran | ST7789 | GC9A01 | ILI9341 |
-| Moteur graphique | LVGL | Couche pilote LovyanGFX / TFT_eSPI | Sharp Memory LCD monochrome (repli) |
-| RTC | PCF8563 | RV-3028-C7 | DS3231 ou RTC interne |
+| Panneau / technologie d'affichage | TFT IPS couleur | OLED couleur | Sharp Memory LCD (mono) |
+| Contrôleur d'affichage | ST7789 | GC9A01 | ILI9341 |
+| Moteur graphique | LVGL | µGFX | moteur minimal maison |
+| Couche pilote (affichage) | LovyanGFX | TFT_eSPI | pilote custom |
+| RTC | PCF8563 | RV-3028-C7 | DS3231 |
 | Accéléromètre | BMA400 | LIS2DH12 | LIS2DW12 |
-| Jauge (fuel gauge) | MAX17048 | LC709203F | BQ27441 ou ADC |
-| Charge + power-path | BQ24074 | BQ25185 | MCP73831 ou TP4056 |
-| Load switch | TPS22918 | AP22913 | P-MOSFET |
-| Isolation de bus | TCA9517 | PCA9306 | Expander + multiplexeur |
-| Expander GPIO | TCA9535 | PCA9555 | MCP23017 ou échelle ADC |
-| Support d'identification | 24AA02E64-EUI | AT24C64 | 1-Wire DS28E07 ou µC actif |
-| Connecteur CX-Bus | Card-edge | Board-to-board Hirose DF | FPC ou pogo |
+| Jauge (fuel gauge) | MAX17048 | LC709203F | BQ27441 |
+| Chargeur simple | MCP73831 | TP4056 | LTC4054 |
+| Chargeur avec power-path | BQ24074 | BQ25185 | BQ24232 |
+| Régulateur | LDO TLV757P | Buck TPS62840 | LDO AP2112 |
+| Load switch | TPS22918 | AP22913 | P-MOSFET + commande |
+| Buffer / hot-swap I²C | TCA9517 | LTC4302 | PCA9508 |
+| Traducteur de niveau | PCA9306 | TXB0104 | TXS0108E |
+| Multiplexeur I²C | TCA9548A | PCA9546A | — |
+| Expander GPIO | TCA9535 | PCA9555 | MCP23017 |
+| Support d'identification | 24AA02E64 (EUI) | AT24C64 | DS28E07 (1-Wire) / µC actif |
+| Famille de connecteur CX-Bus | Card-edge | Board-to-board (Hirose DF) | FPC / pogo |
 | Haptique | ERM + transistor | LRA + DRV2605L | — |
 
 Rappel : tous ces éléments sont **Proposés**. La comparaison objective (mesures, seuils,
-reproductibilité) tranche ; ce tableau ne fait qu'ouvrir l'espace des options.
+reproductibilité) tranche ; ce tableau ne fait qu'ouvrir l'espace des options. *(Une échelle
+de boutons sur ADC — sans puce — reste une option de réduction d'entrées, traitée côté
+budget GPIO/L1, distincte de l'expander.)*
 
 ## 3. Trois niveaux de BOM (aucune « BOM de production »)
 
