@@ -68,11 +68,14 @@ impératif est la clarté :
 
 ## Déclarer la licence d'un fichier : en-têtes SPDX
 
-Pour éviter toute ambiguïté fichier par fichier — utile notamment lorsque
+Pour lever toute ambiguïté fichier par fichier — utile notamment lorsque
 plusieurs licences cohabitent dans un même dossier (par exemple un module
-CX-Bus tiers avec sa propre licence) — le projet recommande l'usage
-d'en-têtes **SPDX** (`SPDX-License-Identifier`) en tête de chaque fichier
-source.
+CX-Bus tiers avec sa propre licence) — le projet **exige** des en-têtes **SPDX**
+(`SPDX-FileCopyrightText` + `SPDX-License-Identifier`) sur **chaque fichier
+distribuable**. Cette exigence est **vérifiée en CI** (`reuse lint`) : une PR qui
+introduit un fichier sans en-tête conforme échoue. Pour les rares formats ne
+supportant pas de commentaire, un fichier `.license` adjacent ou une entrée
+`REUSE.toml` fait foi.
 
 <!-- REUSE-IgnoreStart -->
 
