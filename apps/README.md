@@ -1,8 +1,9 @@
 # `apps/` — Applications Companion Platform
 
 Ce dossier contient les **apps** de la plateforme : des programmes
-utilisateur écrits en **Lua**, exécutés par le runtime hybride au-dessus du
-**Companion SDK** (voir ADR-0002 pour le runtime, ADR-0001/0007 pour
+utilisateur **scriptés** (langage **Lua** candidat en V1), exécutés par le
+runtime hybride au-dessus du **Companion SDK** (voir ADR-0002 pour le principe
+d'un runtime hybride derrière une abstraction de runtime, ADR-0001/0007 pour
 l'inversion des dépendances matérielles). Une app ne dépend jamais
 directement d'ESP-IDF, de FreeRTOS ni de la HAL : elle passe exclusivement
 par les API exposées par le Companion SDK.
@@ -47,8 +48,8 @@ licence libre — voir [`LICENSING.md`](../LICENSING.md).
 ## Phase de roadmap
 
 Ce dossier se remplit progressivement à mesure que le Companion SDK
-stabilise ses API (runtime Lua, cycle de vie d'app, accès aux
-périphériques via HAL). Le Tamagotchi sert de première implémentation de
+stabilise ses API (runtime de script — Lua candidat, cycle de vie d'app,
+accès aux périphériques via le SDK). Le Tamagotchi sert de première implémentation de
 référence ; les apps suivantes arrivent au fur et à mesure des phases
 ultérieures de la roadmap. Consultez `docs/roadmap.md` pour le calendrier
 détaillé.

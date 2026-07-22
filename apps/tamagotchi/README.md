@@ -10,8 +10,9 @@ Références de décision : ADR-0002, ADR-0009.
 
 ## Nature de l'app
 
-- **App Lua indépendante du firmware.** Le Tamagotchi est une app Lua ; il ne fait **jamais**
-  partie du noyau ni des services. Il vit dans `apps/`.
+- **App scriptée indépendante du firmware.** Le Tamagotchi est une app scriptée (langage
+  **Lua** candidat en V1) ; il ne fait **jamais** partie du noyau ni des services. Il vit
+  dans `apps/`.
 - **Consomme uniquement le Companion SDK.** L'app n'accède ni à ESP-IDF, ni à FreeRTOS, ni à la
   HAL, ni aux services en direct — seulement au **Companion SDK** (voir
   [`firmware/companion-sdk/`](../../firmware/companion-sdk/README.md)).
@@ -37,10 +38,11 @@ Phase 9) :
 
 ## Évolution hors tension
 
-Le Tamagotchi **évolue même lorsque l'appareil est éteint**. Au réveil, l'app calcule le
-**delta de temps écoulé** à partir du RTC externe et de l'état persistant, puis met à jour les
-attributs en conséquence (ADR-0009). Ce mécanisme repose sur les services de temps et de
-persistance exposés par le SDK ; l'app ne pilote pas le RTC directement.
+Le Tamagotchi **évolue même lorsque l'appareil est éteint** — c'est un principe acquis. Au
+réveil, l'app calcule le **delta de temps écoulé** à partir de la base de temps et de l'état
+persistant, puis met à jour les attributs en conséquence (ADR-0009). La base de temps s'appuie
+sur un **RTC externe candidat** (PCF8563 pressenti). Ce mécanisme repose sur les services de
+temps et de persistance exposés par le SDK ; l'app ne pilote pas le RTC directement.
 
 ## Règles de dépendance
 

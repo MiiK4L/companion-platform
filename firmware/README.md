@@ -15,7 +15,7 @@ Références de décision : ADR-0001, ADR-0002, ADR-0007.
 ## Modèle de dépendances
 
 ```
-   Applications (Lua chargées par le runtime · ou natives compilées)
+   Applications (scriptées — Lua candidat — chargées par le runtime · ou natives compilées)
                     │ ne dépendent que du
    Companion SDK    ▼   (façade/contrat fournie par les services)
                     │
@@ -51,7 +51,7 @@ plateforme vers un autre MCU/RTOS revient alors à écrire un nouvel **adaptateu
 | Dossier | Rôle | Connaît ESP-IDF ? |
 |---------|------|-------------------|
 | [`hal/`](./hal/README.md) | **Ports de plateforme** : interfaces abstraites (display, input, clock, storage, bus, power, scheduler…). | **Non** |
-| [`drivers/`](./drivers/README.md) | **Adaptateurs cible + drivers concrets** implémentant les ports (ST7789, PCF8563, jauge, expander…). | Oui |
+| [`drivers/`](./drivers/README.md) | **Adaptateurs cible + drivers concrets** implémentant les ports (composants **candidats** : ST7789, PCF8563, jauge, expander… ; choix final en Phase 1). | Oui |
 | [`kernel/`](./kernel/README.md) | Mécanismes centraux (ordonnancement, énergie, événements, état) + **point de composition**. | Non |
 | [`services/`](./services/README.md) | Module Manager, App Manager, UI, Power, Storage, Connectivity, Companion. | Non |
 | [`companion-sdk/`](./companion-sdk/README.md) | Façade/contrat d'API stable exposée aux apps. | Non |

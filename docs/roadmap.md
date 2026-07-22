@@ -23,7 +23,7 @@ ADR). On privilégie une fondation solide à un prototype rapide.
 | 6 | Firmware minimal (boot, écran, entrées, énergie) | ⏳ |
 | 7 | Mini système d'exploitation (noyau, services) | ⏳ |
 | 8 | Module Manager (détection/identification CX-Bus) | ⏳ |
-| 9 | Première application : Tamagotchi (Lua) | ⏳ |
+| 9 | Première application : Tamagotchi (app scriptée, Lua candidat) | ⏳ |
 | 10 | Premier module externe | ⏳ |
 | 11 | Applications réseau | ⏳ |
 | 12 | Applications homelab | ⏳ |
@@ -48,12 +48,15 @@ GPIO** et un **premier budget énergétique** (mesuré, non décrété). Un **lo
 à la sûreté électrique et au threat model CX-Bus** est ajouté.
 
 **Prototypes exploratoires et petits PCB de validation sont autorisés en Phase 1**
-(les schémas de production restent en Phase 2). Prototypes prévus : P1 bring-up
-GPIO/bus, P2 écran+LVGL (RAM/conso), P3 deep sleep & réveils, P4 Δt RTC, P5 jauge,
-P6 hot-plug, P7 Manifest, P8 runtime Lua & install dynamique, P9 endurance
-connecteur — **complétés** par : **bus isolé / module non alimenté**,
+(les schémas de production restent en Phase 2). Ces prototypes **évaluent des
+candidats** (ils ne les actent pas) : P1 bring-up GPIO/bus, **P2 écran+LVGL
+candidats** (RAM/conso), P3 deep sleep & réveils, **P4 base de temps / RTC
+candidat**, **P5 jauge candidate**, P6 hot-plug, **P7 support d'identification
+(EEPROM candidate)**, **P8 runtime Lua candidat & installation dynamique**, P9
+endurance connecteur — **complétés** par : **bus isolé / module non alimenté**,
 **court-circuit & surintensité (alim de labo)**, **module bloquant SDA/SCL**,
-**retrait pendant une transaction**, **partage SPI avec l'écran**.
+**retrait pendant une transaction**, **partage SPI avec l'écran**. Chaque
+candidat validé fera l'objet d'une ADR de décision.
 
 > ⚠️ On **distingue les composants de prototype des composants de production**. Un
 > changement de composant n'est **pas** un « swap indolore » : le modèle
@@ -77,7 +80,7 @@ minimal ; noyau et services ; Module Manager. **Portes :** couverture de tests
 host, démonstration d'un boot complet, démonstration détection module.
 
 ### Phases 9–13 — Applications
-Tamagotchi (app Lua de référence), premier module externe, puis familles d'apps
+Tamagotchi (app scriptée de référence, Lua candidat), premier module externe, puis familles d'apps
 (réseau, homelab, électronique). Chaque app livre sa **documentation** dans la
 même PR.
 

@@ -2,14 +2,16 @@
 
 Ce dossier rassemble les ressources graphiques utilisées par les apps et
 l'interface système : sprites, animations et rendus destinés à être
-affichés sur l'écran TFT IPS via LVGL (voir ADR-0003).
+affichés via le moteur graphique de la plateforme (écran TFT IPS et LVGL
+sont les choix **candidats**, voir ADR-0003).
 
 ## Ce qui va ici
 
 - Sprites et feuilles d'animation utilisés par les apps officielles et le
   système (icônes, curseurs, transitions d'interface).
 - Rendus (exports d'illustrations sources) prêts à être intégrés dans une
-  app ou l'OS, dans un format compatible LVGL.
+  app ou l'OS, dans un format compatible avec le moteur graphique retenu
+  (LVGL candidat).
 - Ressources graphiques **génériques**, réutilisables par plusieurs apps
   (par exemple une bibliothèque d'icônes système).
 
@@ -18,7 +20,7 @@ affichés sur l'écran TFT IPS via LVGL (voir ADR-0003).
 - Les assets propres à une seule app (sprites spécifiques au Tamagotchi,
   par exemple) : ils vivent avec l'app concernée dans `apps/<app>/`.
 - Le code de rendu ou d'animation lui-même : voir `firmware/` (moteur
-  LVGL, services graphiques) ou l'app concernée.
+  graphique — LVGL candidat, services graphiques) ou l'app concernée.
 
 ## Attention : licence de l'identité visuelle
 

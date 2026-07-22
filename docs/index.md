@@ -1,6 +1,6 @@
 # Companion Platform
 
-**Companion Platform** est une plateforme électronique de poche **open source** et **modulaire**, conçue pour durer des années plutôt que pour suivre une mode passagère. Construite autour du microcontrôleur **Seeed XIAO ESP32-S3** — socketé, donc remplaçable — elle est pensée comme un petit ordinateur de poche capable d'accueillir de nombreuses applications au fil du temps : un Tamagotchi pour commencer, puis des outils réseau, un homelab miniature, de l'électronique, des capteurs, des jeux, et bien d'autres usages imaginés par la communauté.
+**Companion Platform** est une plateforme électronique de poche **open source** et **modulaire**, conçue pour durer des années plutôt que pour suivre une mode passagère. Construite autour du microcontrôleur **Seeed XIAO ESP32-S3** — cœur de calcul **remplaçable** (non soudé définitivement ; socketage **pressenti**, à valider) — elle est pensée comme un petit ordinateur de poche capable d'accueillir de nombreuses applications au fil du temps : un Tamagotchi pour commencer, puis des outils réseau, un homelab miniature, de l'électronique, des capteurs, des jeux, et bien d'autres usages imaginés par la communauté.
 
 Ce projet fait le pari inverse de l'obsolescence programmée : chaque choix technique — matériel, firmware, logiciel, documentation — est évalué d'abord sur sa **robustesse**, sa **maintenabilité** et sa **capacité à évoluer**, jamais sur la rapidité de mise en œuvre.
 
@@ -8,9 +8,9 @@ Ce projet fait le pari inverse de l'obsolescence programmée : chaque choix tech
 
 L'architecture de Companion Platform repose sur quelques décisions verrouillées, documentées sous forme d'[ADR](adr/README.md) :
 
-1. **Un runtime d'applications hybride, natif et Lua** ([ADR-0002](adr/README.md)) — les applications critiques ou performantes peuvent être écrites en natif, tandis que les applications communautaires, plus légères à distribuer et à sandboxer, s'écrivent en Lua.
-2. **Un écran TFT IPS couleur, entièrement abstrait par LVGL** ([ADR-0003](adr/README.md)) — les applications dessinent leur interface via LVGL, sans jamais dépendre du contrôleur d'écran réellement présent sur la carte.
-3. **Un standard d'extension matériel unifié, le CX-Bus** *(Companion eXpansion Bus)* ([ADR-0005](adr/README.md) / [ADR-0006](adr/README.md)) — chaque module d'extension (capteur, connectivité, affichage...) s'identifie et se déclare de façon standardisée, via une EEPROM embarquée.
+1. **Un runtime d'applications hybride et extensible** ([ADR-0002](adr/README.md)) — un cœur natif pour les applications critiques ou performantes, et des applications scriptées, plus légères à distribuer et à sandboxer, le tout derrière une **abstraction de runtime**. Le langage de script **Lua** est le **candidat** retenu pour la V1 (à valider par prototype).
+2. **Un écran couleur entièrement abstrait** ([ADR-0003](adr/README.md)) — les applications dessinent leur interface via une abstraction graphique, sans jamais dépendre du contrôleur d'écran réellement présent sur la carte. Un **écran TFT IPS couleur** et le moteur graphique **LVGL** sont les choix **candidats** (à valider en Phase 1/2).
+3. **Un standard d'extension matériel unifié, le CX-Bus** *(Companion eXpansion Bus)* ([ADR-0005](adr/README.md) / [ADR-0006](adr/README.md)) — chaque module d'extension (capteur, connectivité, affichage...) s'identifie et se déclare de façon standardisée. Le mécanisme d'identification est **candidat** : une **EEPROM I²C** embarquée est pressentie.
 4. **Un framework ESP-IDF encapsulé derrière un HAL et un Companion SDK obligatoires** ([ADR-0001](adr/README.md) / [ADR-0007](adr/README.md)) — aucune application ne dépend jamais directement d'ESP-IDF ou de FreeRTOS.
 
 ## Le principe directeur : inverser les dépendances matérielles

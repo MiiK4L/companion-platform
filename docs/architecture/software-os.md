@@ -12,11 +12,11 @@ Le firmware suit un modèle **ports / adaptateurs** (et non une pile stricte) �
 voir [inversion des dépendances](dependency-inversion.md) :
 
 ```
-Applications (Lua chargées par le runtime · natives compilées dans l'image)
+Applications (scriptées, Lua candidat, chargées par le runtime · natives compilées dans l'image)
         │  ne dépendent que du
 Companion SDK — façade/contrat fournie par les services
         │
-Services — Module Manager · App Manager · UI (LVGL) · Power · Storage · Connectivity · Companion
+Services — Module Manager · App Manager · UI (moteur graphique, LVGL candidat) · Power · Storage · Connectivity · Companion
         │  dépendent des
 Ports abstraits (hal/) — display · input · clock · storage · bus · power · scheduler
         ▲  implémentés par
@@ -41,12 +41,15 @@ Détail des responsabilités dans les READMEs de couches :
 ## Services clés
 
 - **Module Manager** — détecte l'insertion/retrait d'un module CX-Bus, lit et
-  valide le **CX-Bus Manifest** (EEPROM), charge les drivers, publie les
-  capacités et déclenche l'apparition des apps associées.
+  valide le **CX-Bus Manifest** (support d'identification, EEPROM I²C candidate),
+  charge les drivers et **publie les capacités**. Il ne lance rien : l'**App
+  Manager** décide ensuite, selon la **politique de confiance**, quelles apps
+  compatibles proposer — **aucune app n'est lancée sur la seule foi du Manifest**.
 - **App Manager** — cycle de vie des applications (installation, lancement,
-  suspension, sauvegarde), exécution via le **runtime Lua**, derrière une
-  **abstraction de runtime** ouverte à WASM plus tard.
-- **UI** — moteur graphique (LVGL) : widgets, sprites, animations, transitions ;
+  suspension, sauvegarde), exécution via un **runtime de script** (**Lua**
+  candidat en V1), derrière une **abstraction de runtime** ouverte à WASM plus
+  tard.
+- **UI** — moteur graphique (**LVGL** candidat) : widgets, sprites, animations, transitions ;
   aucune app ne touche le pixel ni le contrôleur d'écran ([ADR-0003](../adr/0003-technologie-et-abstraction-ecran.md)).
 - **Power** — deep sleep, extinction auto de l'écran, réveils (bouton, alarme
   RTC, mouvement de l'accéléromètre), power-gating des modules ([ADR-0008](../adr/0008-architecture-alimentation.md)).
@@ -58,17 +61,22 @@ Détail des responsabilités dans les READMEs de couches :
 
 ## Modèle d'application
 
-Une application est un paquet **installable indépendamment du firmware**
-([ADR-0002](../adr/0002-modele-execution-applications.md)), décrit par un
-manifeste (nom, version, auteur, capacités matérielles requises, apps/écrans
-exposés). L'App Manager l'active si ses exigences sont satisfaites — par exemple
-lorsqu'un module CX-Bus fournissant la capacité requise est présent.
+Une application est **conçue pour être installable indépendamment du firmware**
+([ADR-0002](../adr/0002-modele-execution-applications.md)) — objectif visé pour
+les apps scriptées, dont la **faisabilité d'installation dynamique reste à
+valider** (P8) ; les apps natives, elles, sont compilées dans l'image. Une app
+est décrite par un manifeste (identité, capacités matérielles requises,
+écrans/capacités exposés). L'App Manager peut la proposer/activer si ses
+exigences sont satisfaites — par exemple lorsqu'un module CX-Bus fournissant la
+capacité requise est présent — dans le cadre de la politique de confiance.
 
 ## Persistance & évolution hors tension
 
-Le système privilégie un **deep sleep réel** : au réveil, il lit le RTC externe
-et applique l'évolution correspondant au **Δt** écoulé (le Tamagotchi
-« vieillit » sans tâche de fond permanente). Voir
+Le système privilégie un **deep sleep réel** : au réveil, il lit la **base de
+temps** (RTC externe **candidat**, PCF8563 pressenti) et applique l'évolution
+correspondant au **Δt** écoulé (le Tamagotchi « vieillit » sans tâche de fond
+permanente). La base de temps fiable et l'évolution par Δt sont des principes
+acquis ; le composant RTC reste à valider. Voir
 [ADR-0009](../adr/0009-rtc-externe-et-persistance-etat.md).
 
 ## Sécurité (périmètre)

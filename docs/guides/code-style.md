@@ -2,8 +2,10 @@
 
 Ce guide définit les conventions de style attendues pour le code de
 Companion Platform. Deux langages cohabitent dans le monorepo : **C** pour
-le firmware/HAL/drivers, et **Lua** pour les apps exécutées au-dessus du
-Companion SDK (voir ADR-0002 pour le runtime hybride).
+le firmware/HAL/drivers, et un **langage de script** pour les apps exécutées
+au-dessus du Companion SDK — **Lua** étant le **candidat** retenu pour la V1
+(voir ADR-0002 : le principe accepté est un runtime hybride derrière une
+abstraction de runtime).
 
 ## 1. C — Firmware, HAL, drivers
 
@@ -34,7 +36,7 @@ Companion SDK (voir ADR-0002 pour le runtime hybride).
 - À compléter — Phase 2 : intégration de ces outils dans la CI et en
   pre-commit local.
 
-## 2. Lua — Apps
+## 2. Lua (candidat V1) — Apps
 
 ### 2.1 Principes généraux
 

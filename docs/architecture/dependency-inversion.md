@@ -15,7 +15,7 @@ les détails dépendent des abstractions.*
 
 ```
         Applications
-   (Lua chargées par le runtime  ·  ou natives compilées dans l'image)
+   (scriptées, Lua candidat, chargées par le runtime  ·  ou natives compilées dans l'image)
                     │  dépendent uniquement de
                     ▼
      Companion SDK  — contrat / API applicative
@@ -65,16 +65,18 @@ interfaces et leurs implémentations.
 > (l'outillage pour *créer des modules matériels* conformes au standard). Voir le
 > [glossaire](glossary.md).
 
-## Apps natives vs apps Lua
+## Apps natives vs apps scriptées
 
 Les deux ne voient que le **Companion SDK**, mais leur cycle de vie diffère :
 
 - **Apps natives** : écrites en C, elles utilisent l'API publique du SDK mais
   sont **compilées dans l'image firmware**. Les ajouter/mettre à jour implique de
   reconstruire et reflasher.
-- **Apps Lua** : **chargées à l'exécution** par le runtime (App Manager,
+- **Apps scriptées** (langage **Lua** candidat en V1) : **chargées à l'exécution**
+  par le runtime (App Manager,
   [ADR-0002](../adr/0002-modele-execution-applications.md)) ; leur faisabilité et
-  leurs limites d'installation dynamique restent à valider par prototype (P8).
+  leurs limites d'installation dynamique restent à valider par prototype (P8) —
+  l'installation dynamique sans reflash n'est donc **pas garantie** à ce stade.
 
 ## Ce que le modèle vise
 

@@ -2,8 +2,11 @@
 
 Ce guide définit la charte graphique de Companion Platform : comment le
 personnage/mascotte agit comme interface, la palette de couleurs, les
-conventions d'animation, et la cohérence visuelle attendue sur l'écran TFT
-IPS piloté par **LVGL** (voir ADR-0003).
+conventions d'animation, et la cohérence visuelle attendue à l'écran. Le
+principe accepté est une **interface graphique abstraite** (rendu de
+widgets/sprites, aucune app ne dépend du contrôleur) ; l'écran **TFT IPS**
+et le moteur graphique **LVGL** sont **pressentis** (à valider en Phase 1/2,
+voir ADR-0003).
 
 ## 1. Principes directeurs
 
@@ -26,7 +29,7 @@ IPS piloté par **LVGL** (voir ADR-0003).
 
 - À compléter — Phase 2 : palette officielle (couleurs primaires,
   secondaires, couleurs d'état — succès/alerte/erreur), contraintes liées
-  à l'écran TFT IPS cible (gamme de couleurs, lisibilité au soleil).
+  à l'écran (TFT IPS pressenti : gamme de couleurs, lisibilité au soleil).
 
 ## 4. Animations
 
@@ -34,10 +37,10 @@ IPS piloté par **LVGL** (voir ADR-0003).
   animations du personnage et de l'interface, format de sprite attendu
   (voir `assets/README.md`), budget mémoire/CPU indicatif par animation.
 
-## 5. Cohérence UI LVGL
+## 5. Cohérence de l'interface (moteur graphique pressenti : LVGL)
 
-- À compléter — Phase 2 : composants LVGL standards à privilégier
-  (widgets, thèmes), règles d'espacement et de typographie, comment une
+- À compléter — Phase 2 : composants standards à privilégier (widgets,
+  thèmes — LVGL pressenti), règles d'espacement et de typographie, comment une
   app tierce peut rester visuellement cohérente sans dupliquer les
   assets officiels.
 

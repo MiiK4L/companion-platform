@@ -3,8 +3,8 @@
 > Statut : **Phase 0 — Fondations**. L'API détaillée est marquée « ⏳ À définir ».
 
 Le **Companion SDK** est **LA surface d'API stable** que voient les applications. C'est le
-contrat entre les apps et la plateforme : une app — native ou Lua — ne connaît **rien d'autre**
-que le SDK.
+contrat entre les apps et la plateforme : une app — native ou scriptée — ne connaît **rien
+d'autre** que le SDK.
 
 Références de décision : ADR-0001, ADR-0002, ADR-0007.
 
@@ -17,13 +17,14 @@ C'est ce qui **vise** à rendre MCU, RTOS, écran et runtime remplaçables en **
 compatibilité applicative dans les limites du contrat et des capacités garanties par le SDK** —
 un objectif, pas une garantie absolue. Le SDK est conçu pour rester **stable** dans le temps
 même si les implémentations sous-jacentes évoluent ; il sert les apps **natives** (compilées
-dans l'image) comme les apps **Lua** (chargées par le runtime — ADR-0002).
+dans l'image) comme les apps **scriptées** (chargées par le runtime — langage **Lua** candidat
+en V1, ADR-0002).
 
 ## Grands domaines d'API
 
 | Domaine | Objet |
 |---------|------|
-| **Affichage / widgets** | Dessin, widgets et sprites via le moteur graphique (LVGL sous-jacent, ADR-0003) — sans exposer LVGL directement. |
+| **Affichage / widgets** | Dessin, widgets et sprites via le moteur graphique (LVGL candidat en sous-jacent, ADR-0003) — sans jamais exposer le moteur directement. |
 | **Entrées** | Événements de boutons et d'interaction utilisateur. |
 | **Stockage** | Persistance des données d'app (état, sauvegardes). |
 | **Réseau** | Accès Wi-Fi / Bluetooth à la demande (via le service Connectivity). |

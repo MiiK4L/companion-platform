@@ -44,7 +44,7 @@ ESP32-S3**.
 
 - À compléter — Phase 1 : commande de monitoring série (`idf.py
   monitor`), comment interpréter les logs de démarrage (HAL, drivers,
-  Companion SDK, chargement du runtime Lua).
+  Companion SDK, chargement du runtime de script — Lua candidat en V1).
 
 ## 8. Problèmes courants
 

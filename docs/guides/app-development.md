@@ -1,16 +1,19 @@
 # Guide — Développer une app
 
-Ce guide explique comment écrire une **app** Companion Platform en Lua,
-au-dessus du **Companion SDK**. Le Tamagotchi est la première app de
+Ce guide explique comment écrire une **app** scriptée Companion Platform
+(langage **Lua** candidat en V1), au-dessus du **Companion SDK**. Le
+principe accepté est un runtime hybride (cœur natif + apps scriptées)
+derrière une abstraction de runtime ; le choix de Lua reste à valider par
+prototype. Le Tamagotchi est la première app de
 référence de la plateforme ; ce guide vise à généraliser son
 fonctionnement pour toute app future (réseau, homelab, électronique,
 capteurs, jeux...).
 
 ## 1. Principes généraux
 
-- À compléter — Phase 2 : rappel que les apps sont scriptées en **Lua**
-  et ne parlent qu'au **Companion SDK**, jamais directement à la HAL ni à
-  ESP-IDF/FreeRTOS (voir ADR-0001/0002/0007).
+- À compléter — Phase 2 : rappel que les apps sont scriptées (langage
+  **Lua** candidat en V1) et ne parlent qu'au **Companion SDK**, jamais
+  directement à la HAL ni à ESP-IDF/FreeRTOS (voir ADR-0001/0002/0007).
 - À compléter — Phase 2 : ce qu'une app peut et ne peut pas faire
   (permissions, isolation entre apps).
 

@@ -26,17 +26,18 @@ documentation.
 > jamais la rapidité de développement.
 
 On avance selon : **Vision → Architecture → Documentation → Validation →
-Implémentation → Tests → Optimisation**, sans sauter d'étape. La documentation
-est une **fonctionnalité à part entière**, et chaque décision importante est
-tracée sous forme d'[ADR](docs/adr/README.md).
+Implémentation → Tests → Optimisation** — une progression ordonnée, mais
+**itérative** : une mesure ou un prototype peut justifier un **retour à une
+étape antérieure**. La documentation est une **fonctionnalité à part entière**,
+et chaque décision importante est tracée sous forme d'[ADR](docs/adr/README.md).
 
 ## Les quatre décisions fondatrices
 
 | Domaine | Décision | ADR |
 |---------|----------|-----|
-| Exécution des apps | Hybride **natif + Lua** (abstraction ouverte à WASM) | [0002](docs/adr/0002-modele-execution-applications.md) |
-| Affichage | **TFT IPS couleur** abstrait par un moteur graphique (LVGL) | [0003](docs/adr/0003-technologie-et-abstraction-ecran.md) |
-| Modularité | Standard d'extension **CX-Bus** + identification EEPROM | [0005](docs/adr/0005-standard-cx-bus-et-identification.md) · [0006](docs/adr/0006-nommage-cx-bus.md) |
+| Exécution des apps | Runtime **hybride extensible** (natif + script) ; **Lua** candidat V1, WASM futur | [0002](docs/adr/0002-modele-execution-applications.md) |
+| Affichage | Écran couleur **abstrait** par un moteur graphique ; **TFT IPS** et **LVGL** candidats | [0003](docs/adr/0003-technologie-et-abstraction-ecran.md) |
+| Modularité | Standard d'extension **CX-Bus** + modules **auto-identifiés** (mécanisme candidat) | [0005](docs/adr/0005-standard-cx-bus-et-identification.md) · [0006](docs/adr/0006-nommage-cx-bus.md) |
 | Fondation firmware | **ESP-IDF** confiné sous **HAL + Companion SDK** | [0001](docs/adr/0001-framework-firmware-esp-idf.md) · [0007](docs/adr/0007-hal-et-companion-sdk.md) |
 
 Le principe qui tient tout ensemble — un modèle **ports / adaptateurs** :
@@ -54,11 +55,14 @@ SDK** quand une pièce bas niveau change — un objectif, pas une garantie absol
 
 ## Matériel en bref
 
-Une carte mère unique, le **CX-Bus Host** : cœur **XIAO ESP32-S3 socketé**
-(remplaçable), alimentation/charge USB-C, écran, entrées, RTC, accéléromètre, et
-**un connecteur d'extension unique**. **Aucun capteur applicatif soudé** : tout
-capteur est un **module CX-Bus** auto-identifié qui fait apparaître ses
-applications automatiquement.
+Une carte mère unique, le **CX-Bus Host** : cœur **XIAO ESP32-S3 remplaçable**
+(socketage pressenti, à valider), alimentation/charge USB-C, écran, entrées, RTC,
+accéléromètre, et **un connecteur d'extension unique**. **Aucun capteur
+applicatif soudé** : tout capteur est un **module CX-Bus auto-identifié**.
+
+Le module **publie ses capacités** ; les applications compatibles **peuvent être
+proposées** par l'App Manager selon la **politique de confiance**. **Aucun code
+n'est installé ou lancé sur la seule foi du Manifest.**
 
 ## Organisation du dépôt
 
@@ -68,10 +72,10 @@ applications automatiquement.
 | [`standards/cx-bus/`](standards/cx-bus/) | Le standard d'extension CX-Bus (documents) | CC-BY-4.0 |
 | [`hardware/`](hardware/) | Schémas, PCB (KiCad), BOM, Gerbers | CERN-OHL-S-2.0 |
 | [`firmware/`](firmware/) | Noyau, HAL, drivers, services, Companion SDK | Apache-2.0 |
-| [`apps/`](apps/) | Une application par dossier (Lua) | Apache-2.0 (officielles) |
+| [`apps/`](apps/) | Une application par dossier (scriptées, Lua candidat) | Apache-2.0 (officielles) |
 | [`modules/`](modules/) | Modules CX-Bus (doc + KiCad + firmware) | CERN-OHL-S / au choix (tiers) |
 | [`case/`](case/) | Boîtier imprimable 3D (sources + STL) | CERN-OHL-S-2.0 |
-| [`tools/`](tools/) | Scripts, provisionnement EEPROM, utilitaires | Apache-2.0 |
+| [`tools/`](tools/) | Scripts, provisionnement du support d'identification, utilitaires | Apache-2.0 |
 | [`tests/`](tests/) | Tests host (HAL mockée) + intégration | Apache-2.0 |
 | [`assets/`](assets/) | Sprites, animations, rendus | CC-BY-4.0 (hors identité, réservée) |
 

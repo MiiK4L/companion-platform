@@ -14,8 +14,8 @@ Références de décision : ADR-0002, ADR-0003, ADR-0005, ADR-0006.
 | Service | Rôle |
 |---------|------|
 | **Module Manager** | Détection, identification (lecture du **CX-Bus Manifest**), et intégration des modules CX-Bus. Gère l'insertion/retrait à chaud et le power-gating logique. |
-| **App Manager** | Cycle de vie des apps (installation, lancement, arrêt), exécution du **runtime Lua** et abstraction de runtime (ADR-0002). |
-| **UI** | Rendu et interface via **LVGL** (widgets, sprites, power-gating écran — ADR-0003). |
+| **App Manager** | Cycle de vie des apps (installation, lancement, arrêt), exécution d'un **runtime de script** (**Lua** candidat en V1) derrière une abstraction de runtime (ADR-0002). L'installation dynamique sans reflash reste à valider (prototype). |
+| **UI** | Rendu et interface via un **moteur graphique** (**LVGL** candidat) — widgets, sprites, power-gating écran (ADR-0003). |
 | **Power** | Politiques d'alimentation, autonomie, coordination avec la gestion d'énergie du kernel. |
 | **Storage** | Persistance de haut niveau (données d'apps, état, préférences). |
 | **Connectivity** | Wi-Fi / Bluetooth (activation à la demande, gestion de la consommation). |
@@ -25,7 +25,7 @@ Références de décision : ADR-0002, ADR-0003, ADR-0005, ADR-0006.
 
 Le **Companion** (le personnage) n'est pas une app : c'est un **service de présentation
 transverse** qui reflète l'état du système et des apps sous une forme incarnée. Il est distinct
-de l'app Tamagotchi, qui, elle, est une app Lua consommant le SDK (voir
+de l'app Tamagotchi, qui, elle, est une app scriptée (Lua candidat) consommant le SDK (voir
 [`apps/tamagotchi/`](../../apps/tamagotchi/README.md)).
 
 ## Règles de dépendance
@@ -38,7 +38,8 @@ de l'app Tamagotchi, qui, elle, est une app Lua consommant le SDK (voir
 - Une app ne parle jamais à un service en direct (ex. Module Manager) : elle passe par le SDK.
 
 > ⏳ **À définir — Phases ultérieures** : API interne de chaque service, protocole du Module
-> Manager, intégration du runtime Lua dans l'App Manager, modèle d'état du Companion.
+> Manager, intégration du runtime de script (Lua candidat) dans l'App Manager, modèle d'état
+> du Companion.
 
 ## Licence
 

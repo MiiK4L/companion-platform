@@ -28,7 +28,8 @@ hardware/
 
 - **Aucun capteur ni périphérique applicatif** n'a sa place sur la carte
   mère : la mainboard expose uniquement le socle (alimentation, ESP32-S3,
-  écran TFT/LVGL, connecteur(s) CX-Bus). Tout capteur, actionneur ou
+  écran couleur abstrait — TFT/LVGL candidats, connecteur(s) CX-Bus). Tout
+  capteur, actionneur ou
   extension applicative est un **module CX-Bus** — voir `modules/`.
 - Le boîtier et ses sources CAO : voir `case/`.
 - Le firmware qui pilote cette carte : voir `firmware/`.

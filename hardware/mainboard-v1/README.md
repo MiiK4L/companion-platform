@@ -19,14 +19,17 @@ appartiennent aux **modules CX-Bus**.
 
 ## Contenu autorisé
 
-- **MCU socketé** : Seeed XIAO ESP32-S3, monté sur socket (remplaçable, ADR-0004).
+- **MCU remplaçable** : Seeed XIAO ESP32-S3, non soudé définitivement (socketage
+  **pressenti**, à valider — ADR-0004).
 - **Alimentation** : régulation des rails, gestion de la charge batterie via **USB-C**.
-- **Gestion batterie** : jauge de charge (candidats MAX17048 / LC709203F).
-- **Écran** : TFT IPS couleur, contrôleur interchangeable (ST7789 / GC9A01 / ILI9341),
-  piloté via LVGL (ADR-0003).
-- **Entrées** : boutons (via expander I²C, voir budget GPIO).
+- **Gestion batterie** : jauge de charge dédiée **candidate** (MAX17048 / LC709203F).
+- **Écran** : interface graphique abstraite (aucune app ne dépend du contrôleur) ; un
+  **écran TFT IPS couleur** à contrôleur interchangeable (ST7789 / GC9A01 / ILI9341)
+  piloté par **LVGL** sont les choix **candidats** (ADR-0003).
+- **Entrées** : boutons (un expander I²C **pourra être nécessaire**, voir budget GPIO).
 - **Retour haptique/sonore** : buzzer, moteur vibrant.
-- **Temps réel** : RTC externe basse consommation (candidat PCF8563).
+- **Temps réel** : base de temps fiable ; un **RTC externe** basse consommation est
+  **candidat** (PCF8563 pressenti, ADR-0009).
 - **Mouvement** : accéléromètre (réveil sur mouvement).
 - **Extension** : connecteur **CX-Bus** avec power-gating et détection de présence.
 
@@ -39,12 +42,13 @@ appartiennent aux **modules CX-Bus**.
 ## Analyse du budget GPIO (XIAO ESP32-S3, 11 GPIO)
 
 **Contrainte majeure.** Le XIAO ESP32-S3 n'expose que **11 GPIO**, alors que la carte doit
-piloter écran, entrées, RTC, accéléromètre, jauge, EEPROM de modules et le connecteur CX-Bus.
+piloter écran, entrées, base de temps, accéléromètre, jauge, identification des modules et le connecteur CX-Bus.
 La stratégie de bus suivante est une **contrainte de conception à valider en Phase 1/2** :
 
-- **I²C pour tout ce qui est lent** : RTC, accéléromètre, jauge de batterie, expander de
-  boutons, EEPROM d'identification des modules. Un **GPIO expander I²C** (candidats
-  PCA9555 / TCA9535) étend le nombre de lignes disponibles sans consommer de GPIO du MCU.
+- **I²C pour tout ce qui est lent** : base de temps (RTC), accéléromètre, jauge de
+  batterie, boutons, mémoire d'identification des modules. Un **GPIO expander I²C**
+  (candidats PCA9555 / TCA9535) **pourra être nécessaire** pour étendre le nombre de
+  lignes disponibles sans consommer de GPIO du MCU.
 - **SPI partagé écran + CX-Bus** : le même bus SPI sert l'écran et le connecteur module,
   avec chip-selects distincts et arbitrage géré par le firmware (SPEC CX-Bus §9).
 - **GPIO réservés** : quelques lignes du MCU dédiées aux interruptions (`IRQ`), à l'enable

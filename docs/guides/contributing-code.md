@@ -24,7 +24,7 @@ le complète avec des détails techniques.
   HAL → drivers → silicium), interdiction des dépendances directes
   ESP-IDF/FreeRTOS hors HAL/drivers.
 - À compléter — Phase 2 : lien vers `docs/guides/code-style.md` pour les
-  conventions de style C et Lua.
+  conventions de style C et du langage de script (Lua candidat en V1).
 
 ## 4. Tester localement
 
