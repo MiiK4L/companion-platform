@@ -1,0 +1,77 @@
+# SPDX-FileCopyrightText: 2026 Companion Platform contributors
+#
+# SPDX-License-Identifier: Apache-2.0
+
+name: Documentation
+
+# Construit systématiquement le site de documentation (push sur main et Pull
+# Requests) pour VALIDER la doc en CI (mkdocs build --strict).
+#
+# La PUBLICATION (GitHub Pages) est DIFFÉRÉE (voir ADR-0011) : elle n'est PAS
+# déclenchée automatiquement sur push/merge. Le déploiement ne s'exécute que sur
+# déclenchement MANUEL (workflow_dispatch), et uniquement lorsque l'hébergement
+# est disponible et que le mainteneur le décide.
+#
+# GitHub Actions épinglées au SHA (reproductible + sécurisé) ; commentaire =
+# version lisible. Montées de version gérées par Dependabot.
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: "docs-${{ github.ref }}"
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Construire le site (mkdocs --strict)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Récupérer le dépôt
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Installer Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+
+      - name: Installer les dépendances de documentation (verrou épinglé)
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r docs/requirements.txt
+
+      - name: Construire le site en mode strict
+        run: mkdocs build --strict
+
+      - name: Publier l'artefact du site (déploiement manuel uniquement)
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: site
+
+  # Déploiement DÉSACTIVÉ par défaut : ne s'exécute QUE sur déclenchement manuel
+  # (workflow_dispatch). Aucune publication automatique au push/merge.
+  deploy:
+    name: Déployer sur GitHub Pages (manuel)
+    if: github.event_name == 'workflow_dispatch'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Déployer l'artefact
+        id: deployment
+        uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5.0.0

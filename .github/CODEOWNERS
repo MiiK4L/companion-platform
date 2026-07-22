@@ -1,0 +1,41 @@
+# SPDX-FileCopyrightText: 2026 Companion Platform contributors
+#
+# SPDX-License-Identifier: Apache-2.0
+
+# CODEOWNERS — Companion Platform
+#
+# Ce fichier attribue, par domaine du monorepo, une responsabilité de revue par
+# défaut. À ce stade du projet, l'ensemble des domaines est porté par un seul
+# mainteneur (@MiiK4L). Cette attribution est volontairement large et sera
+# affinée au fil de la croissance de la communauté : des mainteneurs dédiés par
+# domaine (firmware, hardware, standards, docs, apps, modules...) pourront être
+# ajoutés au fur et à mesure que des contributeurs de confiance émergent.
+#
+# Voir aussi : .github/PULL_REQUEST_TEMPLATE.md et les ADR de gouvernance du projet.
+
+# Règle de base : tout le dépôt (couvre les fichiers racine et non listés
+# ci-dessous). Les règles plus spécifiques qui suivent la précisent par domaine
+# (la dernière règle qui correspond l'emporte dans CODEOWNERS).
+*            @MiiK4L
+
+# Firmware : HAL/ports, adaptateurs/drivers, kernel, Companion SDK, services
+/firmware/   @MiiK4L
+
+# Matériel : cartes, schémas, PCB, boîtier
+/hardware/   @MiiK4L
+/case/       @MiiK4L
+
+# Standards transverses : CX-Bus, nommage, spécifications
+/standards/  @MiiK4L
+
+# Documentation : ADR, architecture, guides, roadmap
+/docs/       @MiiK4L
+
+# Applications (dont l'app Tamagotchi)
+/apps/       @MiiK4L
+
+# Modules CX-Bus
+/modules/    @MiiK4L
+
+# Infrastructure GitHub / CI-CD
+/.github/    @MiiK4L

@@ -1,0 +1,11 @@
+# SPDX-FileCopyrightText: 2026 Companion Platform contributors
+#
+# SPDX-License-Identifier: Apache-2.0
+
+# Les Issues vierges sont désactivées : utilisez un des gabarits (bug, demande
+# de fonctionnalité, proposition d'ADR).
+#
+# Les GitHub Discussions ne sont PAS activées à ce stade (dépôt privé). Aucun
+# lien de contact vers les Discussions n'est proposé ici ; il pourra être ajouté
+# lorsque les Discussions seront activées (passage en public).
+blank_issues_enabled: false

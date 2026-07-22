@@ -1,0 +1,66 @@
+# SPDX-FileCopyrightText: 2026 Companion Platform contributors
+#
+# SPDX-License-Identifier: Apache-2.0
+
+name: ✨ Demande de fonctionnalité
+description: Proposer une nouvelle fonctionnalité ou une amélioration pour Companion Platform.
+title: "[feature] "
+labels:
+  - "type:feature"
+  - "status:backlog"
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Merci de proposer une amélioration au projet. Companion Platform privilégie toujours la qualité, la robustesse et l'évolutivité à la rapidité : décrivez votre besoin avec autant de contexte que possible.
+
+  - type: dropdown
+    id: domaine
+    attributes:
+      label: Domaine concerné
+      description: Quelle partie du monorepo serait impactée par cette fonctionnalité ?
+      options:
+        - firmware
+        - hardware
+        - os
+        - cx-bus
+        - app
+        - module
+        - docs
+        - ci
+    validations:
+      required: true
+
+  - type: textarea
+    id: besoin
+    attributes:
+      label: Problème / besoin
+      description: Quel problème rencontrez-vous, ou quel besoin cette fonctionnalité couvrirait-elle ?
+      placeholder: "En tant que ..., je souhaite ... afin de ..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Solution proposée
+      description: Décrivez la solution envisagée. Précisez si elle respecte les décisions d'architecture existantes (HAL, Companion SDK, CX-Bus, runtime hybride natif/Lua...).
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives envisagées
+      description: Quelles autres solutions avez-vous considérées, et pourquoi ne les avez-vous pas retenues ?
+    validations:
+      required: false
+
+  - type: input
+    id: phase
+    attributes:
+      label: Phase de roadmap concernée
+      description: Si connue, indiquez la phase de la roadmap à laquelle cette fonctionnalité se rattache (ex. phase:2).
+      placeholder: "ex. phase:3"
+    validations:
+      required: false
