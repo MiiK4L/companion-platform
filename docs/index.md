@@ -12,22 +12,23 @@ Ce projet fait le pari inverse de l'obsolescence programmée : chaque choix tech
 
 ## Quatre décisions structurantes
 
-L'architecture de Companion Platform repose sur quelques décisions verrouillées, documentées sous forme d'[ADR](adr/README.md) :
+L'architecture de Companion Platform repose sur quelques décisions structurantes, documentées sous forme d'[ADR](adr/README.md) :
 
-1. **Un runtime d'applications hybride et extensible** ([ADR-0002](adr/README.md)) — un cœur natif pour les applications critiques ou performantes, et des applications scriptées, plus légères à distribuer et à sandboxer, le tout derrière une **abstraction de runtime**. Le langage de script **Lua** est le **candidat** retenu pour la V1 (à valider par prototype).
+1. **Un runtime d'applications hybride et extensible** ([ADR-0002](adr/README.md)) — un cœur natif pour les applications critiques ou performantes, et des applications scriptées, plus légères à distribuer, le tout derrière une **abstraction de runtime**. Le langage de script **Lua** est le **candidat** pressenti pour la V1 (à valider par prototype). L'isolation des apps scriptées (permissions, limites de ressources) **reste à concevoir et à prouver** — Lua n'est pas une sandbox par défaut.
 2. **Un écran couleur entièrement abstrait** ([ADR-0003](adr/README.md)) — les applications dessinent leur interface via une abstraction graphique, sans jamais dépendre du contrôleur d'écran réellement présent sur la carte. Un **écran TFT IPS couleur** et le moteur graphique **LVGL** sont les choix **candidats** (à valider en Phase 1/2).
-3. **Un standard d'extension matériel unifié, le CX-Bus** *(Companion eXpansion Bus)* ([ADR-0005](adr/README.md) / [ADR-0006](adr/README.md)) — chaque module d'extension (capteur, connectivité, affichage...) s'identifie et se déclare de façon standardisée. Le mécanisme d'identification est **candidat** : une **EEPROM I²C** embarquée est pressentie.
-4. **Un framework ESP-IDF encapsulé derrière un HAL et un Companion SDK obligatoires** ([ADR-0001](adr/README.md) / [ADR-0007](adr/README.md)) — aucune application ne dépend jamais directement d'ESP-IDF ou de FreeRTOS.
+3. **Un standard d'extension matériel unifié, le CX-Bus** *(Companion eXpansion Bus)* ([ADR-0005](adr/README.md) / [ADR-0006](adr/README.md)) — chaque module d'extension (capteur, connectivité, affichage...) s'identifie et se déclare de façon standardisée. Le mécanisme d'identification est **candidat** : une **EEPROM I²C** embarquée est l'option pressentie, à valider.
+4. **Un framework ESP-IDF encapsulé derrière des ports abstraits et un Companion SDK** ([ADR-0001](adr/README.md) / [ADR-0007](adr/README.md)) — aucune application ne dépend directement d'ESP-IDF ni de FreeRTOS ; ceux-ci sont confinés aux adaptateurs cible.
 
-## Le principe directeur : inverser les dépendances matérielles
+## Le principe directeur : un modèle ports / adaptateurs
 
-Companion Platform applique systématiquement un principe d'**inversion des dépendances matérielles** : les couches de haut niveau ne dépendent jamais directement des couches de bas niveau.
+Companion Platform applique un modèle **ports / adaptateurs** (inversion des dépendances) : les **abstractions** (les *ports*) ne dépendent d'aucune implémentation concrète ; ce sont les *adaptateurs* concrets qui dépendent des ports qu'ils implémentent.
 
 ```
-apps → Companion SDK → HAL → drivers → silicium
+apps → Companion SDK → services → ports abstraits ◄─ adaptateurs (ESP32-S3/ESP-IDF · host/mock)
+                                                          └─ drivers · ESP-IDF · FreeRTOS · silicium
 ```
 
-Une application ne connaît que le Companion SDK. Le SDK ne connaît que le HAL (Hardware Abstraction Layer). Le HAL seul dialogue avec les drivers, qui seuls touchent au silicium. Ce principe garantit qu'une évolution matérielle — un nouvel écran, un nouveau capteur, voire un nouveau microcontrôleur — n'oblige jamais à réécrire les applications qui tournent dessus.
+Une application ne connaît que le **Companion SDK**, qui est un **contrat / une façade** fournie par les services. Les services dépendent de **ports** (interfaces portables, sans ESP-IDF), implémentés par des **adaptateurs** (cible ESP32-S3, ou mocks pour les tests). Ce modèle **vise à préserver la compatibilité applicative dans les limites du contrat garanti par le SDK** lorsqu'une pièce bas niveau change (écran, capteur, voire microcontrôleur) — c'est un **objectif de conception, pas une garantie absolue** : un tel changement demande d'écrire ou d'adapter un adaptateur, et peut modifier des performances ou des capacités disponibles.
 
 Pour aller plus loin, consultez la page [Inversion des dépendances](architecture/dependency-inversion.md).
 
