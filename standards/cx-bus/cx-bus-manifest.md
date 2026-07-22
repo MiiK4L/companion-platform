@@ -37,7 +37,7 @@ principe d'auto-description, pas une garantie d'authenticité (voir ci-dessous).
 | `crc` | Détection d'une **corruption accidentelle** | **Aucune** authenticité ni intégrité contre un acteur malveillant |
 | Authentification cryptographique (signature) | Origine/authenticité | — |
 
-Le CRC détecte une EEPROM abîmée ; il **ne protège pas** contre un Manifest **falsifié**. Une
+Le CRC détecte un support abîmé ; il **ne protège pas** contre un Manifest **falsifié**. Une
 éventuelle **authentification cryptographique** est une **décision de sécurité distincte** (voir
 `SECURITY.md`, modèle de menace), non actée à ce stade.
 

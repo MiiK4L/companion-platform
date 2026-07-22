@@ -86,7 +86,7 @@ docs(guides): ajoute le squelette du guide de build et flash
 
 adr: formalise ADR-0008 sur la stratégie de mise à jour OTA
 
-chore(tools): met à jour le script de provisioning EEPROM CX-Bus
+chore(tools): met à jour le script de provisioning du support d'identification CX-Bus
 ```
 
 Une PR peut contenir plusieurs commits, mais chacun doit rester cohérent et

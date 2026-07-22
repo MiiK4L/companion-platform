@@ -20,7 +20,7 @@ produit aux phases 2–4 ; ce document fixe les principes. Décisions liées :
 │  MODULE CX-Bus (cartouche) — hors carte, interchangeable   │
 ├──────────────────────────────────────────────────────────┤
 │  Connecteur d'extension unique (alim + I²C + SPI + UART +  │
-│  GPIO/IRQ + détection présence + EEPROM Manifest)          │
+│  GPIO/IRQ + détection présence + identification Manifest)  │
 ├───────────────┬────────────────┬───────────────────────────┤
 │ Cœur calcul   │  Alimentation   │  IHM                      │
 │ XIAO ESP32-S3 │  Charge USB-C   │  Écran TFT IPS*           │
@@ -36,11 +36,11 @@ produit aux phases 2–4 ; ce document fixe les principes. Décisions liées :
 
 Détail et statut : [`hardware/mainboard-v1/README.md`](../../hardware/mainboard-v1/README.md).
 
-## Principes non négociables
+## Principes structurants de la V1
 
 1. **Aucun capteur applicatif soudé.** GPS, CO₂, caméra, LoRa, NFC, etc. sont
-   **toujours** des modules CX-Bus. La carte mère ne contient que
-   l'infrastructure générique.
+   des **modules CX-Bus**, pas des composants soudés. La carte mère ne contient
+   que l'infrastructure générique.
 2. **Cœur de calcul remplaçable** (XIAO non soudé définitivement ; socketage pressenti, à valider — [ADR-0004](../adr/0004-coeur-de-calcul-socket.md)).
 3. **Un connecteur d'extension unique**, identique pour tous les modules
    ([standard CX-Bus](../../standards/cx-bus/README.md)).
@@ -82,6 +82,7 @@ Voir [ADR-0008](../adr/0008-architecture-alimentation.md).
 ## Le standard CX-Bus
 
 Le connecteur, le brochage, l'alimentation, la détection, le protocole, le
-format mécanique et l'identification (CX-Bus Manifest en EEPROM) sont définis
-par le standard : [`standards/cx-bus/`](../../standards/cx-bus/README.md). La
+format mécanique et l'identification (CX-Bus Manifest ; support d'identification
+candidat, EEPROM I²C pressentie) sont définis par le standard :
+[`standards/cx-bus/`](../../standards/cx-bus/README.md). La
 spécification détaillée est produite en **Phase 1**.

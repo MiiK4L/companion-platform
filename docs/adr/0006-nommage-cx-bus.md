@@ -53,7 +53,7 @@ Nomenclature versionnée :
 - **CX-Bus 1.0** — version du standard ;
 - **CX-Bus Module** — la cartouche d'extension ;
 - **CX-Bus Host** — la carte mère qui reçoit les modules ;
-- **CX-Bus Manifest** — le descripteur d'identification (EEPROM) ;
+- **CX-Bus Manifest** — le descripteur d'identification (support candidat, EEPROM I²C pressentie) ;
 - **CX-Bus SDK** — la surface d'outils/API pour créer des modules.
 
 ## 4. Raisons du choix
