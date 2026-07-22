@@ -1,4 +1,4 @@
-# ADR-0009 : RTC externe et persistance d'état hors tension
+# ADR-0009 : Base de temps fiable et persistance d'état (évolution par Δt)
 
 - **Statut** : Accepté
 - **Date** : 2026-07-21
@@ -52,9 +52,10 @@ différées (§6) : ils ne sont pas actés comme définitifs par la présente AD
 ## 4. Raisons du choix
 
 Le calcul par Δt est le modèle le plus économe : l'appareil dort réellement,
-sans tâche de fond, et « rattrape » l'évolution au réveil. Le PCF8563 offre le
-meilleur compromis précision/conso/coût pour cet usage. NVS + LittleFS sont les
-mécanismes éprouvés de l'écosystème.
+sans tâche de fond, et « rattrape » l'évolution au réveil. Une base de temps
+externe basse consommation (**PCF8563 candidat**) est pressentie pour la
+fiabilité et la précision, à valider (§6). NVS + LittleFS sont les mécanismes
+éprouvés de l'écosystème.
 
 ## 5. Conséquences
 
@@ -63,8 +64,9 @@ mécanismes éprouvés de l'écosystème.
 - État des apps robuste aux coupures.
 
 ### Négatives / compromis acceptés
-- Une puce I²C et une ligne d'interruption de réveil supplémentaires (budget
-  GPIO/adresses I²C à arbitrer, ADR-0004/0008).
+- **Si** un RTC externe est retenu (§6) : une puce I²C et une ligne
+  d'interruption de réveil supplémentaires (budget GPIO/adresses I²C à arbitrer,
+  ADR-0004/0008) — non acté tant que le RTC externe reste proposé.
 
 ### Impacts futurs
 - La HAL doit exposer une abstraction « horloge/alarme » et « stockage

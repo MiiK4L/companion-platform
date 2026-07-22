@@ -1,4 +1,4 @@
-# ADR-0002 : Modèle d'exécution des applications — hybride natif + Lua
+# ADR-0002 : Modèle d'exécution des applications — hybride natif + script
 
 - **Statut** : Accepté
 - **Date** : 2026-07-21
@@ -71,11 +71,13 @@ la logique « qualité et évolutivité avant rapidité ».
 ## 5. Conséquences
 
 ### Positives
-- Ajouter une app/un jeu ne nécessite pas de reflasher le firmware.
+- **Objectif visé** : ajouter une app/un jeu **sans reflasher** le firmware —
+  **conditionné** à la validation de l'installation dynamique (P8, §6) ; non
+  garanti à ce stade.
 - Écosystème tiers possible ; le Tamagotchi devient une app comme une autre.
 
 ### Négatives / compromis acceptés
-- Intégration et maintenance d'un runtime Lua + d'une couche d'abstraction.
+- Intégration et maintenance d'un runtime de script (Lua candidat) + d'une couche d'abstraction.
 - Les apps scriptées sont plus lentes que du natif (acceptable pour de l'UI/jeux).
 
 ### Impacts futurs

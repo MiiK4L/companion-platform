@@ -1,4 +1,4 @@
-# ADR-0004 : Cœur de calcul XIAO ESP32-S3 socketé et remplaçable
+# ADR-0004 : Cœur de calcul remplaçable (non soudé définitivement)
 
 - **Statut** : Accepté
 - **Date** : 2026-07-21
@@ -63,8 +63,10 @@ opération de remplacement, et laisse la porte ouverte à une future carte custo
 - Réparabilité et évolutivité du cœur ; V1 pérenne.
 
 ### Négatives / compromis acceptés
-- Légère hausse d'épaisseur (impact boîtier, Phase 5) et de coût.
-- Contact socket à valider mécaniquement (vibrations, insertions).
+- Un cœur non soudé implique un mécanisme de connexion (surcoût, encombrement).
+  L'ampleur exacte (épaisseur, coût, fiabilité du contact) dépend de la solution
+  retenue — **socketage pressenti, à valider** (§6, impact boîtier en Phase 4) —
+  et n'est **pas** actée comme compromis définitif ici.
 
 ### Impacts futurs
 - Le brochage carte mère ↔ XIAO devient un mini-standard interne à documenter.

@@ -1,4 +1,4 @@
-# ADR-0005 : Standard d'extension CX-Bus et identification par EEPROM
+# ADR-0005 : Standard d'extension CX-Bus et modules auto-identifiés
 
 - **Statut** : Accepté
 - **Date** : 2026-07-21
@@ -12,7 +12,8 @@
 
 La modularité « type console » est la partie la plus importante du projet : un
 connecteur unique, une interface identique pour tous les modules, une détection
-et une identification automatiques, puis le chargement des apps correspondantes.
+et une identification automatiques, puis la mise à disposition des apps
+compatibles (selon la politique de confiance — cf. `cx-bus-manifest.md`).
 Il faut un **standard matériel et protocolaire** stable, capable d'accueillir
 des modules très divers (GPS, CO₂, réseau, électronique…) pendant des années,
 sans que la carte mère embarque aucun capteur applicatif.
@@ -48,13 +49,14 @@ nom). Principe accepté :
 - support de type C (modules à MCU) possible par-dessus, sans l'imposer aux
   modules passifs.
 
-Le mécanisme d'auto-identification pressenti est une **EEPROM I²C** par module
-contenant un descripteur normalisé, le **CX-Bus Manifest** (magic, version de
-protocole, vendor/product ID, version matérielle, nom, auteur, UUID, capacités,
-brochage requis, liste des apps exposées, CRC). Ce mécanisme, le **format
-binaire** du Manifest et la **séquence de hot-plug** détaillée ne sont **pas**
-actés comme définitifs par la présente ADR : ils relèvent des décisions
-différées (§6).
+Le mécanisme d'auto-identification **pressenti** est un **support d'identification**
+par module (une **EEPROM I²C** est l'option privilégiée à évaluer) portant un
+descripteur normalisé, le **CX-Bus Manifest** (magic, version de protocole,
+identifiants vendeur/produit, révision matérielle, capacités, ressources
+requises, recommandations d'apps compatibles, CRC — cf. `cx-bus-manifest.md`). Ce
+mécanisme, le **format binaire** du Manifest et la **séquence de hot-plug** ne
+sont **pas** actés comme définitifs par la présente ADR : ils relèvent des
+décisions différées (§6).
 
 Le format binaire exact, le brochage, le connecteur physique et le format
 mécanique sont spécifiés dans
@@ -62,10 +64,11 @@ mécanique sont spécifiés dans
 
 ## 4. Raisons du choix
 
-L'EEPROM I²C offre le meilleur rapport richesse/coût/robustesse, permet des
-modules passifs bon marché comme des modules actifs, et s'appuie sur une
-antériorité industrielle validée (HAT RPi). C'est la base la plus pérenne pour
-un écosystème de modules tiers.
+L'auto-identification par descripteur riche est la base d'un écosystème de
+modules tiers pérenne, sans capteur applicatif soudé sur la carte mère. Le
+mécanisme **pressenti** — une EEPROM I²C (antériorité HAT RPi) — offre un bon
+rapport richesse/coût/robustesse et convient aux modules passifs comme actifs,
+mais reste à valider (§6) : le **principe** n'impose aucun mécanisme précis.
 
 ## 5. Conséquences
 
@@ -76,7 +79,8 @@ un écosystème de modules tiers.
 ### Négatives / compromis acceptés
 - Le bus I²C/SPI est partagé entre la carte mère et le module : arbitrage et
   budget d'adresses/broches à spécifier (contrainte des 11 GPIO du XIAO).
-- Provisionnement d'EEPROM à outiller (voir `tools/`).
+- Provisionnement du **support d'identification** (EEPROM si retenue) à outiller
+  (voir `tools/`) — mécanisme non figé.
 
 ### Impacts futurs
 - Le standard CX-Bus est versionné indépendamment (tags `spec-`), avec des
@@ -92,8 +96,8 @@ sûreté électrique de Phase 1) :
 - l'**identification par EEPROM I²C** (CX-Bus Manifest) comme mécanisme
   définitif, et le **format binaire** du Manifest ;
 - la **stratégie de hot-plug** détaillée (détection présence, alimentation
-  module, lecture EEPROM, validation Manifest, chargement drivers, apparition
-  des apps ; séquencement, debounce) ;
+  module, lecture du support d'identification, validation Manifest, chargement
+  drivers, publication des capacités ; séquencement, debounce) ;
 - la **famille de connecteur** physique (card-edge/board-to-board/FPC/pogo) ;
 - le **brochage** définitif et les niveaux logiques ;
 - le **budget de courant** par module et le power-gating ;

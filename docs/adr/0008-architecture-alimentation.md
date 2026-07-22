@@ -1,4 +1,4 @@
-# ADR-0008 : Architecture d'alimentation — jauge + power-gating
+# ADR-0008 : Architecture d'alimentation — power-gating et gestion d'énergie explicite
 
 - **Statut** : Accepté
 - **Date** : 2026-07-21
@@ -50,15 +50,17 @@ présente ADR.
 
 ## 4. Raisons du choix
 
-Ces choix sont ceux d'un produit, pas d'un prototype : mesure fiable, aucun
-gaspillage par les modules en veille, deep sleep réellement bas. Ils
-conditionnent directement l'atteinte de l'objectif d'autonomie.
+Ces **principes** sont ceux d'un produit, pas d'un prototype : aucun gaspillage
+par les modules en veille (power-gating), deep sleep réellement bas, recharge
+standard. Ils conditionnent l'objectif d'autonomie. Un niveau de batterie fiable
+(jauge dédiée) est souhaitable mais reste **candidat** (§6).
 
 ## 5. Conséquences
 
 ### Positives
-- Autonomie tenable malgré l'écran couleur ; niveau de batterie crédible.
-- Les modules ne pénalisent pas la veille.
+- Autonomie visée tenable malgré un écran couleur ; niveau de batterie crédible
+  **si** une jauge est retenue.
+- Les modules ne pénalisent pas la veille (power-gating).
 
 ### Négatives / compromis acceptés
 - Quelques composants et GPIO supplémentaires (budget des 11 GPIO du XIAO à

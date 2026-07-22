@@ -1,4 +1,4 @@
-# ADR-0003 : Écran TFT IPS couleur abstrait par un moteur graphique
+# ADR-0003 : Interface graphique abstraite (indépendante du contrôleur d'écran)
 
 - **Statut** : Accepté
 - **Date** : 2026-07-21
@@ -53,10 +53,12 @@ sont pas actés comme définitifs par la présente ADR.
 
 ## 4. Raisons du choix
 
-Le TFT couleur est le seul choix qui préserve l'identité « compagnon vivant » et
-les jeux. Le risque (autonomie) est traité par l'architecture (abstraction +
-gestion d'énergie) plutôt que par un renoncement à la couleur. L'abstraction
-protège aussi l'approvisionnement (un contrôleur peut disparaître du marché).
+L'**abstraction graphique** est le choix structurant : elle préserve l'identité
+« compagnon vivant » quel que soit l'écran finalement retenu, et protège
+l'approvisionnement (un contrôleur peut disparaître du marché). La famille
+**TFT IPS couleur** est **pressentie** (seule à préserver couleur, animations et
+jeux) mais reste à valider (§6) ; le risque d'autonomie est alors traité par la
+gestion d'énergie plutôt que par un renoncement à la couleur.
 
 ## 5. Conséquences
 
@@ -65,11 +67,12 @@ protège aussi l'approvisionnement (un contrôleur peut disparaître du marché)
 - Indépendance vis-à-vis d'un contrôleur donné (résilience composants).
 
 ### Négatives / compromis acceptés
-- La gestion d'énergie de l'écran devient un chantier de premier plan.
-- LVGL a une empreinte RAM/flash non négligeable à budgéter (Phase 1).
+- La gestion d'énergie de l'écran sera un chantier de premier plan.
+- Le moteur graphique (**LVGL pressenti**) aura une empreinte RAM/flash à
+  budgéter et à valider (Phase 1).
 
 ### Impacts futurs
-- Le boîtier (Phase 5) doit intégrer une fenêtre/vitre et la gestion du
+- Le boîtier (Phase 4) devra intégrer une fenêtre/vitre et la gestion du
   rétroéclairage.
 - La HAL doit exposer une interface « display » indépendante du contrôleur.
 
