@@ -1,0 +1,35 @@
+name: Checks
+
+# Contrôles de cohérence reproductibles en CI.
+#
+# - link-check : valide les liens Markdown relatifs sur TOUT le dépôt (plus
+#   complet que `mkdocs build --strict`, qui ne voit que docs/). C'est l'autorité
+#   de vérification des liens du projet.
+#
+# GitHub Actions épinglées au SHA (reproductible + sécurisé) ; commentaire =
+# version lisible. Montées de version gérées par Dependabot.
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  link-check:
+    name: Liens Markdown relatifs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Récupérer le dépôt
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Installer Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: Vérifier les liens relatifs
+        run: python3 tools/check_links.py

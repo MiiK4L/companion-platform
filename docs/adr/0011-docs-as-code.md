@@ -35,7 +35,9 @@ On sépare deux choses :
 
 - **Décision acceptée (stable)** : la documentation est **docs-as-code** —
   Markdown dans `docs/`, relue en PR, et **construite en CI avec `mkdocs build
-  --strict`** (le build valide la doc à chaque PR). Le Wiki GitHub n'est jamais
+  --strict`** (config, nav, ancres). L'**intégrité des liens** est vérifiée par
+  un **contrôle dédié** (`tools/check_links.py`, workflow *Checks*) couvrant tout
+  le dépôt — pas par MkDocs, qui ne voit que `docs/`. Le Wiki GitHub n'est jamais
   la source de vérité.
 - **Publication (différée)** : la mise en ligne (ex. GitHub Pages) est **reportée**
   jusqu'à une **décision explicite du mainteneur** et jusqu'à ce que l'hébergement
