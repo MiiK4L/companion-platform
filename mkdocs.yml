@@ -80,6 +80,17 @@ nav:
       - "ADR-0011 · Docs-as-code": adr/0011-docs-as-code.md
       - "ADR-0012 · Monorepo & versioning": adr/0012-monorepo-et-versioning.md
   - Roadmap: roadmap.md
+  - Phase 1 (planification):
+      - Cadrage: phase-1/README.md
+      - Plan consolidé: phase-1/plan.md
+      - Ordre & critères de sortie: phase-1/execution.md
+      - Matrice des exigences: phase-1/requirements-matrix.md
+      - Registre des risques: phase-1/risk-register.md
+      - Sourcing & BOM: phase-1/sourcing-and-bom.md
+      - Cadre de validation: phase-1/validation-framework.md
+      - "Modèle : protocole de test": phase-1/templates/test-protocol-template.md
+      - "Modèle : rapport de mesure": phase-1/templates/measurement-report-template.md
+      - ADR prévisionnelles 0013+: phase-1/adr-plan.md
   - Guides:
       - Contribuer au code: guides/contributing-code.md
       - Style de code: guides/code-style.md
