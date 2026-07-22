@@ -35,7 +35,7 @@ Ces choix découlent des décisions verrouillées **ADR-0005** et **ADR-0006**.
 | **CX-Bus 1.0** | Version du *standard* (spécification). Versionnée en SemVer. |
 | **CX-Bus Module** | La cartouche : carte d'extension physique conforme au standard. |
 | **CX-Bus Host** | La carte mère qui expose le connecteur et pilote le bus. |
-| **CX-Bus Manifest** | Le descripteur d'identification stocké dans l'EEPROM du Module. |
+| **CX-Bus Manifest** | Le descripteur d'identification porté par le Module via son support d'identification (mécanisme normatif à définir en Phase 1 ; EEPROM I²C = option privilégiée à évaluer). |
 | **CX-Bus SDK** | La surface logicielle permettant d'écrire le firmware d'un Module et de l'intégrer côté Host. |
 
 ## Versionnement du standard
@@ -62,7 +62,7 @@ spécification.
 | Document | Objet |
 |----------|-------|
 | [`SPEC-CX-Bus-1.0.md`](./SPEC-CX-Bus-1.0.md) | Spécification technique du standard (BROUILLON). |
-| [`cx-bus-manifest.md`](./cx-bus-manifest.md) | Spécification du descripteur d'identification (Manifest EEPROM). |
+| [`cx-bus-manifest.md`](./cx-bus-manifest.md) | Spécification du descripteur d'identification (Manifest porté par le support d'identification). |
 
 ## Licence
 

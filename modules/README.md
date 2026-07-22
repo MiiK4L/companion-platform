@@ -21,8 +21,9 @@ modules/
 ## Ce qui va ici
 
 - Un dossier par module, respectant le **standard CX-Bus** : mécanique de
-  connecteur, identification via EEPROM (manifest CX-Bus), protocole de
-  communication.
+  connecteur, identification via le support d'identification normatif
+  (manifest CX-Bus ; mécanisme à définir en Phase 1, EEPROM I²C candidate),
+  protocole de communication.
 - Pour chaque module : sa documentation, ses sources KiCad et son
   firmware/driver associé, afin qu'un module soit auto-suffisant et
   reproductible.
@@ -33,8 +34,8 @@ modules/
 - Les apps Lua qui *utilisent* les capacités exposées par un module : voir
   `apps/` (une app consomme un module via le Companion SDK, elle n'en fait
   pas partie).
-- Un module qui ne respecte pas le standard CX-Bus (mécanique, EEPROM
-  d'identification) n'est pas un module CX-Bus au sens de ce dossier.
+- Un module qui ne respecte pas le standard CX-Bus (mécanique, support
+  d'identification normatif) n'est pas un module CX-Bus au sens de ce dossier.
 
 ## Licence
 

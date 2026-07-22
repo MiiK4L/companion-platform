@@ -11,9 +11,10 @@ sans faire partie du firmware ni des apps eux-mêmes.
 - **Générateurs** de code ou de fichiers (par exemple génération de
   squelettes de module, de manifest d'app, de headers depuis une
   spécification CX-Bus).
-- Outils de **provisioning EEPROM CX-Bus** : écriture du manifest
-  d'identification d'un module CX-Bus (identifiant, version, capacités)
-  dans l'EEPROM du module lors de sa fabrication ou de son
+- Outillage de **provisionnement du support d'identification CX-Bus**
+  (EEPROM I²C si retenue) — **à définir en Phase 1** : écriture du manifest
+  d'identification d'un module CX-Bus (identifiant, version, capacités) sur
+  le support d'identification du module lors de sa fabrication ou de son
   développement.
 - Utilitaires divers de développement (linters custom, scripts de
   vérification de cohérence entre dossiers, aide à la release).
@@ -33,9 +34,11 @@ de la plateforme — voir [`LICENSING.md`](../LICENSING.md).
 
 ## Phase de roadmap
 
-Les premiers outils attendus sont les scripts de build/flash ESP-IDF et le
-script de provisioning EEPROM CX-Bus, dès que le standard CX-Bus
-(`standards/cx-bus/`) définit le format du manifest d'identification. Les
+Les premiers outils attendus sont les scripts de build/flash ESP-IDF et
+l'outillage de provisionnement du support d'identification CX-Bus (EEPROM I²C
+si retenue — à définir en Phase 1), dès que le standard CX-Bus
+(`standards/cx-bus/`) fige le mécanisme normatif et le format du manifest
+d'identification. Les
 générateurs plus avancés (scaffolding d'app/module) arrivent en phase
 ultérieure, une fois les guides `docs/guides/app-development.md` et
 `docs/guides/module-development.md` stabilisés. Consultez

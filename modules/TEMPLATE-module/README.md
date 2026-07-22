@@ -26,7 +26,8 @@ conformité de la spécification (voir `SPEC-CX-Bus-1.0.md`, §11) :
 
 1. Format mécanique et connecteur conformes (§3, §4).
 2. Brochage et rails respectés, budget de courant non dépassé (§5, §6).
-3. **CX-Bus Manifest** valide et lisible en EEPROM I²C (§8).
+3. **CX-Bus Manifest** valide et lisible via le **support d'identification** normatif (§8 ;
+   mécanisme à figer en Phase 1, EEPROM I²C = option privilégiée à évaluer).
 4. Rôles et arbitrage des bus partagés respectés (§9) — ne jamais bloquer le bus.
 5. Comportement sûr à l'insertion/retrait à chaud (§7).
 6. Version de protocole CX-Bus requise correctement déclarée.
@@ -36,7 +37,8 @@ conformité de la spécification (voir `SPEC-CX-Bus-1.0.md`, §11) :
 
 ## CX-Bus Manifest à fournir
 
-Votre module DOIT embarquer un **CX-Bus Manifest** dans son EEPROM I²C (voir
+Votre module DOIT fournir un **CX-Bus Manifest** via le **support d'identification** normatif
+du standard (mécanisme à définir en Phase 1 ; EEPROM I²C candidate — voir
 `standards/cx-bus/cx-bus-manifest.md`). Renseignez au minimum : signature, version de Manifest,
 version de protocole requise, `vendor_id`, `product_id`, version matérielle, nom, auteur, UUID,
 capacités, brochage utilisé, apps exposées et CRC.

@@ -47,9 +47,9 @@ Cela simplifie fortement le plan d'adressage (§9).
 |-------|-----------|
 | **Host** (CX-Bus Host) | Carte mère exposant le connecteur CX-Bus et pilotant le bus. Maître des bus partagés. |
 | **Module** (CX-Bus Module) | Carte d'extension amovible (« cartouche ») conforme au standard. |
-| **Manifest** (CX-Bus Manifest) | Descripteur d'identification normalisé stocké dans l'EEPROM I²C du Module. Voir `cx-bus-manifest.md`. |
+| **Manifest** (CX-Bus Manifest) | Descripteur d'identification normalisé porté par le Module via un **support d'identification** (mécanisme normatif à définir en Phase 1 ; EEPROM I²C = option privilégiée à évaluer). Voir `cx-bus-manifest.md`. |
 | **SDK** (CX-Bus SDK) | Ensemble logiciel d'intégration d'un Module (firmware Module + intégration Host). |
-| **Rail** | Ligne d'alimentation continue disponible sur le connecteur (VBAT, 3V3, GND…). |
+| **Rail** | Ligne d'alimentation continue exposée sur le connecteur. Le rail de référence est `3V3` commuté ; `VBAT` reste un **candidat** conditionné à analyse de sécurité (voir §6). |
 | **Capacité** | Fonctionnalité déclarée par un Module dans son Manifest (ex. capteur, actionneur, stockage). |
 
 Les mots-clés « DOIT », « NE DOIT PAS », « DEVRAIT », « PEUT » sont à interpréter au sens
@@ -106,18 +106,18 @@ brochage exact (numéro de broche ↔ signal) est figé en Phase 1 après choix 
 
 | Catégorie | Signaux | Rôle |
 |-----------|---------|------|
-| Alimentation | `VBAT`, `3V3`, `GND` | Rails d'alimentation et masses (voir §6). |
-| I²C | `SDA`, `SCL` | Bus lent partagé : EEPROM Manifest, capteurs lents, expander. |
+| Alimentation | `3V3`, `GND` (+ `VBAT` **candidat**) | Rail de référence `3V3` commuté et masses ; `VBAT` conditionné à analyse de sécurité (voir §6). |
+| I²C | `SDA`, `SCL` | Bus lent partagé : support d'identification (EEPROM I²C **candidate**), capteurs lents, expander éventuel. |
 | SPI | `SCK`, `MOSI`, `MISO`, `CSn` module | Bus rapide partagé avec l'écran (chip-select dédié module). |
 | UART | `TX`, `RX` | Liaison série optionnelle pour modules le nécessitant. |
 | GPIO / IRQ | `IRQ`, GPIO polyvalent(s) | Interruption module → Host, usage général. |
 | Détection de présence | `PRSNT` / `DETECT` | Indique la présence physique d'un module (voir §7). |
 | *(pas de broche d'enable côté module)* | — | Le slot reçoit un **rail commuté** par le Host. L'enable du load switch est un **signal interne au Host** et n'est **pas** exposé au module (voir §6). |
 
-**Contrainte structurante.** Le MCU (Seeed XIAO ESP32-S3, socketé — ADR-0004) n'expose que
+**Contrainte structurante.** Le MCU (Seeed XIAO ESP32-S3, remplaçable — ADR-0004) n'expose que
 **11 GPIO**. Le brochage CX-Bus doit s'inscrire dans le budget GPIO global du Host, ce qui
-impose le partage du SPI avec l'écran et le recours à un GPIO expander I²C côté Host (voir
-`hardware/mainboard-v1/`).
+impose le partage du SPI avec l'écran ; selon le budget retenu, un **GPIO expander I²C** côté
+Host **pourra** être nécessaire (candidat à évaluer en Phase 1, voir `hardware/mainboard-v1/`).
 
 > ⏳ **À définir — Phase 1** : table de brochage complète (broche ↔ signal), niveaux
 > logiques, présence/absence de l'UART et du nombre de GPIO exposés, affectation du
@@ -212,8 +212,9 @@ et NE DOIT PAS initier de transaction perturbant un bus partagé sans y être in
 - **SPI partagé écran + CX-Bus** : sélection exclusive par chip-select. Le Host garantit
   qu'un seul périphérique (écran ou module) est sélectionné à un instant donné et gère les
   sections critiques (ADR-0003 pour l'écran).
-- **I²C partagé** : adressage par adresse esclave. L'EEPROM Manifest et les périphériques du
-  module DOIVENT présenter des adresses ne créant pas de collision sur le bus.
+- **I²C partagé** : adressage par adresse esclave. Le support d'identification (EEPROM I²C
+  candidate) et les périphériques du module DOIVENT présenter des adresses ne créant pas de
+  collision sur le bus.
 
 **Adressage I²C.** Le Manifest déclare les adresses I²C utilisées par le module. Compte tenu de
 la **topologie V1 (un seul module**, §1), la stratégie de gestion des collisions se limite à
@@ -250,7 +251,9 @@ compatible »**.
 
 1. Respect du format mécanique et du connecteur (§3, §4).
 2. Respect du brochage et des rails (§5, §6), sans dépassement du budget de courant.
-3. Présence d'un **CX-Bus Manifest** valide et lisible en EEPROM I²C (§8, `cx-bus-manifest.md`).
+3. Présence d'un **support d'identification** portant un **CX-Bus Manifest** valide et lisible
+   (§8, `cx-bus-manifest.md`) — mécanisme normatif à figer en Phase 1 (EEPROM I²C = option
+   privilégiée à évaluer).
 4. Respect des rôles et de l'arbitrage des bus partagés (§9) — aucun blocage du bus.
 5. Comportement sûr à l'insertion/retrait à chaud (§7).
 6. Déclaration correcte de la version de protocole CX-Bus requise.
@@ -262,7 +265,7 @@ compatible »**.
 
 | Version | Date | Statut | Notes |
 |---------|------|--------|-------|
-| 1.0.0-draft | 2026-07 | BROUILLON | Création de la structure de spécification (Phase 0). Aucune valeur normative figée. |
+| 0.1.0-draft | 2026-07 | BROUILLON | Création de la structure de spécification (Phase 0). Aucune valeur normative figée. |
 
 ---
 

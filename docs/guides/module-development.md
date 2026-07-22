@@ -17,14 +17,17 @@ standard **CX-Bus (Companion eXpansion Bus)** (voir ADR-0005/0006 et
   d'empilement/accostage sur la mainboard et le boîtier (`case/`),
   tolérances mécaniques attendues.
 
-## 3. Identification via EEPROM — le CX-Bus Manifest
+## 3. Identification — le CX-Bus Manifest
 
-- À compléter — Phase 3 : format du **manifest CX-Bus** stocké en EEPROM
-  sur chaque module (identifiant unique de type de module, version
-  matérielle, capacités déclarées, table de fonctions exposées).
+- Créer un module conforme = fournir un **CX-Bus Manifest** via le
+  **mécanisme d'identification** normatif du standard (mécanisme à définir en
+  Phase 1 ; EEPROM I²C candidate). Aucune EEPROM I²C n'est imposée à ce stade.
+- À compléter — Phase 3 : format du **manifest CX-Bus** porté par le support
+  d'identification de chaque module (identifiant unique de type de module,
+  version matérielle, capacités déclarées, table de fonctions exposées).
 - À compléter — Phase 3 : comment ce manifest est écrit lors de la
-  fabrication ou du développement, via l'outil de provisioning EEPROM
-  (voir `tools/README.md`).
+  fabrication ou du développement, via l'outillage de provisionnement du
+  support d'identification (EEPROM I²C si retenue — voir `tools/README.md`).
 - À compléter — Phase 3 : comment le firmware de la mainboard lit et
   valide ce manifest au moment de l'énumération des modules connectés.
 
