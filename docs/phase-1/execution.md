@@ -13,7 +13,7 @@ SPDX-License-Identifier: CC-BY-4.0
 ## Graphe d'exécution
 
 ```text
-L1 (exigences & budgets)  -- prealable, fige les contraintes
+L1 (exigences & budgets)  -- prealable, etablit les contraintes (revisables)
   |
   +--> L2 (surete electrique, HW critique) --> L3 (identification, depend de L2)
   |
@@ -72,7 +72,7 @@ L9 (synthese, ADR, spec rc.1)  <-- depend de tous les lots
 1. `docs(phase-1): objectifs et protocole du lot alimentation`
 2. `docs(phase-1): banc de mesure et procédures`
 3. `docs(phase-1): résultats et budget énergétique mesuré`
-4. `adr: ADR-00xx chaîne d'alimentation (Proposé→Accepté ou maintenu Proposé)`
+4. `adr: ADR-00xx chaîne d'alimentation (créée APRÈS mesures, réf. DEC-L6-001)`
 5. `chore(hardware): PCB de validation alim (si applicable)`
 
 ## Critères de sortie de la Phase 1 (porte vers la Phase 2)
@@ -85,13 +85,13 @@ L9 (synthese, ADR, spec rc.1)  <-- depend de tous les lots
    contact) testée.
 4. **Mécanisme d'identification** décidé **après comparaison d'architectures** +
    preuve de lecture sûre + format Manifest arrêté.
-5. **Écran** : RAM LVGL, FPS, conso rétroéclairage **mesurés** et dans le budget.
+5. **Écran** : budget du moteur graphique candidat retenu, FPS, conso rétroéclairage **mesurés** et dans le budget.
 6. **Alimentation** : chaîne validée, **budget énergétique mesuré**, cible
    d'autonomie **provisoire** fixée.
 7. **RTC/Δt** validés à travers deep-sleep ; persistance robuste (seuils atteints).
 8. **Logiciel** : squelette ports/adaptateurs **compile + tests host verts en
-   CI** ; composition root démontré ; faisabilité Lua/installation dynamique
-   **chiffrée**.
+   CI** ; composition root démontré ; faisabilité du runtime scripté candidat &
+   installation dynamique **chiffrée**.
 9. **≥ 2 alternatives sourcées** par composant critique (cycle de vie + stock
    vérifiés) ; **BOM V1 candidate** produite (pas de BOM de production).
 10. **ADR 0013+** : celles **prouvées** passent en *Accepté* ; les autres restent

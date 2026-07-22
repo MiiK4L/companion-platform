@@ -61,7 +61,7 @@ Les seuils indiqués ci-dessous sont **proposés, à confirmer** dans chaque pro
 - **Risques** : R1 (GPIO), R9 (mécanique).
 - **Livrables** : [requirements-matrix.md](requirements-matrix.md), budget GPIO/bus,
   budget énergie v0, enveloppe mécanique v0, budget coût v0, comparaison d'architectures cœur + **critères de rejet du XIAO**.
-- **Proposé→Accepté possible** : allocation GPIO/bus **de référence** (révisable) ; scénario d'usage.
+- **Proposé→Accepté possible** : l'allocation GPIO/bus **de référence** est établie ici mais **reste Proposé** (révisable) tant que le banc de bring-up (L2) ne l'a pas validée ; scénario d'usage.
 - **Effort** : 2–4 j · **DOC/SIM**.
 
 ## Lot 2 — Sûreté électrique & prototype CX-Bus
@@ -97,11 +97,11 @@ Les seuils indiqués ci-dessous sont **proposés, à confirmer** dans chaque pro
 ## Lot 4 — Écran & moteur graphique
 
 - **Objectif** : mesurer la famille d'écran + le moteur graphique contre les budgets RAM/énergie/fluidité, derrière l'abstraction déjà actée.
-- **Questions** : contrôleur/format/résolution ? RAM LVGL (buffers) sur ESP32-S3 ? FPS ? conso rétroéclairage par niveau ? SPI partagé viable (cf. L2) ?
+- **Questions** : contrôleur/format/résolution ? budget mémoire du moteur graphique candidat (buffers) sur ESP32-S3 ? FPS ? conso rétroéclairage par niveau ? SPI partagé viable (cf. L2) ?
 - **Hypothèses à ne pas figer** : TFT IPS ; LVGL ; ST7789 ; une résolution.
 - **Prototypes/mesures** : **HW** — 1–2 panneaux candidats via l'abstraction ; mesures RAM/FPS/conso (backlight PWM) ; extinction auto + reprise.
 - **Composants candidats** : ST7789 / GC9A01 / ILI9341 ; LVGL (+ pilote LovyanGFX/TFT_eSPI) ; Sharp Memory LCD (mono, repli si autonomie).
-- **Critères de réussite (proposés)** : RAM LVGL **dans le budget L1** ; animations **≈ 30 fps** UI ; conso écran mesurée compatible de la cible d'autonomie (L6). **Échec** = hors budget → réduire résolution/buffer partiel ou reconsidérer la famille.
+- **Critères de réussite (proposés)** : budget mémoire du moteur graphique candidat **dans le budget L1** ; animations **≈ 30 fps** UI ; conso écran mesurée compatible de la cible d'autonomie (L6). **Échec** = hors budget → réduire résolution/buffer partiel ou reconsidérer la famille.
 - **Dépendances** : ← L1 ; ↔ L2 (SPI) ; ↔ L6 (conso).
 - **Risques** : R2, RAM/PSRAM, R4 (autonomie).
 - **Livrables** : rapport écran (RAM/FPS/conso) + reco contrôleur+format.
@@ -154,11 +154,11 @@ Les seuils indiqués ci-dessous sont **proposés, à confirmer** dans chaque pro
 
 - **Objectif** : matérialiser l'architecture acceptée en **squelette testable sur PC**, sans figer les composants.
 - **Rôles à matérialiser** (pas une arborescence historique) : **ports** (display, input, clock, storage, bus, power, scheduler) ; **adaptateurs host** (mocks) ; **adaptateurs cible ESP-IDF** ; **services** (Module/App Manager, UI, Power, Storage, Connectivity, Companion) ; **Companion SDK** (façade) ; **composition root**. Les **drivers** sont des **détails internes des adaptateurs**. Le nommage des dossiers est une **conséquence**, pas un préalable ; **`HAL` ne redevient pas le centre**.
-- **Questions** : les ports sont-ils définissables proprement ? le composition root fonctionne-t-il (injection cible vs host) ? faisabilité **Lua** embarqué + chargement d'app depuis LittleFS (RAM/flash) ? le Companion SDK est-il **utilisable et exposable proprement en C et depuis le runtime scripté candidat** ?
+- **Questions** : les ports sont-ils définissables proprement ? le composition root fonctionne-t-il (injection cible vs host) ? faisabilité du **runtime scripté candidat** embarqué + chargement d'app depuis LittleFS (RAM/flash) ? le Companion SDK est-il **utilisable et exposable proprement en C et depuis le runtime scripté candidat** ?
 - **Hypothèses à ne pas figer** : Lua comme runtime ; installation dynamique « sans reflash » ; signatures d'API définitives.
-- **Prototypes/mesures** : **CODE** (host) + **HW** (POC) — squelette ports + adaptateurs host + tests host en CI ; POC ESP-IDF (boot → composition root → 1 port réel) ; P8 : Lua embarqué, **RAM/flash par app chiffrées**, chargement d'une app depuis LittleFS.
+- **Prototypes/mesures** : **CODE** (host) + **HW** (POC) — squelette ports + adaptateurs host + tests host en CI ; POC ESP-IDF (boot → composition root → 1 port réel) ; P8 : runtime scripté candidat embarqué, **RAM/flash par app chiffrées**, chargement d'une app depuis LittleFS.
 - **Composants candidats (logiciels)** : runtime Lua vs WASM (WAMR, alternative documentée) ; test host Unity/CMock ou GoogleTest.
-- **Critères de réussite (proposés)** : squelette **compile** ; **tests host verts en CI** ; **graphe de dépendances vérifié** (0 `#include` ESP-IDF/FreeRTOS/driver dans ports/services/SDK) ; composition root démontré ; RAM/flash Lua par app **chiffrées** ; faisabilité (ou limites) de l'installation dynamique **documentée**. **Échec** = install dynamique infaisable dans le budget → recadrer la promesse (bundle OTA), garder l'abstraction de runtime.
+- **Critères de réussite (proposés)** : squelette **compile** ; **tests host verts en CI** ; **graphe de dépendances vérifié** (0 `#include` ESP-IDF/FreeRTOS/driver dans ports/services/SDK) ; composition root démontré ; RAM/flash par app du runtime scripté candidat **chiffrées** ; faisabilité (ou limites) de l'installation dynamique **documentée**. **Échec** = install dynamique infaisable dans le budget → recadrer la promesse (bundle OTA), garder l'abstraction de runtime.
 - **Dépendances** : ← L1 (ports/bus) ; démarre **tôt et en parallèle** (partie host sans matériel).
 - **Risques** : R7 (install dynamique), RAM.
 - **Livrables** : squelette ports/adaptateurs/services/SDK + composition root + mocks ; tests host ; rapport de faisabilité runtime.
