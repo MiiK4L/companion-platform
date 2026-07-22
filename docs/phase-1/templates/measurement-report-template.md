@@ -34,11 +34,21 @@ SPDX-License-Identifier: CC-BY-4.0
 
 <!-- Description du banc réellement utilisé et de sa configuration. -->
 
+## Reproductibilité & données
+
+- **Révision du DUT** : <!-- rev exacte testée -->
+- **Commit firmware exact** : <!-- SHA Git -->
+- **Opérateur** : <!-- --> · **Étalonnage instruments** : <!-- date/réf -->
+- **Nombre de campagnes indépendantes** : <!-- ≥ 2 pour reproductible -->
+- **Nombre d'échantillons `n`** : <!-- --> · **Méthode statistique** : <!-- -->
+- **Gestion des valeurs aberrantes** : <!-- règle appliquée -->
+- **Hash SHA-256 des données brutes** : <!-- un hash par fichier -->
+
 ## Résultats
 
-| Mesure | Seuil | Verdict |
-|---|---|---|
-| <!-- grandeur mesurée --> | <!-- seuil chiffré du protocole --> | <!-- atteint / non atteint --> |
+| Mesure | Seuil | n | Résultats par répétition | Verdict |
+|---|---|---|---|---|
+| <!-- grandeur --> | <!-- seuil chiffré --> | <!-- n --> | <!-- valeurs / campagnes --> | <!-- atteint / non atteint --> |
 
 ## Incertitude
 
@@ -59,6 +69,9 @@ SPDX-License-Identifier: CC-BY-4.0
      - décision reste Proposé, ou
      - option Rejetée (avec trace). -->
 
-## ADR alimentée
+## Question de décision alimentée (`DEC-*`)
 
-<!-- ADR de décision (0013+) que ce rapport justifie. -->
+<!-- Identifiant `DEC-<lot>-NNN` que ce rapport alimente. L'ADR correspondante
+     est créée APRÈS les mesures, lorsqu'un arbitrage est possible ; elle
+     référencera ce DEC et ce rapport (liens bidirectionnels). Ne pas exiger de
+     numéro d'ADR ici. -->

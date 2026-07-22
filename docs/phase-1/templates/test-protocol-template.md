@@ -17,9 +17,11 @@ SPDX-License-Identifier: CC-BY-4.0
 
 <!-- Identifiant unique et stable (ex. PROTO-XXXX). -->
 
-## Lot & décision(s) visée(s)
+## Lot & question(s) de décision visée(s)
 
-<!-- Lot de rattachement et ADR (0013+) que cet essai doit alimenter. -->
+<!-- Lot de rattachement et identifiant(s) de question de décision `DEC-<lot>-NNN`
+     (ex. DEC-L2-001) que cet essai doit alimenter. NE PAS référencer un numéro
+     d'ADR : l'ADR est créée APRÈS les mesures (voir validation-framework §2). -->
 
 ## Objectif
 
@@ -29,9 +31,22 @@ SPDX-License-Identifier: CC-BY-4.0
 
 <!-- Schéma de câblage, montage, connexions. -->
 
-### Firmware de test + version
+### Firmware de test + commit exact
 
-<!-- Nom et version exacte du firmware utilisé pour l'essai. -->
+<!-- Nom du firmware de test et **commit Git exact** (SHA) utilisé pour l'essai. -->
+
+## Reproductibilité (à renseigner avant l'essai)
+
+<!-- Renseigner chaque champ : ces éléments conditionnent le caractère
+     reproductible du résultat (voir validation-framework §4). -->
+
+- **Révision du DUT** (device under test) : <!-- ex. rev A du PCB/banc -->
+- **Nombre d'échantillons `n`** : <!-- n ≥ 5 par défaut, à justifier -->
+- **Nombre de campagnes indépendantes** : <!-- ≥ 2 pour un résultat reproductible -->
+- **Opérateur** : <!-- qui exécute -->
+- **Étalonnage des instruments** : <!-- date et référence d'étalonnage -->
+- **Méthode statistique** : <!-- moyenne/écart-type/min-max/percentiles… -->
+- **Gestion des valeurs aberrantes** : <!-- règle définie AVANT l'essai -->
 
 ## Plage de tension
 

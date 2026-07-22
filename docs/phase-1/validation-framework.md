@@ -35,17 +35,45 @@ manière prévisible et rejouable.
   documentés si le brut intégral est trop volumineux). Le critère de conservation est la
   **rejouabilité de l'analyse**, pas l'exhaustivité aveugle.
 
-## 2. Traçabilité ADR ↔ preuves
+### Politique de volume des données (le dépôt ne doit pas enfler sans limite)
 
-La traçabilité est **bidirectionnelle** :
+Seuils **proposés, à confirmer** :
 
-- Chaque **ADR de décision (0013 et suivants)** référence explicitement le ou les
-  **rapports de mesure** et les **données brutes** qui la justifient.
-- Chaque **rapport de mesure** pointe l'**ADR** qu'il alimente.
+- **Git direct** : fichiers **texte** (CSV, logs) **≤ 1 Mo/fichier**.
+- **Git LFS** : fichiers binaires ou traces **> 1 Mo et ≤ 50 Mo** (captures d'oscilloscope,
+  images). LFS est activé pour les extensions concernées avant dépôt.
+- **Stockage externe** : au-delà de **50 Mo**, la donnée brute **n'est pas** committée ; on
+  conserve **un lien** vers le stockage externe **+ le hash**.
+- **Hash SHA-256** : chaque fichier de données brutes est accompagné de son **SHA-256**
+  (reporté dans le rapport de mesure) pour garantir l'intégrité, quel que soit le lieu de
+  stockage.
+- **Métadonnées & conservation** : chaque jeu de données porte instrument, date, opérateur,
+  `DEC-*` et protocole associés ; **durée de conservation** minimale à définir (ex. tant que
+  la décision qu'il justifie reste en vigueur).
+- **Formats admis** : privilégier des formats **ouverts** (CSV, PNG, formats d'export
+  documentés) ; éviter les formats propriétaires opaques quand un équivalent ouvert existe.
 
-Ce double lien garantit qu'aucune décision n'est prise sans preuve rattachée, et qu'aucune
-preuve n'est orpheline. Un lecteur doit pouvoir naviguer d'une décision vers ses mesures, et
-d'une mesure vers la décision qu'elle sert.
+## 2. Identifiant de question de décision (`DEC-*`) & traçabilité
+
+Pour éviter tout **cycle** (« l'ADR référence la preuve / la preuve référence l'ADR » alors
+que l'ADR n'existe pas encore), chaque **question de décision** reçoit un **identifiant
+indépendant** `DEC-<lot>-NNN` (par exemple `DEC-L2-001`), créé **à l'ouverture du lot,
+avant les essais**. Le protocole et le rapport de mesure référencent ce `DEC-*`, jamais un
+numéro d'ADR.
+
+**Cycle de vie (modèle unique retenu — ne pas mélanger avec un autre) :**
+
+1. **Ouverture** : la question est enregistrée comme `DEC-*` (énoncé, options envisagées, lot).
+2. **Mesure** : le **protocole** puis le **rapport** référencent le `DEC-*`.
+3. **Arbitrage** : lorsqu'un arbitrage est possible (options comparées, seuils atteints ou
+   non), une **ADR (0013+) est créée *après* les mesures** ; elle référence le `DEC-*` et les
+   preuves, et porte le statut correspondant (Accepté si seuils atteints ; Rejeté pour une
+   option écartée ; Proposé seulement si la décision est prise mais reste à confirmer).
+4. **Bidirectionnel** : une fois l'ADR créée, les liens deviennent bidirectionnels —
+   **ADR ↔ `DEC-*` ↔ rapports ↔ données brutes**.
+
+Ainsi aucune preuve n'est orpheline, aucune ADR n'est créée sans preuve, et **aucun numéro
+d'ADR n'est exigé avant que le protocole et le rapport n'existent**.
 
 ## 3. Critères Proposé → Accepté
 
@@ -77,8 +105,16 @@ La distinction est structurante pour le modèle de preuves.
 - Protocole **figé** (voir le modèle de protocole de test).
 - **Seuils** chiffrés définis avant l'essai.
 - **Incertitude** évaluée.
-- **Données brutes conservées**.
+- **Données brutes conservées** (avec SHA-256).
 - **Rejouable** par un tiers.
+
+**Combien d'exécutions pour ne PAS être un essai unique ?** Un résultat n'est
+**reproductible** que s'il repose sur **au moins 2 campagnes indépendantes**
+(rejouées, idéalement à des moments/opérateurs distincts) **et** un **nombre
+d'échantillons `n` défini dans le protocole** (par défaut proposé : `n ≥ 5`, à
+ajuster selon la grandeur et sa dispersion), avec **résultats consignés par
+répétition** et **méthode statistique** déclarée. Une seule exécution reste
+**exploratoire**, quels que soient ses résultats.
 
 Seul un résultat **reproductible** peut faire passer une décision de Proposé à Accepté.
 
