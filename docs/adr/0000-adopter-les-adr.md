@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2026 Companion Platform contributors
+
+SPDX-License-Identifier: CC-BY-4.0
+-->
+
 # ADR-0000 : Adopter les ADR pour tracer les décisions
 
 - **Statut** : Accepté

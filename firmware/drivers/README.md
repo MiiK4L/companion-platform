@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2026 Companion Platform contributors
+
+SPDX-License-Identifier: Apache-2.0
+-->
+
 # `drivers/` — Adaptateurs cible & drivers concrets
 
 > Statut : **Phase 0 — Fondations**. La liste et les détails d'implémentation sont marqués

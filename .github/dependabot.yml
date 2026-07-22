@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Companion Platform contributors
+#
+# SPDX-License-Identifier: Apache-2.0
+
 # Stratégie de mise à jour des dépendances.
 #
 # Toutes les dépendances du projet sont ÉPINGLÉES pour la reproductibilité :

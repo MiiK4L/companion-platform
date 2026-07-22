@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2026 Companion Platform contributors
+
+SPDX-License-Identifier: CC-BY-4.0
+-->
+
 # Standard CX-Bus
 
 Le **CX-Bus** (*Companion eXpansion Bus*) est le standard d'extension matérielle de Companion Platform. Il définit comment un module d'extension (capteur, écran, connectivité, etc.) se déclare, s'identifie et communique avec la carte principale, via une identification EEPROM embarquée dans chaque module (voir ADR-0005 et ADR-0006).

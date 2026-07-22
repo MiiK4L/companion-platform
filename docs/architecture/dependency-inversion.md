@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2026 Companion Platform contributors
+
+SPDX-License-Identifier: CC-BY-4.0
+-->
+
 # Modèle de dépendances : ports & adaptateurs
 
 C'est le principe directeur de l'architecture firmware : il vise la longévité, la

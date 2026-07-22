@@ -1,4 +1,10 @@
 <!--
+SPDX-FileCopyrightText: 2026 Companion Platform contributors
+
+SPDX-License-Identifier: Apache-2.0
+-->
+
+<!--
 Merci pour votre contribution à Companion Platform.
 Merci de remplir ce modèle aussi complètement que possible : la qualité et la
 maintenabilité priment toujours sur la rapidité de fusion.

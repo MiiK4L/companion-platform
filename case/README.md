@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2026 Companion Platform contributors
+
+SPDX-License-Identifier: CERN-OHL-S-2.0
+-->
+
 # `case/` — Boîtier Companion Platform
 
 Ce dossier contient la conception du **boîtier imprimable en 3D** de

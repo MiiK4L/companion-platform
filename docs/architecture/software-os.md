@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2026 Companion Platform contributors
+
+SPDX-License-Identifier: CC-BY-4.0
+-->
+
 # Architecture logicielle / OS
 
 Le firmware est conçu comme un **petit système d'exploitation** : le Tamagotchi

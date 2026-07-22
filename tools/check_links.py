@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
+
 # SPDX-FileCopyrightText: 2026 Companion Platform contributors
+#
 # SPDX-License-Identifier: Apache-2.0
 """Vérificateur de liens Markdown relatifs — couvre TOUT le dépôt.
 

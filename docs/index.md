@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2026 Companion Platform contributors
+
+SPDX-License-Identifier: CC-BY-4.0
+-->
+
 # Companion Platform
 
 **Companion Platform** est une plateforme électronique de poche **open source** et **modulaire**, conçue pour durer des années plutôt que pour suivre une mode passagère. Construite autour du microcontrôleur **Seeed XIAO ESP32-S3** — cœur de calcul **remplaçable** (non soudé définitivement ; socketage **pressenti**, à valider) — elle est pensée comme un petit ordinateur de poche capable d'accueillir de nombreuses applications au fil du temps : un Tamagotchi pour commencer, puis des outils réseau, un homelab miniature, de l'électronique, des capteurs, des jeux, et bien d'autres usages imaginés par la communauté.

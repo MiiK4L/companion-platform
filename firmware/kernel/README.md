@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2026 Companion Platform contributors
+
+SPDX-License-Identifier: Apache-2.0
+-->
+
 # `kernel/` — Noyau & point de composition
 
 > Statut : **Phase 0 — Fondations**. Les mécanismes détaillés sont marqués « ⏳ À définir ».

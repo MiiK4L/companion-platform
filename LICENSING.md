@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2026 Companion Platform contributors
+
+SPDX-License-Identifier: CC-BY-4.0
+-->
+
 # Stratégie de licences
 
 Companion Platform est un monorepo qui mélange du code, du matériel, de la
@@ -68,6 +74,8 @@ CX-Bus tiers avec sa propre licence) — le projet recommande l'usage
 d'en-têtes **SPDX** (`SPDX-License-Identifier`) en tête de chaque fichier
 source.
 
+<!-- REUSE-IgnoreStart -->
+
 ### Exemple — fichier C sous Apache-2.0 (firmware, HAL, drivers)
 
 ```c
@@ -85,7 +93,12 @@ source.
 ### Exemple — fichier de documentation sous CC-BY-4.0 (docs/)
 
 ```markdown
-<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+<!--
+SPDX-FileCopyrightText: 2026 Companion Platform contributors
+
+SPDX-License-Identifier: CC-BY-4.0
+-->
 ```
 
 ### Exemple — app Lua tierce sous une licence différente
@@ -102,6 +115,8 @@ en première ligne ; dans ce cas, ajoutez un fichier `LICENSE` ou
 `SPDX-License-Identifier` dans le champ de métadonnées du projet KiCad,
 ou dans un fichier `NOTICE`/`LICENSE.txt` à la racine du dossier
 matériel concerné.
+
+<!-- REUSE-IgnoreEnd -->
 
 ## Textes de licence complets
 
@@ -120,9 +135,12 @@ Le fichier [`LICENSE`](LICENSE) à la racine contient le texte Apache-2.0.
 > (`hardware/`, `case/`), la **documentation** (`docs/`, `standards/`) et
 > l'**identité visuelle** ont leurs propres licences (tableau ci-dessus).
 
-**Méthode retenue : en-têtes SPDX par fichier** (`SPDX-License-Identifier`), qui
-priment sur toute règle par défaut. L'adoption ultérieure de **REUSE**
-(`.reuse/dep5`) pourra automatiser et vérifier cette conformité.
+**Méthode retenue et appliquée : en-têtes SPDX par fichier**
+(`SPDX-FileCopyrightText` + `SPDX-License-Identifier`), qui priment sur toute
+règle par défaut. La conformité suit la spécification **REUSE** et est
+**vérifiée en CI** (`reuse lint`, workflow *Checks*) ainsi qu'en local via
+[`tools/check_licenses.sh`](tools/check_licenses.sh). Tous les fichiers
+distribuables portent déjà leur en-tête.
 
 ## En cas de doute
 

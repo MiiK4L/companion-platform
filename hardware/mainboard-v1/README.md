@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2026 Companion Platform contributors
+
+SPDX-License-Identifier: CERN-OHL-S-2.0
+-->
+
 # Carte mère V1 — CX-Bus Host
 
 > Statut : **Phase 0 — Fondations**. Ce document fige le rôle et le périmètre de la carte

@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2026 Companion Platform contributors
+
+SPDX-License-Identifier: Apache-2.0
+-->
+
 # App Tamagotchi — Application de référence
 
 > Statut : **Phase 0 — Fondations**. La conception détaillée est marquée « ⏳ À définir —

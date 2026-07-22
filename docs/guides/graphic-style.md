@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2026 Companion Platform contributors
+
+SPDX-License-Identifier: CC-BY-4.0
+-->
+
 # Guide — Charte graphique
 
 Ce guide définit la charte graphique de Companion Platform : comment le

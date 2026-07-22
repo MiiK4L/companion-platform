@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2026 Companion Platform contributors
+
+SPDX-License-Identifier: Apache-2.0
+-->
+
 # Companion SDK — Surface d'API des applications
 
 > Statut : **Phase 0 — Fondations**. L'API détaillée est marquée « ⏳ À définir ».

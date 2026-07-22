@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2026 Companion Platform contributors
+
+SPDX-License-Identifier: CC-BY-4.0
+-->
+
 # Registre des décisions d'architecture (ADR)
 
 Ce dossier contient les **Architecture Decision Records** du projet Companion

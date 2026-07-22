@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2026 Companion Platform contributors
+
+SPDX-License-Identifier: CC-BY-4.0
+-->
+
 # Politique de sécurité
 
 Companion Platform est un appareil connecté (Wi-Fi/BLE via Seeed XIAO ESP32-S3),

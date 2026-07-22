@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2026 Companion Platform contributors
+
+SPDX-License-Identifier: CC-BY-4.0
+-->
+
 # ADR-0011 : Documentation as code plutôt que Wiki GitHub
 
 - **Statut** : Accepté

@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2026 Companion Platform contributors
+
+SPDX-License-Identifier: Apache-2.0
+-->
+
 # `apps/` — Applications Companion Platform
 
 Ce dossier contient les **apps** de la plateforme : des programmes

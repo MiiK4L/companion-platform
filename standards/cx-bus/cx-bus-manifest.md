@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2026 Companion Platform contributors
+
+SPDX-License-Identifier: CC-BY-4.0
+-->
+
 # CX-Bus Manifest — Descripteur d'identification des modules
 
 > **Statut : BROUILLON / DRAFT** — Phase 0 (Fondations).

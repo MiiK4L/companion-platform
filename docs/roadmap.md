@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2026 Companion Platform contributors
+
+SPDX-License-Identifier: CC-BY-4.0
+-->
+
 # Feuille de route
 
 La roadmap suit une **progression ordonnée** (les étapes ne sont pas sautées à la

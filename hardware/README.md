@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2026 Companion Platform contributors
+
+SPDX-License-Identifier: CERN-OHL-S-2.0
+-->
+
 # `hardware/` — Matériel officiel Companion Platform
 
 Ce dossier contient la conception matérielle **officielle** de la carte

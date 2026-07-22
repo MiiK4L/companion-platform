@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2026 Companion Platform contributors
+
+SPDX-License-Identifier: CC-BY-4.0
+-->
+
 # Glossaire
 
 Vocabulaire de référence du projet. À maintenir à jour : tout terme ambigu doit

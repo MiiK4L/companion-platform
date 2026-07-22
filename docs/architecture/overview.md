@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2026 Companion Platform contributors
+
+SPDX-License-Identifier: CC-BY-4.0
+-->
+
 # Architecture — vue d'ensemble
 
 Ce document présente la vision d'architecture de **Companion Platform**. Il est

@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2026 Companion Platform contributors
+
+SPDX-License-Identifier: Apache-2.0
+-->
+
 # `tests/` — Tests
 
 Ce dossier rassemble les tests automatisés de Companion Platform : tests

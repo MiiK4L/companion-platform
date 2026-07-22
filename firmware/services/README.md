@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2026 Companion Platform contributors
+
+SPDX-License-Identifier: Apache-2.0
+-->
+
 # Services — Services métier de la plateforme
 
 > Statut : **Phase 0 — Fondations**. Les API et comportements détaillés sont marqués

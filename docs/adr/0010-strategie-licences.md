@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2026 Companion Platform contributors
+
+SPDX-License-Identifier: CC-BY-4.0
+-->
+
 # ADR-0010 : Stratégie de licences multi-composants
 
 - **Statut** : Accepté
@@ -40,8 +46,8 @@ Stratégie **multi-licences par composant** :
 Règles complémentaires :
 - Les **apps et modules tiers** peuvent adopter **la licence de leur choix** ;
   le **cœur** reste Apache-2.0 et le **matériel officiel** CERN-OHL-S.
-- Déclaration de licence **par fichier via en-têtes SPDX**
-  (`SPDX-License-Identifier: …`).
+- Déclaration de licence **par fichier via en-têtes SPDX** (identifiant
+  `SPDX-License-Identifier`), conformité vérifiée par REUSE.
 
 ## 4. Raisons du choix
 

@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2026 Companion Platform contributors
+
+SPDX-License-Identifier: CC-BY-4.0
+-->
+
 # Gabarit de module CX-Bus
 
 > Statut : **Phase 0 — Fondations**. Gabarit destiné aux auteurs de modules CX-Bus tiers.

@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Companion Platform contributors
+#
+# SPDX-License-Identifier: Apache-2.0
+
 name: 📐 Proposition de décision d'architecture (ADR)
 description: Proposer une nouvelle décision d'architecture à discuter et, le cas échéant, à formaliser par le coordinateur du projet.
 title: "[adr] "

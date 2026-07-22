@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2026 Companion Platform contributors
+
+SPDX-License-Identifier: CC-BY-4.0
+-->
+
 # ADR-0005 : Standard d'extension CX-Bus et modules auto-identifiés
 
 - **Statut** : Accepté

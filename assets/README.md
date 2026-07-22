@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2026 Companion Platform contributors
+
+SPDX-License-Identifier: CC-BY-4.0
+-->
+
 # `assets/` — Ressources graphiques
 
 Ce dossier rassemble les ressources graphiques utilisées par les apps et

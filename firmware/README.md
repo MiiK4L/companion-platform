@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2026 Companion Platform contributors
+
+SPDX-License-Identifier: Apache-2.0
+-->
+
 # Firmware — Companion Platform
 
 > Statut : **Phase 0 — Fondations**. Ce document fige le **modèle de dépendances** et le rôle
