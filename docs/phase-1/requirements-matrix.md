@@ -23,7 +23,7 @@ par n'importe quel cœur de calcul conforme au principe de remplaçabilité.
 | --- | --- | --- | --- |
 | **GPIO** | Décompte des fonctions requises (voir budget GPIO ci-dessous) | Proposé | L1 |
 | **Bus** | I²C (capteurs, expander éventuel), SPI (écran, CX-Bus), UART (debug/console) | Proposé | L1–L2 |
-| **RAM / flash** | Suffisantes pour LVGL + runtime scripté + état applicatif — à chiffrer | Proposé | L4, L8 |
+| **RAM / flash** | Suffisantes pour la charge de travail UI et le runtime de référence + état applicatif — à chiffrer | Proposé | L4, L8 |
 | **USB** | USB-C ; CDC (console/flash) ; host éventuel à évaluer | Proposé | L1 |
 | **Consommation** | Cible deep-sleep à fixer (non décrétée ici) | Proposé | L6 |
 | **Radio** | Wi-Fi / BT présents (usage à cadrer, impact conso à mesurer) | Proposé | L5–L6 |
@@ -70,22 +70,32 @@ interpréter la présence d'un candidat « de référence » comme une préfére
 Légende : « à évaluer en L*x* » renvoie au lot du [plan de Phase 1](./plan.md) chargé de
 produire la mesure correspondante.
 
-## Critères de rejet du XIAO / déclenchement d'une carte custom
+## Critères déclencheurs d'arbitrage du cœur
 
-Le candidat de référence est **écarté au profit d'une carte custom** (ou d'un module
-alternatif) dès qu'**au moins un** des critères mesurables suivants est atteint :
+L'atteinte d'un critère **ne rejette pas automatiquement** le candidat de référence et
+**n'impose pas** de carte custom. Elle **déclenche un arbitrage documenté** comparant, avec
+leur **coût global**, au moins les options suivantes :
 
-1. **GPIO insuffisants** pour couvrir le budget GPIO, **même après** recours à un expander
-   I²C **et** partage du bus SPI.
-2. **Deep-sleep système mesuré au-dessus de la cible d'autonomie** fixée en L6 (la cible
-   n'est pas décrétée ici ; elle est établie en L6, puis confrontée à la mesure L5).
-3. **RAM / flash insuffisantes** pour faire tenir LVGL + runtime scripté + état applicatif.
+- **autre module** (candidat B) ;
+- **carte custom** (Option C d'ADR-0004) ;
+- **réduction de périmètre** V1 ;
+- **GPIO expander ou partage de bus** (aucun n'est imposé avant d'avoir comparé son coût
+  global : composant, GPIO/IRQ consommés, complexité, conso, appro) ;
+- **optimisation logicielle** (empreinte mémoire, deep-sleep).
+
+Critères mesurables qui **déclenchent** cet arbitrage (dès qu'**au moins un** est atteint) :
+
+1. **Budget GPIO non couvrable** par le candidat (le recours à un expander/partage de bus est
+   une **option de l'arbitrage**, pas un préalable acquis).
+2. **Deep-sleep système mesuré au-dessus de la cible d'autonomie** fixée en L6 (la cible n'est
+   pas décrétée ici ; établie en L6, confrontée à la mesure L5).
+3. **RAM / flash insuffisantes** pour la charge de travail UI et le runtime de référence + état.
 4. **Indisponibilité ou pérennité insuffisante** du candidat sur la durée de vie du projet.
 
-> **Effet de gouvernance :** l'atteinte de l'un de ces critères **remonte une décision
-> structurante** et peut **rouvrir [ADR-0004](../adr/0004-coeur-de-calcul-socket.md)**.
-> La bascule vers une carte custom n'est jamais un choix implicite : elle est instruite,
-> tracée et validée.
+> **Effet de gouvernance :** l'arbitrage **remonte une décision structurante** et peut
+> **rouvrir [ADR-0004](../adr/0004-coeur-de-calcul-socket.md)**. Toute bascule (module
+> alternatif, carte custom, expander, partage de bus…) est **instruite, tracée et validée** —
+> jamais un choix implicite.
 
 ## Renvois
 
