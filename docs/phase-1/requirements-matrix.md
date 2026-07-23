@@ -34,7 +34,7 @@ par n'importe quel cœur de calcul conforme au principe de remplaçabilité.
 ### Budget GPIO (décompte des fonctions)
 
 Le budget GPIO liste les fonctions à câbler ; il sert de base au dimensionnement du cœur
-et au critère de rejet ci-dessous. Les quantités exactes sont **à confirmer en L1**.
+et aux déclencheurs d'arbitrage ci-dessous. Les quantités exactes sont **à confirmer en L1**.
 
 | Fonction | Type de lien | Remarque |
 | --- | --- | --- |
@@ -50,7 +50,7 @@ et au critère de rejet ci-dessous. Les quantités exactes sont **à confirmer e
 
 > Le total des fonctions ci-dessus, confronté aux GPIO réellement exposés par le candidat,
 > conditionne le recours à un expander I²C, au partage du bus SPI, ou au déclenchement
-> d'une carte custom (voir critères de rejet).
+> d'une carte custom (voir déclencheurs d'arbitrage).
 
 ## Comparaison d'architectures de cœur
 

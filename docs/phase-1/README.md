@@ -22,7 +22,7 @@ version finale.
 |----------|------|
 | [Plan consolidé](plan.md) | Les 9 lots (objectifs, questions, hypothèses non figées, mesures, candidats, critères chiffrés, dépendances, risques, livrables, Proposé→Accepté, effort, matériel vs code) |
 | [Ordre d'exécution & critères de sortie](execution.md) | Graphe, dépendances, parallélisation, une PR par lot, critères de sortie (`rc.1` max) |
-| [Matrice des exigences](requirements-matrix.md) | Besoins plateforme **indépendants du MCU** + comparaison d'architectures de cœur + critères de rejet du candidat de référence |
+| [Matrice des exigences](requirements-matrix.md) | Besoins plateforme **indépendants du MCU** + comparaison d'architectures de cœur + **déclencheurs d'arbitrage** du cœur |
 | [Registre des risques](risk-register.md) | Registre initial et vivant (R1–R9) |
 | [Sourcing & BOM](sourcing-and-bom.md) | Stratégie multi-source + ≥ 2 alternatives par composant critique + BOM prototype / **BOM V1 candidate** |
 | [Cadre de validation](validation-framework.md) | Données brutes, traçabilité ADR ↔ preuves, critères Proposé→Accepté, exploratoire vs reproductible |
