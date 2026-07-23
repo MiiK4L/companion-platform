@@ -33,6 +33,24 @@ Brouillon → Revu → Baseline d'essai → Exécuté → Rapporté
 > auteur) et **ne s'applique pas rétroactivement** aux campagnes déjà exécutées.
 > **Aucune campagne ne peut commencer tant qu'un `[BL]` subsiste.**
 
+### Fiche de baseline d'essai (à remplir au passage en *Baseline d'essai*)
+
+Pour qu'une campagne ne soit **jamais** rattachée à une version ambiguë du
+protocole, le gel produit une **fiche de baseline** consignée avec le protocole :
+
+| Champ | Contenu |
+|-------|---------|
+| **Commit Git du protocole baseliné** | SHA exact du protocole au moment du gel |
+| **Date** | Date du gel |
+| **Réviseur / approbateur** | Qui a revu et approuvé la baseline |
+| **Identifiant de campagne autorisée** | Réf. de la campagne couverte par cette baseline |
+| **Liste des `[BL]` levés** | Chaque `[BL]` finalisé + valeur retenue + source/justification |
+| **Hash firmware de test** | SHA-256 du binaire (si applicable) |
+| **Hash / réf. de la fixture** | Empreinte ou référence documentaire du montage/fixture |
+
+> Un protocole reste en **Brouillon** tant que cette fiche n'est pas complète et
+> qu'un `[BL]` subsiste.
+
 ## Contenu imposé de chaque protocole
 
 Conformément au [modèle de protocole](../../templates/test-protocol-template.md),
