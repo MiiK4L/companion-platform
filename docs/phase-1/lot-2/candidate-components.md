@@ -12,21 +12,38 @@ SPDX-License-Identifier: CC-BY-4.0
 > [sourcing & BOM](../sourcing-and-bom.md)). Caractéristiques **[DS]** issues des
 > fiches techniques, **à confirmer** ; **aucune [M]**.
 
+> **Une référence par ligne.** Les caractéristiques sont **[DS]** (fiche
+> officielle, source citée) ; les cellules non encore transcrites sont marquées
+> **« à relever »** (jamais inventées). **Ne pas mutualiser** des fonctions entre
+> références distinctes.
+
 ## 1. Commutation d'alimentation `VMOD` (load switch)
 
-| Fonction | MPN exemples | Points [DS] à confronter | Vigilance |
-|----------|--------------|--------------------------|-----------|
-| Load switch à rampe | TPS22918, AP22913 | Rampe réglable, OCP/thermique, R_on | Disponibilité, courant max |
-| P-MOSFET + rampe RC | (P-MOSFET générique) | V_GS(th), R_DS(on), Q_g | Protection à ajouter |
-| eFuse / switch protégé | (famille eFuse) | Limitation active, clamp | Coût, complexité |
+| Référence | Plage d'entrée | I continu | Limitation de courant | Prot. thermique | Court-circuit | Rampe | Décharge de sortie | Hors alimentation | I repos / fuite | Boîtier | Source (fiche) |
+|-----------|----------------|-----------|-----------------------|-----------------|---------------|-------|--------------------|-------------------|-----------------|---------|----------------|
+| **TPS22918** | ≈ 0,8–5,5 V (à confirmer) | à relever | **Non** (pas de limitation active) | à relever | pas de limitation active | **configurable** (broche `CT`) | **configurable** (QOD) | sortie déchargée (QOD) | faible (à relever) | à relever | TI « TPS22918 » |
+| **AP22913** | à relever | à relever | à relever (ne pas présumer) | à relever | à relever | **slew-rate contrôlé** | à relever | à relever | à relever | à relever | Diodes Inc. « AP22913 » |
+| **P-MOSFET discret** (générique) | selon MOSFET | selon R_DS(on) | **Non** (sauf circuit ajouté) | Non | Non (à ajouter) | via réseau `RC` de grille | via R de décharge | dépend du montage | négligeable | selon réf. | fiche du MOSFET retenu |
+| **eFuse / switch protégé** (à sélectionner) | selon réf. | selon réf. | **Oui** (active) | Oui (typ.) | Oui (clamp/limite) | selon réf. | selon réf. | selon réf. | selon réf. | selon réf. | fiche de l'eFuse retenu |
 
-## 2. Isolation / level-shift de bus
+> ⚠️ Le **TPS22918** n'offre **pas** de limitation active de courant : il ne doit
+> **pas** être présenté comme un load switch à protection de courant. Ses atouts
+> sont le **temps de montée configurable** et la **décharge rapide de sortie
+> (QOD)**. L'**AP22913** est un load switch à **slew-rate contrôlé** : relever ses
+> protections et variantes **sur sa propre fiche**, sans les mutualiser.
 
-| Fonction | MPN exemples | Points [DS] à confronter | Vigilance |
-|----------|--------------|--------------------------|-----------|
-| Répéteur/tampon I²C | TCA9517 | Isolation capacitive, offset, level-shift | Alim propre, un actif de plus |
-| Level-shifter passif | PCA9306 | Bidirectionnel, capacité de bus | Pas de limitation active |
-| Bus switch | (famille bus switch) | Déconnexion, R_on, latence | Coût |
+## 2. Tampon / traduction de niveau de bus (I²C) — *pas de la simple « isolation »*
+
+| Référence | Type exact | Plage tension (A / B) | Translation de niveau | Actif / passif | Broche `EN` | Effet sur la capacité de bus | Protection | Boîtier | Source (fiche) |
+|-----------|-----------|-----------------------|-----------------------|----------------|-------------|------------------------------|------------|---------|----------------|
+| **TCA9517** | **Buffer/répéteur I²C actif** avec translation | à relever (VCCA / VCCB) | **Oui** (offset de tension statique côté B) | **Actif** (alim requise) | à relever | **Découple** les capacités A/B (répéteur) | selon fiche | à relever | TI « TCA9517 » |
+| **PCA9306** | **Traducteur bidirectionnel à pass-FET** | à relever | par **pass-FET** (suiveur) | **Passif** (pass-FET) | **Oui** (entrée `EN`) | **Ne découple pas** (pass-through) | selon fiche | à relever | TI « PCA9306 » |
+| **Bus switch** (à sélectionner) | Commutateur analogique de lignes | selon réf. | selon réf. | Actif | selon réf. | Déconnexion physique (haute-Z) | selon réf. | selon réf. | fiche du bus switch retenu |
+
+> Le **TCA9517** et le **PCA9306** ne sont **pas** équivalents : le premier est un
+> **répéteur actif** (découple les capacités, translation à offset), le second un
+> **traducteur passif à pass-FET** avec entrée `EN` (ne découple pas). Ne pas les
+> résumer sous une notion vague d'« isolation ».
 
 ## 3. Protection ESD (préliminaire — voir [ESD](esd-paths.md))
 
