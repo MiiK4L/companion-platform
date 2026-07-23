@@ -89,15 +89,19 @@ Verdicts **instrumentés** : voir [définitions des événements](event-definiti
 |----------|-------|-----------|
 | `n_cycles` hot-plug (écran + trafic I²C) par scénario | ≥ 500 | **[P]** |
 | Reset Host | 0 (def. instrumentée) | **[P]** |
-| Corruption / glitch écran hors spec | 0 (CRC framebuffer) | **[P]** |
+| Corruption **logique** de l'affichage | 0 (CRC framebuffer + erreurs SPI) | **[P]** |
+| **Anomalie de sortie affichée** | 0 (**≥ 1 méthode de vérification de sortie**, cf. [définitions](event-definitions.md)) | **[P]** |
 | Réveil parasite module (`VMOD` coupé) | pas de réveil ; fuite ≤ `[BL]` µA | **[P]/[BL]** |
-| Latch-up (ordre défavorable) | 0 (I > `[BL]` pendant > `[BL]` µs) | **[P]/[BL]** |
+| Surcourant persistant (ordre défavorable) | 0 : I > `[BL]` pendant > `[BL]` µs | **[P]/[BL]** |
+| Latch-up **suspecté** | 0 : conduction persistant stimulus coupé, levée **uniquement** par power-cycle | **[P]** |
 
 ### Champs à finaliser au baselining (`[BL]`)
 
 - **Seuil de fuite** « réveil parasite » (µA) et seuil de tension résiduelle `VMOD`.
-- **Seuils latch-up** : courant limite et durée.
-- **Spec écran** définissant le « hors spec » (CRC de référence, tolérance).
+- **Seuils de surcourant persistant** (courant limite + durée) et **procédure
+  d'attribution du latch-up** (stimulus off → power-cycle).
+- **Spec « anomalie de sortie »** : méthode de vérification retenue (caméra /
+  registre contrôleur / mire), image de référence et tolérance.
 - **Limite de mode commun** des sondes différentielles retenues.
 
 ## Plan d'échantillonnage
@@ -120,8 +124,11 @@ Verdicts **instrumentés** : voir [définitions des événements](event-definiti
 
 ## Critères d'arrêt immédiat
 
-- Latch-up ou courant anormal soutenu.
-- Reset Host répété / corruption écran persistante.
+- **Surcourant persistant / conduction anormale** (I > `[BL]` pendant > `[BL]` µs)
+  — **déclencheur direct** de l'arrêt.
+- Après arrêt : si la conduction **persiste stimulus coupé** et n'est levée
+  **que** par power-cycle → **latch-up suspecté** (consigné, à confirmer).
+- Reset Host répété **ou** **anomalie de sortie affichée** persistante.
 - Échauffement anormal du commutateur.
 
 ## Remise en état entre campagnes

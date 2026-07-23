@@ -20,11 +20,43 @@ sans contredire ces définitions.
 | Événement | Définition instrumentée | Observable / capteur | Seuil |
 |-----------|-------------------------|----------------------|-------|
 | **Reset Host** | Redémarrage non sollicité **ou** cause de reset anormale **ou** heartbeat manquant | Compteur de boot persistant + **cause de reset** (registre) + heartbeat périodique (GPIO/log) | 0 événement |
-| **Corruption écran** | Divergence du contenu affiché **ou** erreur de transaction d'affichage | **CRC du framebuffer** vs image de référence, **et** compteur d'erreurs de transaction SPI écran | 0 hors spec |
+| **Corruption logique de l'affichage** | Framebuffer **ou** transactions d'affichage incorrects | **CRC du framebuffer** + compteur d'erreurs de transaction SPI écran | 0 |
+| **Anomalie de sortie affichée** | Contenu **visible** ≠ référence : écran figé, noir, reset, perte de synchro | **≥ 1 méthode de vérification de sortie** (voir §« Anomalie de sortie ») — le **CRC framebuffer seul ne suffit pas** | 0 |
 | **Blocage bus (stuck)** | Ligne `SDA`/`SCL` maintenue basse au-delà d'une durée | Analyseur logique + horodatage ; durée mesurée | > **[BL]** ms = blocage |
-| **Latch-up** | Courant d'alim > limite pendant une durée | Sonde de courant sur le rail concerné + fenêtre temporelle | I > **[BL]** pendant > **[BL]** µs |
+| **Surcourant persistant / conduction anormale** | Courant d'alim > limite pendant une durée (**directement observable**) | Sonde de courant sur le rail concerné + fenêtre temporelle | I > **[BL]** pendant > **[BL]** µs |
+| **Latch-up (suspecté)** | Conduction anormale qui **persiste après suppression du stimulus** et **n'est levée que par une coupure d'alimentation** | Sonde de courant + séquence « stimulus off → observation → power-cycle » | conduction persistante levée **uniquement** par power-cycle |
 | **Réveil parasite** (module `VMOD` coupé) | Tension rail module, **ou** courant, **ou** événement logiciel dépassant une limite | Tension `VMOD` résiduelle + courant de fuite + indicateur firmware module | V/I > **[BL]** |
 | **État connu** (reprise) | Liste **précise** des états matériels et logiciels attendus | Voir §« État connu » ci-dessous | 100 % conforme |
+
+## Anomalie de sortie affichée — méthodes de vérification (baseline)
+
+Un **CRC de framebuffer correct** et un **compteur d'erreurs SPI nul** peuvent
+coexister avec une **image réellement erronée** (contrôleur ou dalle perturbés
+par un transitoire électrique). Détecter une **anomalie de sortie** exige donc
+d'observer la **sortie visible**, pas seulement l'état interne. Au baselining,
+retenir **au moins une** des méthodes suivantes (choix justifié) :
+
+- **Capture caméra** synchronisée, comparée à une **image de référence** ;
+- **Retour d'état du contrôleur** d'affichage (registres de statut), si disponible ;
+- **Mire périodique** avec contrôle externe (photodiode / caméra / capteur) ;
+- **Autre mécanisme justifié** (documenté au protocole).
+
+> Interdit : conclure « corruption/glitch écran = 0 » sur la seule base du **CRC
+> framebuffer** + compteur SPI. La corruption **logique** et l'anomalie de
+> **sortie** sont deux événements distincts, comptés séparément.
+
+## Surcourant persistant vs latch-up (à ne pas confondre)
+
+- **Surcourant persistant / conduction anormale** est le critère **directement
+  observable** (courant > seuil pendant une durée) et sert de **déclencheur**
+  (arrêt immédiat, comptage).
+- **Latch-up** n'est **retenu (suspecté)** que si la conduction anormale
+  **persiste après suppression du stimulus** et **ne disparaît qu'après une
+  coupure d'alimentation**. Un simple dépassement de courant **ne prouve pas** un
+  latch-up.
+- Procédure d'attribution : sur surcourant, **couper le stimulus** ; si la
+  conduction persiste et n'est levée **que** par power-cycle → **latch-up
+  suspecté** (à confirmer, hors périmètre documentaire).
 
 ## État « connu » (reprise après incident)
 
