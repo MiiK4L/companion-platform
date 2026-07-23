@@ -47,7 +47,7 @@ doit rester **stable** (pas de crash, pas d'état incohérent) et **récupérer*
 | Critère | Seuil | Étiquette | Alimente |
 |---------|-------|-----------|----------|
 | Retrait en transaction | 0 crash Host sur ≥ 200 essais | **[P]** | `DEC-L2-001` |
-| Reprise après retrait | retour état connu ≤ délai à fixer | **[P]** | `DEC-L2-001` |
+| Reprise après retrait | retour état connu ≤ `[BL]` ms | **[P]/[BL]** | `DEC-L2-001` |
 
 ## 3. Alimente
 

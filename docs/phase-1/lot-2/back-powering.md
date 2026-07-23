@@ -44,7 +44,7 @@ hot-plug.
 
 | Critère | Seuil | Étiquette | Alimente |
 |---------|-------|-----------|----------|
-| Courant de fuite vers le module, `VMOD` coupé | ≤ valeur à fixer (borne d'analyse) | **[P]** | `DEC-L2-001` |
+| Courant de fuite vers le module, `VMOD` coupé | ≤ `[BL]` µA | **[BL]** | `DEC-L2-001` |
 | Tension résiduelle sur rail module, `VMOD` coupé, bus actif | ≈ 0 V (module non réveillé) | **[P]** | `DEC-L2-001` |
 
 Mesure prévue au [protocole hot-plug/injection](protocols/hot-plug-injection.md)

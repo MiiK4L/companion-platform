@@ -35,8 +35,8 @@ n'est présélectionné.
 
 | Option | Principe | Atouts (analyse) | Points de vigilance |
 |--------|----------|------------------|---------------------|
-| **(I1) Répéteur/tampon I²C isolant** (type TCA9517) | Tampon avec offset, isole capacité et niveaux | Découple la capacité du slot ; supporte level-shift | Ajoute un composant actif ; alimentation propre requise |
-| **(I2) Level-shifter passif** (type PCA9306) | MOSFET bidirectionnel | Simple, faible coût | Pas de limitation active ; capacité de bus à surveiller |
+| **(I1) Répéteur/tampon I²C actif** (type TCA9517) | Répéteur actif avec offset ; **découple** les capacités A/B, translation de niveau | Découple la capacité du slot ; supporte level-shift | Ajoute un composant actif ; alimentation propre requise |
+| **(I2) Traducteur passif à pass-FET** (type PCA9306) | Pass-FET bidirectionnel + entrée `EN` ; **ne découple pas** | Simple, faible coût | Pas de limitation active ; capacité de bus non découplée |
 | **(I3) Commutation active des lignes** (bus switch) | Déconnexion physique des lignes quand module absent/non alimenté | Garantit haute-Z ; isole les défauts | Coût ; latence de commutation |
 | **(I4) Série résistive + clamp** | Résistances série + diodes de clamp | Très simple | Ne coupe pas ; protection limitée |
 
@@ -60,7 +60,7 @@ Séquence **esquissée** (à valider, non gelée) :
 |---------|-------|-----------|----------|
 | Impédance lignes bus, module non alimenté | ≥ 1 MΩ (borne d'analyse) | **[P]** | `DEC-L2-001` |
 | Rampe `VMOD` | ≥ 1 ms | **[P]** | `DEC-L2-001` |
-| Pic d'inrush | ≤ 2× courant établi + plafond absolu à fixer | **[P]** | `DEC-L2-001` |
+| Pic d'inrush | ≤ 2× courant établi ; plafond absolu = `[BL]` A | **[P]/[BL]** | `DEC-L2-001` |
 
 Détails et conditions dans les [protocoles](protocols/README.md).
 

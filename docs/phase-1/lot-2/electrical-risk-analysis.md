@@ -21,15 +21,25 @@ SPDX-License-Identifier: CC-BY-4.0
 | **court-circuit** | Défaut franc côté slot | Reset/dégât Host au court-circuit | Load switch protégé / eFuse, limitation de courant | [court-circuit](protocols/court-circuit.md) |
 | **collisions I²C / bus-stuck** | Bus bloqué (esclave/module) | `SDA` maintenu bas, timeout | Récupération SCL, power-cycle, bus switch | [bus-stuck](protocols/bus-stuck.md) |
 
-## 2. Coins de tension (à appliquer aux essais)
+## 2. Conditions d'alimentation & coins applicables (matrice partagée)
 
-Tous les protocoles s'exécutent aux **coins** suivants (bornes d'analyse) :
+**Les coins batterie ne s'appliquent pas systématiquement.** Si `VMOD` provient
+d'un **rail 3,3 V régulé**, la variation de `VBAT` est **masquée** par la
+régulation : tester le **rail régulé à ses propres tolérances** suffit. Les coins
+batterie ne sont pertinents que lorsque le **chemin étudié dépend directement de
+`VBAT`** (rail exposé, near-dropout du régulateur). Chaque protocole **référence
+cette matrice** et précise **son** rail observé et **ses** coins applicables.
 
-| Condition | Valeur | Étiquette |
-|-----------|--------|-----------|
-| Rails nominaux ±5 % | `3V3` ±5 % | **[H]** |
-| Batterie basse | ≈ 3,0 V | **[DS]** (seuil LiPo typique) |
-| Batterie haute | ≈ 4,2 V | **[DS]** |
+| Variante | Topologie `VMOD` | Source | État USB | Tension injectée Host | Rail observé | Coins applicables |
+|----------|------------------|--------|----------|-----------------------|--------------|-------------------|
+| **VA** | `VMOD` = 3V3 **régulé** commuté (P1) | batterie **ou** USB | absent **et** présent | `VBAT` 3,0–4,2 **[DS]** / `VUSB` ≈ 5 V **[DS]** | `VMOD` ≈ 3,3 V ±5 % **[H]** | **régulé ±5 %** ; batterie seulement en **near-dropout** (`VBAT` ≈ 3,0 V) |
+| **VB** | `VMOD` = `VBAT` **exposé** (P2) | batterie | absent/présent | `VBAT` 3,0–4,2 **[DS]** | `VBAT` (= `VMOD`) | **batterie 3,0 V / 4,2 V** (le chemin dépend de `VBAT`) |
+| **VC** | `VMOD` = `VUSB` (P3) | USB | présent | `VUSB` ≈ 5 V **[DS]** | `VUSB` | **`VUSB` ±5 %** ; batterie non applicable |
+
+> La variante testée (VA/VB/VC) renvoie aux options de rails de la
+> [power-architecture](power-architecture.md) §3 ; le choix des rails exposés est
+> tranché en **Lot 2B**. Les essais couvrent les variantes **pertinentes pour la
+> sûreté**, pas un choix de rail.
 
 ## 3. Critère global d'échec (proposé)
 

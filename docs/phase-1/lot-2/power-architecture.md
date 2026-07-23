@@ -58,8 +58,8 @@ lot fournit les **entrées de sûreté** de cette décision.
 | Grandeur | Valeur | Étiquette | Source / hypothèse |
 |----------|--------|-----------|--------------------|
 | Tension `VMOD` | 3,3 V nominal | **[H]** | Aligné sur la logique Host ; à confirmer selon module |
-| Courant `VMOD` continu max | à définir (borne d'analyse) | **[H]** | Dépend du module ; plafond fixé au dimensionnement du load switch |
-| Chute de tension admissible slot | à définir | **[H]** | Fonction de la résistance de contact (Lot 2B) |
+| Courant `VMOD` continu max | `[BL]` A | **[BL]** | Dépend du module ; à finaliser au baselining (dimensionnement du load switch) |
+| Chute de tension admissible slot | `[BL]` mV | **[BL]** | Fonction de la résistance de contact (Lot 2B) |
 | Plage `VBAT` | ≈ 3,0–4,2 V | **[DS]** | Chimie LiPo typique |
 
 > Ces bornes cadrent les protocoles ; elles **ne fixent pas** de spécification.

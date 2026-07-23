@@ -43,7 +43,7 @@ Scénarios à injecter (y compris **défavorables**) : `GND` en dernier, bus ava
 | Cas | Observable | Seuil proposé | Étiquette |
 |-----|-----------|---------------|-----------|
 | Insertion nominale | Pic d'inrush, rampe `VMOD` | inrush ≤ 2× I établi ; rampe ≥ 1 ms | **[P]** |
-| Module non alimenté, bus actif | Réveil parasite / reflux | pas de réveil ; fuite ≤ seuil | **[P]** |
+| Module non alimenté, bus actif | Réveil parasite / reflux | pas de réveil ; fuite ≤ `[BL]` µA | **[P]/[BL]** |
 | Rebond de contact (N × commutations rapides) | Reset Host, corruption bus | 0 reset / 0 corruption sur ≥ 500 cycles | **[P]** |
 | Ordre défavorable (bus avant `VMOD`) | Latch-up, courant anormal | pas de latch-up ; courant borné | **[P]** |
 
