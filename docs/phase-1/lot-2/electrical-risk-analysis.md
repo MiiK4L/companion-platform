@@ -53,7 +53,8 @@ arbitrage documenté**.
 
 Les statuts R2/R5 (registre) passeront de **Ouvert** à **En analyse** lorsque les
 **campagnes de mesure** correspondantes **débuteront** (hors périmètre de cette
-PR documentaire). Cette PR **prépare** cette transition (protocoles figés).
+PR documentaire). Cette PR **prépare** cette transition en **rédigeant les
+protocoles et les champs nécessaires à leur future revue de baselining**.
 
 ## Renvois
 
