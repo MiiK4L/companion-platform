@@ -57,11 +57,15 @@ L9 (synthese, ADR, spec rc.1)  <-- depend de tous les lots
 
 - **PR de planification** (celle-ci) : cadrage + cadre de validation + modèles.
 - **Une PR indépendante par lot** (`phase-1/l2-...`, `phase-1/l3-...`, etc.) :
-  chacune livre son **rapport de mesure reproductible**, ses **données brutes**,
-  la ou les **ADR** associées (statut ajusté par la preuve) et, si utile, un
-  petit **PCB de validation** (KiCad) + code de test.
-- **PR finale de synthèse** (L9) : ADR consolidées, BOM V1 candidate, matrice de
-  compatibilité, promotion SPEC (au plus `rc.1`).
+  chacune livre ses **résultats** — qui peuvent être **exploratoires ou
+  reproductibles**, **concluants ou non concluants** —, ses **données brutes**,
+  la ou les **ADR** créées après mesures (statut selon la preuve ; une décision
+  peut rester *Proposé* si non concluante), et, si utile, un petit **PCB de
+  validation** (KiCad) + code de test. Seul un résultat **reproductible** peut
+  faire passer une décision en *Accepté* (voir cadre de validation).
+- **PR finale de synthèse** (L9) : **consolidation/indexation des ADR créées par
+  les lots**, BOM V1 candidate, matrice de compatibilité, promotion SPEC (au plus
+  `rc.1`).
 - **Pas de branche parapluie.** Chaque PR de lot doit être **relisible et
   fusionnable indépendamment**, **sans laisser `main` dans un état trompeur** :
   une décision reste **Proposé** tant que sa PR n'apporte pas la preuve
