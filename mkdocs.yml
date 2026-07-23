@@ -97,6 +97,23 @@ nav:
           - Budget GPIO / bus: phase-1/lot-1/gpio-bus-budget.md
           - Comparaison des cœurs: phase-1/lot-1/core-architecture-comparison.md
           - Budgets v0: phase-1/lot-1/budgets-v0.md
+      - "Lot 2A — Sûreté électrique":
+          - Vue d'ensemble: phase-1/lot-2/README.md
+          - Architecture & chemins de puissance: phase-1/lot-2/power-architecture.md
+          - Isolation & commutation: phase-1/lot-2/isolation-and-switching.md
+          - Back-powering: phase-1/lot-2/back-powering.md
+          - Hot-plug (électrique): phase-1/lot-2/hot-plug.md
+          - Bus-stuck & retrait: phase-1/lot-2/bus-stuck-and-transaction.md
+          - Chemins ESD (préliminaire): phase-1/lot-2/esd-paths.md
+          - Risques électriques: phase-1/lot-2/electrical-risk-analysis.md
+          - Composants candidats: phase-1/lot-2/candidate-components.md
+          - "Protocoles d'essai":
+              - Vue d'ensemble: phase-1/lot-2/protocols/README.md
+              - Inrush & rampe: phase-1/lot-2/protocols/inrush-et-rampe.md
+              - Court-circuit: phase-1/lot-2/protocols/court-circuit.md
+              - Bus-stuck: phase-1/lot-2/protocols/bus-stuck.md
+              - Hot-plug (injection): phase-1/lot-2/protocols/hot-plug-injection.md
+              - Retrait en transaction: phase-1/lot-2/protocols/retrait-en-transaction.md
   - Guides:
       - Contribuer au code: guides/contributing-code.md
       - Style de code: guides/code-style.md
