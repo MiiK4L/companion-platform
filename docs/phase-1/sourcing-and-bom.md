@@ -69,8 +69,13 @@ vérifiées (MPN, cycle de vie, stock) **au moment du lot**.
 | Multiplexeur I²C | TCA9548A | PCA9546A | — |
 | Expander GPIO | TCA9535 | PCA9555 | MCP23017 |
 | Support d'identification | 24AA02E64 (EUI) | AT24C64 | DS28E07 (1-Wire) / µC actif |
-| Famille de connecteur CX-Bus | Card-edge | Board-to-board (Hirose DF) | FPC / pogo |
+| Famille de connecteur CX-Bus | Card-edge (bord de PCB) | Board-to-board (mezzanine) | FPC / pogo |
 | Haptique | ERM + transistor | LRA + DRV2605L | — |
+
+**Connecteur** : on reste ici sur des **catégories neutres**. Aucune série précise (ex. de
+famille mezzanine) n'est désignée à ce stade ; la **série exacte** et ses **caractéristiques
+comparables** (nombre de contacts, pas/pitch, mode de rétention, aptitude au hot-plug, nombre
+d'insertions spécifié) seront **sourcées et comparées en L2**.
 
 Rappel : tous ces éléments sont **Proposés**. La comparaison objective (mesures, seuils,
 reproductibilité) tranche ; ce tableau ne fait qu'ouvrir l'espace des options. *(Une échelle
