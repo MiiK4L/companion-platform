@@ -91,6 +91,12 @@ nav:
       - "Modèle : protocole de test": phase-1/templates/test-protocol-template.md
       - "Modèle : rapport de mesure": phase-1/templates/measurement-report-template.md
       - ADR prévisionnelles 0013+: phase-1/adr-plan.md
+      - Registre des décisions (DEC-*): phase-1/decisions-register.md
+      - "Lot 1 — Exigences & cœur":
+          - Vue d'ensemble: phase-1/lot-1/README.md
+          - Budget GPIO / bus: phase-1/lot-1/gpio-bus-budget.md
+          - Comparaison des cœurs: phase-1/lot-1/core-architecture-comparison.md
+          - Budgets v0: phase-1/lot-1/budgets-v0.md
   - Guides:
       - Contribuer au code: guides/contributing-code.md
       - Style de code: guides/code-style.md
