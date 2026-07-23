@@ -115,6 +115,20 @@ nav:
               - Bus-stuck: phase-1/lot-2/protocols/bus-stuck.md
               - Hot-plug (injection): phase-1/lot-2/protocols/hot-plug-injection.md
               - Retrait en transaction: phase-1/lot-2/protocols/retrait-en-transaction.md
+      - "Lot 2B — Connecteur & endurance":
+          - Vue d'ensemble: phase-1/lot-2b/README.md
+          - Exigences fonctionnelles: phase-1/lot-2b/connector-requirements.md
+          - Comparaison des familles: phase-1/lot-2b/families-comparison.md
+          - Brochage (logique / physique): phase-1/lot-2b/pinout.md
+          - Rails exposés & puissance: phase-1/lot-2b/exposed-rails-and-power.md
+          - "Protocoles (connecteur)":
+              - Vue d'ensemble: phase-1/lot-2b/protocols/README.md
+              - Définitions des événements: phase-1/lot-2b/protocols/event-definitions.md
+              - Endurance d'insertion: phase-1/lot-2b/protocols/endurance-insertion.md
+              - Résistance de contact: phase-1/lot-2b/protocols/contact-resistance.md
+              - Intermittence: phase-1/lot-2b/protocols/intermittence.md
+              - Force insertion/extraction: phase-1/lot-2b/protocols/insertion-extraction-force.md
+              - Inspection mécanique: phase-1/lot-2b/protocols/mechanical-inspection.md
   - Guides:
       - Contribuer au code: guides/contributing-code.md
       - Style de code: guides/code-style.md
