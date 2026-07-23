@@ -6,8 +6,10 @@ SPDX-License-Identifier: CC-BY-4.0
 
 # PROTO-L2A-STUCK — Bus-stuck (I²C tenu bas) : détection & récupération
 
-> **Statut : Proposé (figé avant essai).** Seuils **[P]/[H]** ; **aucune [M]**.
-> Modèle : [protocole de test](../../templates/test-protocol-template.md).
+> **Statut : Brouillon (en attente de baselining).** Seuils `[P]/[H]` ; champs
+> ouverts `[BL]` à geler avant essai ; **aucune `[M]`**. Modèle :
+> [protocole de test](../../templates/test-protocol-template.md) ·
+> [définitions des événements](event-definitions.md).
 
 ## Lot & décision visée
 
@@ -35,9 +37,12 @@ blocage ≤ 50 ms et **récupère-t-il** automatiquement sans blocage ?
 Injection du défaut sur `SDA` en aval des pull-ups ; horodatage de l'instant de
 forçage et de l'instant de récupération.
 
-## Plage de tension
+## Conditions d'alimentation
 
-`3V3` ±5 % ; batterie ≈ 3,0 V / ≈ 4,2 V **[DS]** (coins).
+Voir la [matrice partagée](../electrical-risk-analysis.md) (§2). Le bus I²C est
+alimenté par le **`3V3` logique Host régulé** ; **rail observé : `3V3`**. Variante
+**VA uniquement**. **Coins batterie NON applicables** (la régulation masque `VBAT`)
+— tester `3V3` à **±5 %**. USB présent et absent (sans effet attendu ; documenté).
 
 ## Fréquence et charge des bus
 
@@ -46,16 +51,31 @@ périodique) ; documenter le taux.
 
 ## Seuils de réussite / échec chiffrés
 
+Verdicts instrumentés : voir [définitions des événements](event-definitions.md)
+(« blocage bus » = ligne basse > `[BL]` ms).
+
 | Grandeur | Seuil | Étiquette |
 |----------|-------|-----------|
 | Détection du bus-stuck | ≤ 50 ms | **[P]** |
 | Récupération automatique | 0 blocage sur ≥ 100 essais | **[P]** |
-| Effet de bord (corruption autres esclaves) | 0 | **[P]** |
+| Effet de bord (corruption autres esclaves) | 0 (def. instrumentée) | **[P]** |
 
-## Reproductibilité
+### Champs à finaliser au baselining (`[BL]`)
 
-`n_dut` ≥ 2 · `n_runs` ≥ 100 forçages · `n_campaigns` ≥ 2 ; méthode
-min/max/percentiles du délai de détection/récupération.
+- **Durée** au-delà de laquelle une ligne basse est comptée comme « blocage » (ms).
+- **Nombre max d'impulsions `SCL`** de récupération avant escalade (power-cycle).
+
+## Plan d'échantillonnage
+
+- **`n_dut`** ≥ 2 · **`n_runs`** ≥ **100 forçages** (par fréquence I²C) ·
+  **`n_campaigns`** ≥ 2 · **`n_cycles`** = n/a.
+- **Total** = `n_dut` × 2 fréquences × 100 × `n_campaigns` (figé au baselining).
+- **Répartition** : par fréquence (100/400 kHz) × DUT × campagne.
+- **Ordre** : instants de forçage **randomisés** dans la trame (graine journalisée).
+- **Repos** : non requis (essai non destructif) ; pause si dérive observée.
+- **Reprise après échec** : blocage non récupérable → arrêt, journalisation,
+  reprise après réinitialisation ; non rétroactif.
+- **Méthode** : min/max/percentiles du délai de détection/récupération.
 
 ## Critères d'arrêt immédiat
 

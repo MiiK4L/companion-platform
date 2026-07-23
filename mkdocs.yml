@@ -109,6 +109,7 @@ nav:
           - Composants candidats: phase-1/lot-2/candidate-components.md
           - "Protocoles d'essai":
               - Vue d'ensemble: phase-1/lot-2/protocols/README.md
+              - Définitions des événements: phase-1/lot-2/protocols/event-definitions.md
               - Inrush & rampe: phase-1/lot-2/protocols/inrush-et-rampe.md
               - Court-circuit: phase-1/lot-2/protocols/court-circuit.md
               - Bus-stuck: phase-1/lot-2/protocols/bus-stuck.md

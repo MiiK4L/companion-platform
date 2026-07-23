@@ -62,7 +62,13 @@ Toute valeur chiffrée de ce lot est **étiquetée par sa nature et son statut**
 | **[C]** | Valeur **calculée** (formule + hypothèses explicites) | Non — à confirmer |
 | **[H]** | **Hypothèse de conception** | Non — à valider |
 | **[P]** | **Seuil proposé** (critère d'acceptation à vérifier) | Non tant que non mesuré |
+| **[BL]** | **À finaliser au baselining** (seuil encore ouvert, avant gel du protocole) | Non — bloque le passage en *Baseline d'essai* |
 | **[M]** | Valeur **réellement mesurée** sur banc | Oui (si reproductible) — **aucune [M] à ce stade** |
+
+> Les protocoles suivent un **cycle de vie** *Brouillon → Revu → Baseline d'essai
+> → Exécuté → Rapporté* : ils sont ici en **Brouillon** et ne peuvent être
+> exécutés qu'une fois **tous les `[BL]` levés et gelés** (voir
+> [index des protocoles](protocols/README.md)).
 
 ## Livrables de ce lot (tous *Proposé*)
 
@@ -103,6 +109,7 @@ Le connecteur et l'exposition de `VBAT` ouvriront **`DEC-L2-002`** (→ ADR-0015
   **analysés et comparés** (sans présélection).
 - Comportements hot-plug / bus-stuck / retrait **cadrés** (scénarios + exigences).
 - ESD **préliminaire** posée, limites explicitées.
-- **5 protocoles** entièrement renseignés (conditions, instrumentation, limites,
-  arrêts, remise en état, données brutes attendues, `DEC-*` alimentée).
+- **5 protocoles rédigés et prêts pour leur revue de baselining** ; **aucune
+  campagne ne peut commencer** tant que tous les champs obligatoires et seuils de
+  verdict (`[BL]`) ne sont pas finalisés et gelés.
 - `DEC-L2-001` **ouvert et tracé** ; aucune décision arbitrée, aucune ADR.

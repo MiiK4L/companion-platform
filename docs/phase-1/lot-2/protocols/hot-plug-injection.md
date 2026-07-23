@@ -6,10 +6,12 @@ SPDX-License-Identifier: CC-BY-4.0
 
 # PROTO-L2A-HOTPLUG — Hot-plug par banc d'injection (indépendant du connecteur)
 
-> **Statut : Proposé (figé avant essai).** Étudie le hot-plug **électrique** via
-> un **banc d'injection**, **sans connecteur final** (connecteur → Lot 2B).
-> Seuils **[P]/[H]** ; **aucune [M]**. Modèle :
-> [protocole de test](../../templates/test-protocol-template.md).
+> **Statut : Brouillon (en attente de baselining).** Étudie le hot-plug
+> **électrique** via un **banc d'injection**, **sans connecteur final**
+> (connecteur → Lot 2B). Seuils `[P]/[H]` ; champs ouverts `[BL]` à geler avant
+> essai ; **aucune `[M]`**. Modèle :
+> [protocole de test](../../templates/test-protocol-template.md) ·
+> [définitions des événements](event-definitions.md).
 
 ## Lot & décision visée
 
@@ -38,9 +40,35 @@ sans **réveil parasite** du module non alimenté ?
 Fixture d'injection reproduisant les séquences de contact ; **aucun** connecteur
 réel (ni mesure d'endurance/résistance de contact — Lot 2B).
 
-## Plage de tension
+## Intégrité des masses (indispensable au scénario « `GND` en dernier »)
 
-`3V3` ±5 % ; batterie ≈ 3,0 V / ≈ 4,2 V **[DS]** (coins).
+Le scénario où `GND` arrive **en dernier** (ou est absent) n'est **valide** que si
+**aucun instrument ne recrée un chemin de masse parasite**. Sinon l'essai ne teste
+pas réellement l'absence de référence — et peut **endommager l'instrumentation**.
+Le protocole **impose**, avant essai :
+
+- **Inventaire des masses reliées à la terre** : quelles masses d'instrument
+  (oscilloscope, analyseur logique, alim de labo, PC de programmation) sont à la
+  terre ; lesquelles sont flottantes.
+- **Sondes différentielles** (ou isolation galvanique / alim isolée / USB isolé)
+  pour toute mesure sur un nœud dont la masse est commutée.
+- **Aucun retour de masse par `USB`/`UART`/`JTAG`** : programmation débranchée ou
+  **isolée** pendant les scénarios `GND` commuté ; sinon la masse « revient » par
+  le câble.
+- **Schéma complet des masses de la fixture** (document joint, référencé au rapport).
+- **Ordre de connexion des instruments** défini et respecté.
+- **Vérification de continuité préalable** (avant mise sous tension) confirmant
+  qu'aucune masse parasite ne subsiste quand `GND` du DUT est ouvert.
+- **Limites de tension en mode commun** des sondes respectées (valeur `[BL]`
+  selon les sondes retenues).
+
+## Conditions d'alimentation
+
+Voir la [matrice partagée](../electrical-risk-analysis.md) (§2). **Rail observé :
+`VMOD` + lignes de bus.** Variantes **VA** (régulé) **et** **VB** (`VBAT` exposé) —
+le comportement de hot-plug diffère. Coins : VA → régulé ±5 % + near-dropout ;
+VB → **batterie 3,0 / 4,2 V**. USB **présent et absent** (le hot-plug en session
+filaire est un cas distinct). Source documentée par run.
 
 ## Scénarios (dont défavorables)
 
@@ -54,18 +82,41 @@ réel (ni mesure d'endurance/résistance de contact — Lot 2B).
 
 ## Seuils de réussite / échec chiffrés
 
+Verdicts **instrumentés** : voir [définitions des événements](event-definitions.md)
+(reset, corruption écran, latch-up, réveil parasite, état connu).
+
 | Grandeur | Seuil | Étiquette |
 |----------|-------|-----------|
-| Cycles hot-plug (écran + trafic I²C) | ≥ 500 | **[P]** |
-| Reset Host | 0 | **[P]** |
-| Corruption / glitch écran hors spec | 0 | **[P]** |
-| Réveil parasite module (`VMOD` coupé) | 0 ; fuite ≤ seuil | **[P]** |
-| Latch-up (ordre défavorable) | 0 | **[P]** |
+| `n_cycles` hot-plug (écran + trafic I²C) par scénario | ≥ 500 | **[P]** |
+| Reset Host | 0 (def. instrumentée) | **[P]** |
+| Corruption / glitch écran hors spec | 0 (CRC framebuffer) | **[P]** |
+| Réveil parasite module (`VMOD` coupé) | pas de réveil ; fuite ≤ `[BL]` µA | **[P]/[BL]** |
+| Latch-up (ordre défavorable) | 0 (I > `[BL]` pendant > `[BL]` µs) | **[P]/[BL]** |
 
-## Reproductibilité
+### Champs à finaliser au baselining (`[BL]`)
 
-`n_dut` ≥ 2 · `n_runs` = 500 cycles (par scénario) · `n_campaigns` ≥ 2 ;
-méthode min/max/percentiles ; règle d'aberrants pré-définie.
+- **Seuil de fuite** « réveil parasite » (µA) et seuil de tension résiduelle `VMOD`.
+- **Seuils latch-up** : courant limite et durée.
+- **Spec écran** définissant le « hors spec » (CRC de référence, tolérance).
+- **Limite de mode commun** des sondes différentielles retenues.
+
+## Plan d'échantillonnage
+
+- **`n_dut`** ≥ 2 · **`n_cycles`** = **500 par scénario** · **5 scénarios**
+  (nominal + 4) · **`n_runs`** = 1 série de `n_cycles` par (scénario, coin, DUT) ·
+  **`n_campaigns`** ≥ 2 (indépendantes).
+- **Total cycles** = `n_dut` × 5 scénarios × `n_coins` × 500 × `n_campaigns`.
+  **Intention explicite** : à `n_dut`=2, 1 coin, 2 campagnes → **≥ 10 000
+  commutations** ; le décompte exact (avec coins) est **figé au baselining**.
+- **Répartition** : 500 cycles par scénario, pour chaque coin applicable, chaque
+  DUT, chaque campagne.
+- **Ordre / randomisation** : ordre des scénarios **randomisé** par campagne
+  (graine journalisée) pour éviter tout biais d'usure/échauffement.
+- **Repos** : refroidissement entre séries (durée `[BL]`) ; l'échauffement des
+  commutateurs ne doit pas polluer les cycles suivants.
+- **Reprise après échec** : un arrêt immédiat **invalide** la série en cours
+  (non rétroactif) ; remise en état, journalisation, puis reprise.
+- **Méthode** : min/max/percentiles ; règle d'aberrants pré-définie.
 
 ## Critères d'arrêt immédiat
 

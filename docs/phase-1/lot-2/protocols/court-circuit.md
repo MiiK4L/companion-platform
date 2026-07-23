@@ -6,9 +6,11 @@ SPDX-License-Identifier: CC-BY-4.0
 
 # PROTO-L2A-SHORT — Court-circuit franc côté slot
 
-> **Statut : Proposé (figé avant essai).** Seuils **[P]/[DS]/[H]** ; **aucune
-> [M]**. Modèle : [protocole de test](../../templates/test-protocol-template.md).
-> Essai **destructif potentiel**.
+> **Statut : Brouillon (en attente de baselining).** Seuils `[P]/[DS]/[H]` ;
+> champs ouverts `[BL]` à geler avant essai ; **aucune `[M]`**. Modèle :
+> [protocole de test](../../templates/test-protocol-template.md) ·
+> [définitions des événements](event-definitions.md). Essai **destructif
+> potentiel**.
 
 ## Lot & décision visée
 
@@ -35,9 +37,13 @@ Lors d'un **court-circuit franc** de `VMOD` vers `GND` côté slot, le Host
 Court-circuit appliqué **en aval** du commutateur `VMOD` ; mesure du courant de
 défaut et de la tension `3V3`/`VBAT` Host pendant le défaut.
 
-## Plage de tension
+## Conditions d'alimentation
 
-`3V3` ±5 % ; batterie ≈ 3,0 V et ≈ 4,2 V **[DS]** (coins).
+Voir la [matrice partagée](../electrical-risk-analysis.md) (§2). **Rail observé :
+`VMOD`** (courant de défaut) **et rails Host `3V3`/`VBAT`** (tenue). Variantes :
+**VA** (régulé) et **VB** (`VBAT` exposé). Coins : VA → régulé ±5 % + near-dropout ;
+VB → **batterie 3,0 / 4,2 V** (la tenue au défaut dépend de `VBAT`). USB présent
+et absent (chemin de charge actif ou non).
 
 ## Courant max / modèle de charge
 
@@ -46,17 +52,32 @@ répété **× 100** **[P]**.
 
 ## Seuils de réussite / échec chiffrés
 
+Verdicts instrumentés : voir [définitions des événements](event-definitions.md).
+
 | Grandeur | Seuil | Étiquette |
 |----------|-------|-----------|
-| Reset Host | 0 sur 100 défauts | **[P]** |
+| Reset Host | 0 sur 100 défauts (def. instrumentée) | **[P]** |
 | Dégât matériel Host | 0 | **[P]** |
-| Reprise à la levée du défaut | 100 % | **[P]** |
-| Temps de coupure/limitation | ≤ valeur à fixer | **[P]** |
+| Reprise à la levée du défaut | 100 % (retour « état connu ») | **[P]** |
+| Temps de coupure/limitation | ≤ `[BL]` ms | **[P]/[BL]** |
 
-## Reproductibilité
+### Champs à finaliser au baselining (`[BL]`)
 
-`n_dut` ≥ 2 · `n_runs` = 100 défauts · `n_campaigns` ≥ 2 · justifier (caractère
-destructif ⇒ documenter chaque DUT).
+- **Temps de coupure/limitation max** (ms) : dérivé de la tenue thermique du
+  commutateur candidat et du courant de défaut plafonné (source à citer).
+- **Seuil de chute admissible** de `VBAT`/`3V3` Host déclenchant un arrêt.
+
+## Plan d'échantillonnage
+
+- **`n_dut`** ≥ 2 · **`n_runs`** = **100 défauts** (par variante × coin) ·
+  **`n_campaigns`** ≥ 2 · **`n_cycles`** = n/a.
+- **Total** = `n_dut` × `n_variantes×coins` × 100 × `n_campaigns` (figé au
+  baselining) ; caractère **destructif** ⇒ documenter **chaque DUT** individuellement.
+- **Répartition** : par variante (VA/VB) × coin × DUT × campagne.
+- **Ordre** : coins randomisés (graine journalisée) ; défauts espacés (refroidissement).
+- **Repos** : refroidissement obligatoire entre défauts (durée `[BL]`).
+- **Reprise après échec** : tout arrêt immédiat invalide la série en cours ;
+  remplacer le composant si dérive, journaliser, reprise non rétroactive.
 
 ## Critères d'arrêt immédiat
 
