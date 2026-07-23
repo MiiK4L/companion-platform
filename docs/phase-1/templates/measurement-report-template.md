@@ -39,8 +39,8 @@ SPDX-License-Identifier: CC-BY-4.0
 - **Révision du DUT** : <!-- rev exacte testée -->
 - **Commit firmware exact** : <!-- SHA Git -->
 - **Opérateur** : <!-- --> · **Étalonnage instruments** : <!-- date/réf -->
-- **Nombre de campagnes indépendantes** : <!-- ≥ 2 pour reproductible -->
-- **Nombre d'échantillons `n`** : <!-- --> · **Méthode statistique** : <!-- -->
+- **`n_dut` / `n_runs` / `n_campaigns` / `n_cycles`** : <!-- valeurs réalisées ; n_campaigns ≥ 2 pour reproductible -->
+- **Méthode statistique** : <!-- moyenne/écart-type/percentiles… -->
 - **Gestion des valeurs aberrantes** : <!-- règle appliquée -->
 - **Hash SHA-256 des données brutes** : <!-- un hash par fichier -->
 

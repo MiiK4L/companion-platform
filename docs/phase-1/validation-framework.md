@@ -41,17 +41,26 @@ Seuils **proposés, à confirmer** :
 
 - **Git direct** : fichiers **texte** (CSV, logs) **≤ 1 Mo/fichier**.
 - **Git LFS** : fichiers binaires ou traces **> 1 Mo et ≤ 50 Mo** (captures d'oscilloscope,
-  images). LFS est activé pour les extensions concernées avant dépôt.
-- **Stockage externe** : au-delà de **50 Mo**, la donnée brute **n'est pas** committée ; on
-  conserve **un lien** vers le stockage externe **+ le hash**.
+  images). **Opérationnel** : la **PR du premier lot utilisant LFS** ajoute les règles
+  **`.gitattributes`** (par extension) **avant** de committer les données concernées. **Si LFS
+  n'est pas disponible**, les fichiers vont en **stockage externe** — **jamais** en blob Git
+  classique.
+- **Stockage externe** : au-delà de **50 Mo**. Gouvernance obligatoire :
+  **responsable du stockage** nommé (par défaut le mainteneur), **pérennité du lien**
+  (URL stable, pas d'espace éphémère), **contrôle d'accès** documenté, **hash SHA-256**
+  enregistré, **vérification périodique** du lien+hash (**au moins à chaque revue de lot et
+  en L9**), et **procédure de migration** si le fournisseur change.
+- **Limite par lot / PR** : en plus de la limite par fichier, **≤ 200 Mo** cumulés committés
+  (Git + LFS) par PR de lot ; au-delà, agréger/échantillonner ou basculer en stockage externe.
 - **Hash SHA-256** : chaque fichier de données brutes est accompagné de son **SHA-256**
-  (reporté dans le rapport de mesure) pour garantir l'intégrité, quel que soit le lieu de
-  stockage.
-- **Métadonnées & conservation** : chaque jeu de données porte instrument, date, opérateur,
-  `DEC-*` et protocole associés ; **durée de conservation** minimale à définir (ex. tant que
-  la décision qu'il justifie reste en vigueur).
-- **Formats admis** : privilégier des formats **ouverts** (CSV, PNG, formats d'export
-  documentés) ; éviter les formats propriétaires opaques quand un équivalent ouvert existe.
+  (reporté dans le rapport de mesure), quel que soit le lieu de stockage.
+- **Métadonnées & conservation** : chaque jeu porte instrument, date, opérateur, `DEC-*` et
+  protocole associés. **Règle de conservation** : les données d'un résultat **qui soutient
+  une décision Acceptée** sont **conservées tant que l'ADR correspondante n'est pas
+  Remplacée/Rejetée** ; les données purement **exploratoires** peuvent être **élaguées après
+  clôture du lot** (en conservant le rapport qui les résume et leur hash).
+- **Formats admis** : formats **ouverts** (CSV, PNG, formats d'export documentés) ; éviter les
+  formats propriétaires opaques quand un équivalent ouvert existe.
 
 ## 2. Identifiant de question de décision (`DEC-*`) & traçabilité
 
@@ -77,12 +86,21 @@ d'ADR n'est exigé avant que le protocole et le rapport n'existent**.
 
 ## 3. Critères Proposé → Accepté
 
-Le passage d'une décision de **Proposé** à **Accepté** est conditionné :
+**Atteindre les seuils ne suffit pas** : plusieurs options peuvent les atteindre. Le passage
+de **Proposé** à **Accepté** exige **les quatre** conditions cumulatives :
 
-- Une décision ne passe **Accepté** que si un **rapport reproductible** atteint les
-  **seuils chiffrés** définis par son protocole de test.
-- À défaut, la décision **reste Proposé** (preuve insuffisante, non reproductible, ou seuils
-  non atteints).
+1. **Conformité aux exigences** : la solution satisfait les exigences applicables
+   ([matrice des exigences](requirements-matrix.md)), pas seulement les seuils du protocole.
+2. **Comparaison des alternatives pertinentes** : les alternatives crédibles de la même
+   fonction ont été évaluées (mêmes protocole/seuils quand c'est pertinent).
+3. **Justification des compromis** : l'ADR explique **pourquoi cette option est retenue** face
+   aux autres (coût, conso, disponibilité, complexité, risques), y compris quand plusieurs
+   atteignent les seuils.
+4. **Traçabilité vers les preuves** : liens `DEC-*` ↔ rapport(s) reproductible(s) ↔ données
+   brutes (avec hash).
+
+- Un **rapport reproductible** atteignant les **seuils chiffrés** est **nécessaire** mais non
+  suffisant ; à défaut de l'une des conditions, la décision **reste Proposé**.
 - Une option peut être **Rejetée**, à condition de laisser une **trace** (rapport et données
   brutes documentant l'échec ou le non-respect des seuils).
 
@@ -108,13 +126,28 @@ La distinction est structurante pour le modèle de preuves.
 - **Données brutes conservées** (avec SHA-256).
 - **Rejouable** par un tiers.
 
-**Combien d'exécutions pour ne PAS être un essai unique ?** Un résultat n'est
-**reproductible** que s'il repose sur **au moins 2 campagnes indépendantes**
-(rejouées, idéalement à des moments/opérateurs distincts) **et** un **nombre
-d'échantillons `n` défini dans le protocole** (par défaut proposé : `n ≥ 5`, à
-ajuster selon la grandeur et sa dispersion), avec **résultats consignés par
-répétition** et **méthode statistique** déclarée. Une seule exécution reste
-**exploratoire**, quels que soient ses résultats.
+**Combien d'exécutions ?** Pas de `n ≥ 5` universel. Le protocole **distingue et justifie**
+quatre grandeurs, selon le **risque**, la **dispersion** attendue et le caractère
+**destructif** de l'essai :
+
+- **`n_dut`** : nombre d'exemplaires distincts du *device under test* (plusieurs cartes/
+  modules, pour capter la variabilité de fabrication).
+- **`n_runs`** : nombre de mesures répétées sur **un même** DUT dans une même campagne.
+- **`n_campaigns`** : nombre de **campagnes indépendantes** (voir ci-dessous).
+- **`n_cycles`** : nombre de cycles pour les essais d'**endurance/usure** (ex. insertions
+  connecteur), distinct des répétitions de mesure.
+
+Chaque nombre est **justifié dans le protocole** (un essai destructif aura un `n_dut` faible
+mais documenté ; une grandeur très dispersée exigera un `n_runs`/`n_campaigns` plus élevé).
+
+**Deux campagnes sont *indépendantes*** si elles diffèrent par au moins : un **remontage/
+recâblage** du banc, un **moment distinct** (et si possible un **opérateur** ou un **DUT**
+distinct), avec **re-vérification de l'étalonnage**. Rejouer une acquisition sans rien
+remonter ne compte **pas** comme une campagne indépendante.
+
+Un résultat **reproductible** exige **`n_campaigns ≥ 2`** (indépendantes) et des `n_dut`/
+`n_runs` justifiés, avec **résultats consignés par répétition** et **méthode statistique**
+déclarée. Une seule exécution reste **exploratoire**.
 
 Seul un résultat **reproductible** peut faire passer une décision de Proposé à Accepté.
 

@@ -41,8 +41,11 @@ SPDX-License-Identifier: CC-BY-4.0
      reproductible du résultat (voir validation-framework §4). -->
 
 - **Révision du DUT** (device under test) : <!-- ex. rev A du PCB/banc -->
-- **Nombre d'échantillons `n`** : <!-- n ≥ 5 par défaut, à justifier -->
-- **Nombre de campagnes indépendantes** : <!-- ≥ 2 pour un résultat reproductible -->
+- **`n_dut`** (exemplaires distincts) : <!-- justifier ; destructif => faible mais documenté -->
+- **`n_runs`** (répétitions sur un même DUT) : <!-- justifier selon dispersion -->
+- **`n_campaigns`** (campagnes indépendantes) : <!-- ≥ 2 pour un résultat reproductible -->
+- **`n_cycles`** (endurance/usure, si applicable) : <!-- ex. cycles d'insertion connecteur -->
+- **Justification des `n_*`** : <!-- selon risque, dispersion, caractère destructif -->
 - **Opérateur** : <!-- qui exécute -->
 - **Étalonnage des instruments** : <!-- date et référence d'étalonnage -->
 - **Méthode statistique** : <!-- moyenne/écart-type/min-max/percentiles… -->
