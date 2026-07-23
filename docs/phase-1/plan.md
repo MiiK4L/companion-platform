@@ -60,7 +60,7 @@ Les seuils indiqués ci-dessous sont **proposés, à confirmer** dans chaque pro
 - **Dépendances** : amont de tous ; affiné par L2/L4/L5/L6.
 - **Risques** : R1 (GPIO), R9 (mécanique).
 - **Livrables** : [requirements-matrix.md](requirements-matrix.md), budget GPIO/bus,
-  budget énergie v0, enveloppe mécanique v0, budget coût v0, comparaison d'architectures cœur + **critères de rejet du XIAO**.
+  budget énergie v0, enveloppe mécanique v0, budget coût v0, comparaison d'architectures cœur + **déclencheurs d'arbitrage du cœur**.
 - **Proposé→Accepté possible** : l'allocation GPIO/bus **de référence** est établie ici mais **reste Proposé** (révisable) tant que le banc de bring-up (L2) ne l'a pas validée ; scénario d'usage.
 - **Effort** : 2–4 j · **DOC/SIM**.
 
@@ -105,7 +105,7 @@ Les seuils indiqués ci-dessous sont **proposés, à confirmer** dans chaque pro
 - **Dépendances** : ← L1 ; ↔ L2 (SPI) ; ↔ L6 (conso).
 - **Risques** : R2, RAM/PSRAM, R4 (autonomie).
 - **Livrables** : rapport écran (RAM/FPS/conso) + reco contrôleur+format.
-- **Proposé→Accepté possible** : contrôleur+format ; LVGL ; budget RAM/écran.
+- **Proposé→Accepté possible** : **architecture d'affichage et moteur graphique V1 retenu** (contrôleur, format, budget mémoire), le choix parmi les candidats étant justifié par comparaison.
 - **Effort** : 4–6 j · **HW** (+ CODE via L8).
 
 ## Lot 5 — Cœur de calcul remplaçable & stratégie de socketage
@@ -162,16 +162,16 @@ Les seuils indiqués ci-dessous sont **proposés, à confirmer** dans chaque pro
 - **Dépendances** : ← L1 (ports/bus) ; démarre **tôt et en parallèle** (partie host sans matériel).
 - **Risques** : R7 (install dynamique), RAM.
 - **Livrables** : squelette ports/adaptateurs/services/SDK + composition root + mocks ; tests host ; rapport de faisabilité runtime.
-- **Proposé→Accepté possible** : Lua comme runtime V1 ; modèle réaliste d'installation d'apps ; premières signatures de ports.
+- **Proposé→Accepté possible** : **runtime scripté V1 retenu et modèle de distribution des applications** (le choix parmi les candidats étant justifié) ; premières signatures de ports.
 - **Effort** : 5–8 j · **CODE** (majorité) **+ HW** (POC).
 
 ## Lot 9 — Synthèse, ADR & release candidate de la SPEC
 
-- **Objectif** : consolider les preuves, faire passer en **Accepté** uniquement ce qui est démontré, rédiger les ADR 0013+, produire une **BOM V1 candidate**, et promouvoir la SPEC **au maximum en `spec-v1.0.0-rc.1`**.
+- **Objectif** : **consolider et indexer les ADR créées par les lots** (chaque lot rédige les siennes après ses mesures), faire passer en **Accepté** uniquement ce qui est démontré, produire une **BOM V1 candidate**, et promouvoir la SPEC **au maximum en `spec-v1.0.0-rc.1`**.
 - **Prototypes/mesures** : aucun — **DOC**.
 - **Critères** : chaque décision *Accepté* adossée à un rapport reproductible ; **`spec-v1.0.0` NON promue** en Phase 1.
 - **Sortie SPEC** : `0.x` stabilisée, ou **`spec-v1.0.0-rc.1`** si tous les critères de sortie sont satisfaits. Le passage à `1.0.0` (hors Phase 1) exigera une **carte Host intégrée**, **plusieurs types de modules**, une **campagne d'interopérabilité** et la **résolution des retours d'implémentation**.
-- **Livrables** : ADR 0013+ (Acceptées ou maintenues *Proposé*) ; synthèse Phase 1 ; **BOM V1 candidate** ; matrice de compatibilité ; tag `spec-v1.0.0-rc.1` si mérité.
+- **Livrables** : **index consolidé des ADR 0013+ créées par les lots** (statuts Accepté/Proposé/Rejeté selon les preuves) ; synthèse Phase 1 ; **BOM V1 candidate** ; matrice de compatibilité ; tag `spec-v1.0.0-rc.1` si mérité.
 - **Dépendances** : ← tous.
 - **Effort** : 3–5 j · **DOC**.
 
