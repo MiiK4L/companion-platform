@@ -14,10 +14,10 @@ est créée **après** les mesures, lorsqu'un arbitrage est possible.
 **Statuts d'un `DEC-*`** : **Ouvert** (question posée, non tranchée) · **Arbitré →
 ADR-XXXX** (une ADR a été créée) · **Abandonné** (question retirée, avec trace).
 
-> À ce stade (**lots documentaires** L1 et L2A), les décisions ci-dessous sont
-> **Ouvertes** et leurs éléments **Proposés** : aucune n'est arbitrée, **aucune
-> ADR n'est créée** (les validations reproductibles nécessaires relèvent des
-> campagnes de mesure à venir).
+> À ce stade (**lots documentaires** L1, L2A et L2B), les décisions ci-dessous
+> sont **Ouvertes** et leurs éléments **Proposés** : aucune n'est arbitrée,
+> **aucune ADR n'est créée** (les validations reproductibles nécessaires relèvent
+> des campagnes de mesure à venir).
 
 ## Lot 1 — Exigences & architecture du cœur
 
@@ -32,10 +32,17 @@ ADR-XXXX** (une ADR a été créée) · **Abandonné** (question retirée, avec 
 |---------|----------|------------------|-----------------------|--------------|--------|
 | **DEC-L2-001** | Sûreté électrique du CX-Bus : principe d'isolation/commutation, protections, séquencement ; seuils inrush / court-circuit / bus-stuck / hot-plug électrique / retrait en transaction | Load switch (dédié / P-MOSFET / eFuse) · isolation I²C (répéteur / level-shifter / bus switch) · séquence d'alimentation · récupération bus (SCL / power-cycle / switch) | **L2** (banc : injection, oscillo, alim limitée) | 0014 | **Ouvert** — analyse + protocoles figés (L2A), **aucune mesure exécutée** |
 
-> **Lot 2B (PR ultérieure)** ouvrira **`DEC-L2-002`** (→ ADR-0015) : **connecteur**
-> (famille, brochage, **rails exposés dont `VBAT`**, endurance, résistance de
-> contact). L'[analyse back-powering](lot-2/back-powering.md) du Lot 2A en est une
-> **entrée**. Non ouvert ici.
+## Lot 2B — Connecteur & endurance
+
+| `DEC-*` | Question | Options ouvertes | Validation principale | ADR (prévue) | Statut |
+|---------|----------|------------------|-----------------------|--------------|--------|
+| **DEC-L2-002** | Famille de connecteurs, contraintes mécaniques, endurance et **mapping physique candidat** des contacts | Mezzanine · card-edge · FPC/FFC · pogo · filaire verrouillable (témoin) | **L2** (banc mécanique : endurance, R_contact 4 fils, intermittence, force) | 0015 | **Ouvert** — comparaison documentaire (L2B) |
+| **DEC-L2-003** | Rails d'alimentation **effectivement exposés** (dont `VBAT`) et **stratégie de puissance** des modules | P1 (`VMOD` seul) · P2 (`VBAT` exposé, analyse sécurité) · P3 (`VUSB`) | **L2** (entrée : back-powering 2A) | **future — n° attribué à la création** | **Ouvert** — analyse séparée (L2B) |
+
+> Le **brochage** distingue l'**allocation logique** (contrainte **SPEC**
+> révisable, **hors** `DEC-L2-002`) du **mapping physique candidat** (relève de
+> `DEC-L2-002`) — voir [pinout](lot-2b/pinout.md). `DEC-L2-002` et `DEC-L2-003`
+> **évoluent indépendamment**. **Aucun MPN, aucune famille retenue, aucune ADR.**
 
 > Les identifiants `DEC-*` des lots suivants seront ajoutés ici à l'ouverture de
 > chaque lot (une PR par lot).
