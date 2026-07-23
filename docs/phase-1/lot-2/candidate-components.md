@@ -21,24 +21,28 @@ SPDX-License-Identifier: CC-BY-4.0
 
 | Référence | Plage d'entrée | I continu | Limitation de courant | Prot. thermique | Court-circuit | Rampe | Décharge de sortie | Hors alimentation | I repos / fuite | Boîtier | Source (fiche) |
 |-----------|----------------|-----------|-----------------------|-----------------|---------------|-------|--------------------|-------------------|-----------------|---------|----------------|
-| **TPS22918** | ≈ 0,8–5,5 V (à confirmer) | à relever | **Non** (pas de limitation active) | à relever | pas de limitation active | **configurable** (broche `CT`) | **configurable** (QOD) | sortie déchargée (QOD) | faible (à relever) | à relever | TI « TPS22918 » |
-| **AP22913** | à relever | à relever | à relever (ne pas présumer) | à relever | à relever | **slew-rate contrôlé** | à relever | à relever | à relever | à relever | Diodes Inc. « AP22913 » |
-| **P-MOSFET discret** (générique) | selon MOSFET | selon R_DS(on) | **Non** (sauf circuit ajouté) | Non | Non (à ajouter) | via réseau `RC` de grille | via R de décharge | dépend du montage | négligeable | selon réf. | fiche du MOSFET retenu |
-| **eFuse / switch protégé** (à sélectionner) | selon réf. | selon réf. | **Oui** (active) | Oui (typ.) | Oui (clamp/limite) | selon réf. | selon réf. | selon réf. | selon réf. | selon réf. | fiche de l'eFuse retenu |
+| **TPS22918** | 1–5,5 V | 2 A (max) | **Non** (pas de limitation active) | à relever | pas de limitation active | **configurable** (broche `CT`) | **configurable** (QOD) | sortie déchargée (QOD) | faible (à relever) | SOT-23-6 (DBV) | TI · SLVSD76 → §Sources |
+| **AP22913** | à relever | à relever | à relever (ne pas présumer) | à relever | à relever | **slew-rate contrôlé** | à relever | **blocage de courant inverse** (true reverse current blocking) | à relever | à relever | Diodes · DS41203 → §Sources |
+| **P-MOSFET discret** (générique) | selon MOSFET | selon R_DS(on) | Non (par nature ; sauf circuit ajouté) | selon montage | selon montage | via réseau `RC` de grille | via R de décharge | dépend du montage | négligeable | selon réf. | réf. à sélectionner |
+| **eFuse / switch protégé** (à sélectionner) | selon réf. | selon réf. | selon réf. | selon réf. | selon réf. | selon réf. | selon réf. | selon réf. | selon réf. | selon réf. | réf. à sélectionner |
 
 > ⚠️ Le **TPS22918** n'offre **pas** de limitation active de courant : il ne doit
 > **pas** être présenté comme un load switch à protection de courant. Ses atouts
 > sont le **temps de montée configurable** et la **décharge rapide de sortie
-> (QOD)**. L'**AP22913** est un load switch à **slew-rate contrôlé** : relever ses
-> protections et variantes **sur sa propre fiche**, sans les mutualiser.
+> (QOD)**. L'**AP22913** est un load switch à **slew-rate contrôlé** (avec
+> **blocage de courant inverse**) : relever ses protections et variantes **sur sa
+> propre fiche**, sans les mutualiser. Les lignes **génériques** (P-MOSFET, eFuse)
+> **ne portent aucune caractéristique `[DS]`** tant qu'une référence n'est pas
+> sélectionnée (la mention « Non par nature » du MOSFET est définitoire, pas une
+> donnée de fiche).
 
 ## 2. Tampon / traduction de niveau de bus (I²C) — *pas de la simple « isolation »*
 
 | Référence | Type exact | Plage tension (A / B) | Translation de niveau | Actif / passif | Broche `EN` | Effet sur la capacité de bus | Protection | Boîtier | Source (fiche) |
 |-----------|-----------|-----------------------|-----------------------|----------------|-------------|------------------------------|------------|---------|----------------|
-| **TCA9517** | **Buffer/répéteur I²C actif** avec translation | à relever (VCCA / VCCB) | **Oui** (offset de tension statique côté B) | **Actif** (alim requise) | à relever | **Découple** les capacités A/B (répéteur) | selon fiche | à relever | TI « TCA9517 » |
-| **PCA9306** | **Traducteur bidirectionnel à pass-FET** | à relever | par **pass-FET** (suiveur) | **Passif** (pass-FET) | **Oui** (entrée `EN`) | **Ne découple pas** (pass-through) | selon fiche | à relever | TI « PCA9306 » |
-| **Bus switch** (à sélectionner) | Commutateur analogique de lignes | selon réf. | selon réf. | Actif | selon réf. | Déconnexion physique (haute-Z) | selon réf. | selon réf. | fiche du bus switch retenu |
+| **TCA9517** | **Buffer/répéteur I²C actif** avec translation | VCCA 2,3–3,6 V / VCCB 4,5–5,5 V | **Oui** (offset de tension statique côté B) | **Actif** (alim requise) | à relever | **Découple** les capacités A/B (répéteur) | selon fiche | à relever | TI · SCPS242 → §Sources |
+| **PCA9306** | **Traducteur bidirectionnel à pass-FET** | à relever | par **pass-FET** (suiveur) | **Passif** (pass-FET) | **Oui** (entrée `EN`) | **Ne découple pas** (pass-through) | selon fiche | DCU | TI · SCPS113 → §Sources |
+| **Bus switch** (à sélectionner) | Commutateur analogique de lignes | selon réf. | selon réf. | Actif | selon réf. | Déconnexion physique (haute-Z) | selon réf. | selon réf. | réf. à sélectionner |
 
 > Le **TCA9517** et le **PCA9306** ne sont **pas** équivalents : le premier est un
 > **répéteur actif** (découple les capacités, translation à offset), le second un
@@ -53,6 +57,25 @@ SPDX-License-Identifier: CC-BY-4.0
 | Réseau ESD multi-lignes | (réseau ESD) | Capacité, nb de lignes | Diaphonie |
 
 > **Dimensionnement ESD non figé** ici (dépend connecteur 2B + routage + mécanique).
+
+## Sources datasheet (traçabilité)
+
+> Sources **consultées le 2026-07-23**. Seules les **références réellement citées**
+> figurent ici ; les lignes **génériques** (P-MOSFET, eFuse, bus switch, familles
+> ESD) **ne portent aucune caractéristique `[DS]`** tant qu'une référence n'est pas
+> sélectionnée — elles seront renseignées lors du **sourcing daté**
+> (voir [sourcing & BOM](../sourcing-and-bom.md)).
+
+| Référence | Fabricant | Titre du document | N° / révision | Date consultée | Variante / boîtier | Référence stable |
+|-----------|-----------|-------------------|---------------|----------------|--------------------|------------------|
+| TPS22918 | Texas Instruments | *5.5-V, 2-A, 52-mΩ On-Resistance Load Switch* | **SLVSD76C** | 2026-07-23 | DBV (SOT-23-6) | `ti.com/lit/ds/symlink/tps22918.pdf` (lit. SLVSD76) |
+| AP22913 | Diodes Incorporated | *Single Slew Rate Controlled Load Switch With True Reverse Current Blocking* | **DS41203 Rev. 6** (mai 2021) | 2026-07-23 | voir fiche | `diodes.com/datasheet/download/AP22913.pdf` (DS41203) |
+| TCA9517 | Texas Instruments | *Active I²C Bus Buffer/Repeater with Level Shifting* | **SCPS242D** | 2026-07-23 | voir fiche | `ti.com/lit/ds/symlink/tca9517.pdf` (lit. SCPS242) |
+| PCA9306 | Texas Instruments | *Dual Bidirectional I²C Bus and SMBus Voltage-Level Translator* | **SCPS113** | 2026-07-23 | DCU | `ti.com/lit/ds/symlink/pca9306.pdf` (lit. SCPS113) |
+
+> La **révision exacte** (lettre) est celle relevée à la date ci-dessus ; toute
+> caractéristique `[DS]` du tableau §1/§2 renvoie à ces documents. Les cellules
+> « à relever » restent à transcrire depuis ces fiches au baselining/sourcing.
 
 ## 4. Grille de comparaison **par fonction** (à instruire)
 
