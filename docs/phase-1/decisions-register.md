@@ -20,10 +20,10 @@ ADR-XXXX** (une ADR a été créée) · **Abandonné** (question retirée, avec 
 
 ## Lot 1 — Exigences & architecture du cœur
 
-| `DEC-*` | Question | Options ouvertes | ADR (prévue) | Statut |
-|---------|----------|------------------|--------------|--------|
-| **DEC-L1-001** | Allocation GPIO/bus de référence du Host (et recours éventuel à un GPIO expander / partage de bus) | Directe (11 GPIO) · + expander I²C · + partage SPI écran/CX-Bus · échelle ADC pour boutons | 0013 | **Ouvert** — allocation de **référence** proposée (L1), **validation banc en L2** |
-| **DEC-L1-002** | Architecture de cœur de calcul retenue | (A) XIAO ESP32-S3 · (B) autre module ESP32-S3 · (C) carte custom (ESP32-S3 nu) | (0018 / dédiée) | **Ouvert** — comparaison documentaire (L1), **mesures conso/RAM en L5/L4** |
+| `DEC-*` | Question | Options ouvertes | Validation principale | ADR (prévue) | Statut |
+|---------|----------|------------------|-----------------------|--------------|--------|
+| **DEC-L1-001** | Allocation GPIO/bus de référence du Host (et recours éventuel à un GPIO expander / partage de bus) | Directe (~11 E/S) · autre module · expander I²C · partage SPI écran/CX-Bus · échelle ADC boutons · évolution de périmètre | **L2** (bring-up) | 0013 | **Ouvert** — allocation de **référence** proposée (L1) |
+| **DEC-L1-002** | Architecture de cœur de calcul retenue | (A) XIAO ESP32-S3 · (B) autre module ESP32-S3 · (C) carte custom (ESP32-S3 nu) | **L4 + L5** (RAM/écran, deep-sleep/socket) | (0018 / dédiée) | **Ouvert** — comparaison documentaire (L1) |
 
 > Les identifiants `DEC-*` des lots suivants seront ajoutés ici à l'ouverture de
 > chaque lot (une PR par lot).

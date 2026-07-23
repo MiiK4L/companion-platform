@@ -29,16 +29,18 @@ Voir le [registre des décisions](../decisions-register.md).
 
 | Livrable | Contenu | Statut |
 |----------|---------|--------|
-| [Budget GPIO / bus](gpio-bus-budget.md) | Broches XIAO, confrontation au besoin, allocation de référence, constat « expander candidat » | Proposé (`DEC-L1-001`) |
+| [Budget GPIO / bus](gpio-bus-budget.md) | E/S du candidat, confrontation au besoin, allocation de référence, stratégies ouvertes | Proposé (`DEC-L1-001`) |
 | [Comparaison des architectures de cœur](core-architecture-comparison.md) | Grille A/B/C, cellules « mesure » déférées (L4/L5) | Proposé (`DEC-L1-002`) |
 | [Budgets v0](budgets-v0.md) | Énergie (paper), enveloppe mécanique, coût — v0 | Proposé |
 
 ## Constat principal (documentaire)
 
-Le budget GPIO du candidat de référence (**11 broches**) **ne tient pas** en
-câblage direct : un **GPIO expander I²C** (ou une échelle ADC pour les boutons)
-est **fortement pressenti** — **sans être imposé** (coût global comparé à
-l'arbitrage). Ce constat est **à valider sur banc en L2**.
+Selon la documentation, le candidat de référence expose **~11 E/S utilisables**.
+Le budget documentaire suggère qu'une **allocation directe pourrait être
+insuffisante** selon le périmètre V1. **Plusieurs stratégies restent ouvertes**
+(autre module, expander, réallocation/partage de bus, échelle ADC, évolution du
+périmètre) et **seront comparées avant arbitrage** — aucune n'est privilégiée à
+ce stade. Constat **à confirmer sur banc en L2**.
 
 ## Ce que ce lot NE fait pas / suite
 

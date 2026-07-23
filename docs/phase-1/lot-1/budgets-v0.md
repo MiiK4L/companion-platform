@@ -6,8 +6,11 @@ SPDX-License-Identifier: CC-BY-4.0
 
 # Lot 1 — Budgets v0 : énergie, mécanique, coût (*Proposé*, à affiner/mesurer)
 
-> **Statut : Proposé / v0.** Estimations **documentaires** destinées au cadrage.
-> **Aucun chiffre n'est décrété** : l'énergie sera **mesurée** (L6/L5), la
+> **Statut : Proposé / v0.** Les budgets v0 constituent **uniquement des
+> hypothèses de travail** destinées à identifier les **ordres de grandeur** et
+> les **besoins de validation**. **Ils ne constituent ni des objectifs produits
+> ni des critères d'acceptation** et ne pourront être cités comme tels par la
+> suite. **Aucun chiffre n'est décrété** : l'énergie sera **mesurée** (L6/L5), la
 > mécanique affinée (L2/L4/L5 puis Phase 4), le coût consolidé en BOM V1
 > candidate (L9). Aucune cible d'autonomie n'est fixée ici.
 

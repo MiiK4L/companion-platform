@@ -14,9 +14,11 @@ SPDX-License-Identifier: CC-BY-4.0
 
 ## 1. Ressource : broches exposées par le candidat de référence (XIAO ESP32-S3)
 
-Le XIAO ESP32-S3 expose **11 broches d'E/S** (D0–D10) sur ses bords, plus
-alimentation (5V, 3V3, GND) et pads batterie (B+/B-). Rôles de bus **par
-défaut** (convention Seeed — numéros GPIO à confirmer) :
+Selon la documentation disponible de la révision étudiée, le candidat de
+référence (XIAO ESP32-S3) expose **environ 11 E/S utilisables** (D0–D10) sur ses
+bords, plus alimentation (5V, 3V3, GND) et pads batterie (B+/B-). **Cette valeur
+sera confirmée lors des validations matérielles.** Rôles de bus **par défaut**
+(convention Seeed — numéros GPIO à confirmer) :
 
 | Broche | Rôle de bus par défaut | Remarque |
 |--------|------------------------|----------|
@@ -40,18 +42,30 @@ boutons (n à confirmer) · buzzer · vibreur · IRQ accéléromètre · IRQ mod
 enable alim module · détection présence module · **bus CX-Bus** (I²C + SPI
 partagés + IRQ) · support d'identification (I²C).
 
-## 3. Confrontation : le direct ne tient pas
+## 3. Confrontation : le budget documentaire est tendu
 
-En câblage **direct**, I²C (2) + SPI (3) + UART (2) consomment déjà 7 des 11
-broches ; il ne reste que **D0–D3 (4 lignes)** pour : écran DC/CS/RST/backlight
+En câblage **direct**, I²C (2) + SPI (3) + UART (2) mobiliseraient déjà 7 des ~11
+E/S ; il ne resterait que **D0–D3 (4 lignes)** pour : écran DC/CS/RST/backlight
 (≈ 4) **et** boutons, buzzer, vibreur, 2× IRQ, enable, détection, CS module…
-→ **impossible en direct**. *(Ce constat tient quels que soient les numéros GPIO
-exacts.)*
+
+**Le budget documentaire suggère qu'une allocation directe pourrait être
+insuffisante selon le périmètre V1.** Plusieurs stratégies restent ouvertes
+(autre module exposant plus d'E/S, GPIO expander, réallocation/partage de bus,
+échelle ADC pour les boutons, évolution du périmètre) et **seront comparées avant
+arbitrage** — sans qu'aucune ne soit privilégiée à ce stade. *(Ce constat de
+tension tient quels que soient les numéros GPIO exacts et reste à confirmer sur
+banc en L2.)*
 
 ## 4. Allocation de référence proposée (*Proposé*, à valider en L2)
 
+L'allocation ci-dessous est **une hypothèse de travail illustrant une des
+stratégies ouvertes** (celle recourant à un expander), destinée à vérifier
+qu'un scénario complet est câblable — **pas un choix privilégié**. D'autres
+stratégies (autre module, réallocation, réduction de périmètre) restent à
+comparer (§3).
+
 - **I²C (D4/D5)** — bus partagé : RTC, accéléromètre, jauge, **support
-  d'identification** du module, **et un GPIO expander I²C** (candidat) portant
+  d'identification** du module, **et un éventuel GPIO expander I²C** portant
   boutons, enable, détection, et lignes auxiliaires.
 - **SPI (D8/D9/D10)** — **partagé écran + CX-Bus**, chip-selects distincts (via
   l'expander si nécessaire) ; arbitrage/contention à valider (**R2**, L2/L4).
@@ -61,10 +75,11 @@ exacts.)*
 - **Boutons** : via expander **ou** échelle de boutons sur **une entrée ADC**
   (option sans puce, à comparer — coût global évalué en arbitrage, pas imposé).
 
-**Conséquence** : un **GPIO expander I²C** (ou une échelle ADC pour les boutons)
-est un **candidat fortement pressenti** pour tenir le budget — **sans être
-imposé** : son coût global (composant, IRQ, latence, conso) est comparé lors de
-l'arbitrage (voir [déclencheurs d'arbitrage](../requirements-matrix.md)).
+**Lecture** : cette hypothèse montre qu'un scénario complet **peut** tenir, mais
+elle **n'établit pas** que l'expander soit la meilleure option. Son coût global
+(composant, IRQ, latence, conso) sera **comparé aux autres stratégies** lors de
+l'arbitrage (voir [déclencheurs d'arbitrage](../requirements-matrix.md)), sans
+présélection.
 
 ## 5. Ce que ce lot NE fait pas
 
