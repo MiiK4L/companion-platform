@@ -21,9 +21,13 @@ un modèle « ADR créée en Proposé avant les essais » :
 2. L'**ADR (0013+) est créée *après* les mesures**, dans la PR du lot, lorsqu'un
    **arbitrage** est possible (rapport **reproductible**, options comparées,
    seuils atteints ou non).
-3. À la création, l'ADR porte le statut correspondant : **Accepté** (seuils
-   atteints), **Rejeté** (option écartée, avec trace), ou **Proposé** seulement
-   si la décision est prise mais reste à confirmer. Les liens deviennent alors
+3. À la création, l'ADR porte le statut correspondant. Le passage en **Accepté**
+   suit la **règle du [cadre de validation](validation-framework.md)** : une
+   option **répond aux exigences**, les **alternatives pertinentes ont été
+   comparées**, et le **choix est justifié par les preuves et les compromis
+   documentés** — l'**atteinte de seuils ne suffit pas** à elle seule. Statuts :
+   **Accepté**, **Rejeté** (option écartée, avec trace), ou **Proposé** si la
+   décision est prise mais reste à confirmer. Les liens deviennent
    bidirectionnels ADR ↔ `DEC-*` ↔ preuves. Regroupements volontaires pour
    éviter l'inflation.
 
@@ -32,8 +36,9 @@ un modèle « ADR créée en Proposé avant les essais » :
 | ADR (prév.) | `DEC-*` associé | Sujet | Lot | Condition de passage en *Accepté* |
 |-------------|-----------------|-------|-----|-----------------------------------|
 | 0013 | DEC-L1-001 | Allocation GPIO/bus + éventuel GPIO expander | L1/L2 | budget GPIO validé sur le **banc de bring-up GPIO/bus**, sans conflit |
-| 0014 | DEC-L2-001 | Sûreté électrique CX-Bus (isolation/commutation, protections, séquencement) | L2 | seuils inrush/court-circuit/bus-stuck/hot-plug atteints (reproductible) |
-| 0015 | DEC-L2-002 | Connecteur CX-Bus (**famille + brochage + rails exposés, dont `VBAT`**) | L2 | famille choisie + endurance (cycles + résistance de contact) + analyse `VBAT` |
+| 0014 | DEC-L2-001 | Sûreté électrique CX-Bus (isolation/commutation, protections, séquencement) | L2 | exigences de sûreté satisfaites (reproductible) **+ alternatives isolation/commutation comparées + choix justifié (preuves/compromis)** |
+| 0015 | DEC-L2-002 | Connecteur CX-Bus (**famille + mécanique + mapping physique candidat + endurance**) | L2 | endurance / R_contact / force satisfaites (reproductible) **+ familles comparées + choix justifié (preuves/compromis)** |
+| *(n° à attribuer à la création)* | DEC-L2-003 | **Rails exposés (dont `VBAT`) + stratégie de puissance des modules** | L2 | rails arbitrés : back-powering (2A) + sûreté d'exposition `VBAT` **+ options P1/P2/P3 comparées + choix justifié (preuves/compromis)** |
 | 0016 | DEC-L3-001 | Mécanisme d'identification + **format binaire du Manifest** | L3 | comparaison d'architectures faite + lecture sûre démontrée |
 | 0017 | DEC-L4-001 | **Architecture d'affichage et moteur graphique V1** | L4 | budget du **moteur graphique candidat retenu** + FPS + conso mesurés dans le budget |
 | 0018 | DEC-L5-001 | Stratégie du cœur remplaçable (**socketage** ou alternative) | L5 | contact + deep-sleep mesurés ; sinon arbitrage (peut rouvrir ADR-0004) |
@@ -42,10 +47,14 @@ un modèle « ADR créée en Proposé avant les essais » :
 | 0021 | DEC-L7-001 | **RTC & base de temps** + persistance | L7 | dérive/conso/Δt/reprise d'état aux seuils |
 | 0022 | DEC-L8-001 | **Runtime scripté et modèle de distribution des applications** | L8 | budget du **runtime scripté candidat** chiffré ; faisabilité (ou limites) d'installation dynamique démontrée |
 
-**Regroupements** : connecteur + brochage ensemble (0015) ; alimentation + jauge
-ensemble (0019) ; batterie + autonomie ensemble (0020). Le numérotage exact et
-d'éventuels regroupements supplémentaires seront arrêtés à la création, dans la
-PR du lot.
+**Regroupements & séparations** : connecteur + **mapping physique** ensemble
+(0015) ; l'**allocation logique** des signaux CX-Bus reste une **contrainte SPEC
+révisable** (hors ADR de connecteur) ; les **rails exposés / `VBAT`** forment une
+**décision séparée** (`DEC-L2-003`), dont l'**ADR n'a pas de numéro réservé** —
+il sera **attribué à sa création** pour éviter toute collision (l'ordre actuel est
+**purement prévisionnel**). Alimentation + jauge ensemble (0019) ; batterie +
+autonomie ensemble (0020). Le numérotage exact et d'éventuels regroupements
+supplémentaires seront arrêtés à la création, dans la PR du lot.
 
 ## Ce qui reste hors périmètre de ces ADR (Phase 1)
 
