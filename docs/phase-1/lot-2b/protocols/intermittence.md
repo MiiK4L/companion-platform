@@ -22,22 +22,41 @@ sous charge, un contact présente-t-il une **ouverture transitoire > 1 µs** ?
 
 ## Conditions & instrumentation
 
-Détecteur d'intermittence (seuil de tension/impédance, fenêtre temporelle) **par
-contact**, sous charge électrique `[BL]` ; sollicitation mécanique définie
-(profil `[BL]`). Fixture propre à la famille = **annexe créée à l'essai**.
+Détecteur d'intermittence **par contact**, sous charge électrique `[BL]`. Pour
+qu'un critère « 0 événement **> 1 µs** » ait un sens, le détecteur doit être
+**nettement plus rapide** que le seuil :
+
+- **Résolution temporelle cible** : ≤ **1/10** du seuil → **≤ 0,1 µs** `[BL]`.
+- **Bande passante minimale** et **fréquence d'échantillonnage** cohérentes avec
+  cette résolution (`[BL]`, à justifier).
+- **Seuil électrique d'ouverture** (tension/impédance au-delà duquel le contact
+  est « ouvert ») `[BL]`.
+- **Validation du détecteur** : **injection d'impulsions connues** (durées
+  calibrées autour de 1 µs) avant campagne, pour prouver la détection.
+- **Protection contre les faux événements** : rejet des artefacts de **fixture**
+  et du **rebond normal d'insertion** (fenêtrage / masquage documenté).
+
+## Deux scénarios distincts (à ne pas confondre)
+
+1. **Surveillance pendant l'insertion/retrait complet** — transitoires
+   d'engagement (le rebond d'insertion est **attendu** et **masqué**, pas compté).
+2. **Contact déjà accouplé soumis à vibration/choc** — recherche d'ouvertures
+   transitoires **en service** (aucun masquage : toute ouverture > seuil compte).
 
 ## Seuils de réussite / échec chiffrés
 
 | Grandeur | Seuil | Étiquette |
 |----------|-------|-----------|
-| Intermittence | 0 événement > 1 µs | **[P]** |
-| Durée de détection | ≤ `[BL]` (résolution du détecteur) | **[BL]** |
+| Intermittence (scénario « accouplé sous vibration ») | 0 événement > 1 µs | **[P]** |
+| Résolution temporelle du détecteur | ≤ 0,1 µs (1/10 du seuil) | **[BL]** |
 
 ### Champs à finaliser au baselining (`[BL]`)
 
+- **Bande passante / fréquence d'échantillonnage / résolution** du détecteur.
+- **Seuil électrique d'ouverture** et méthode de **validation par injection**.
 - **Profil de sollicitation** (vibration/choc) représentatif de l'usage nomade.
-- **Seuil et résolution** du détecteur d'intermittence.
-- **Règle après intermittence** (poursuite/arrêt) — cf. [événements](event-definitions.md).
+- **Fenêtrage anti-faux-événements** (rebond d'insertion, artefacts fixture).
+- **Règle après intermittence** — cf. [événements](event-definitions.md).
 
 ## Plan d'échantillonnage
 

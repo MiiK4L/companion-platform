@@ -40,7 +40,7 @@ Verdicts instrumentés : voir [définitions](event-definitions.md).
 | Grandeur | Seuil | Étiquette |
 |----------|-------|-----------|
 | Nombre de cycles | ≥ 1000 | **[P]** |
-| Dérive de résistance de contact | < 50 mΩ /100 cycles | **[P]** |
+| Résistance de contact (borne absolue `Rn` + dérive cumulée `ΔR`) | selon [protocole R_contact](contact-resistance.md) (`[BL]`) | **[BL]** |
 | Intermittence | 0 événement > 1 µs | **[P]** |
 | Force de rétention en fin d'endurance | ≥ `[BL]` N | **[P]/[BL]** |
 
@@ -52,12 +52,17 @@ Verdicts instrumentés : voir [définitions](event-definitions.md).
 
 ## Plan d'échantillonnage
 
-- **`n_dut`** ≥ 2 (connecteurs distincts de la famille) · **`n_cycles`** ≥ 1000 ·
+- **DUT = paire accouplée** (Host + module + support + rétention), identifiants
+  distincts par moitié — voir [définition du DUT](README.md).
+- **`n_dut`** ≥ 2 **par campagne** (assemblages **neufs**) · **`n_cycles`** ≥ 1000 ·
   **`n_runs`** = mesure 4 fils tous les **100 cycles** · **`n_campaigns`** ≥ 2.
-- **Total** = `n_dut` × 1000 cycles × `n_campaigns` (figé au baselining).
-- **Répartition** : par DUT × campagne ; relevés périodiques (tous les 100 cycles).
-- **Reprise après échec** : défaillance de contact → arrêt sur ce contact,
-  journalisation, non rétroactif.
+- **Total d'assemblages** = `n_dut × n_campaigns` (les deux moitiés) ; **figé au
+  baselining**, **pas** de substitution en cours de campagne.
+- **Répartition** : par assemblage × campagne ; relevés périodiques (100 cycles).
+- **Attribution de défaillance** : au côté **Host** ou **module** par inspection +
+  4 fils localisée ; sinon **indéterminée** (consignée).
+- **Reprise après échec** : défaillance → arrêt sur le contact, journalisation,
+  non rétroactif ; aucun remplacement non planifié.
 
 ## Critères d'arrêt immédiat
 

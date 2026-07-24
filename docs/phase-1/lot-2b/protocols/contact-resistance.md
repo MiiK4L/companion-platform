@@ -27,18 +27,40 @@ identifié** ; points de mesure définis dans l'**annexe fixture** de la famille
 (créée à l'essai). Courant de mesure `[BL]` ; correction de la résistance des
 amenées.
 
+## Grandeurs (définitions non ambiguës)
+
+Pour **chaque contact identifié** :
+
+- **`R0`** — résistance de contact **initiale** (avant cyclage).
+- **`Rn`** — résistance **au palier n** (ex. tous les 100 cycles).
+- **`ΔR = Rn − R0`** — **dérive cumulée** depuis l'origine.
+- **`ΔR_step = Rn − Rn₋₁`** — variation **entre deux paliers successifs**.
+- **`ΔR% = ΔR / R0`** — dérive **relative**.
+
+> ⚠️ La formulation « dérive < 50 mΩ /100 cycles » est **ambiguë** (elle
+> autoriserait jusqu'à ~500 mΩ à 1000 cycles) et **n'est pas** utilisée comme
+> verdict. Le verdict porte sur des grandeurs **explicites** ci-dessous.
+
 ## Seuils de réussite / échec chiffrés
 
 | Grandeur | Seuil | Étiquette |
 |----------|-------|-----------|
-| R_contact initiale | ≤ `[BL]` mΩ | **[BL]** |
-| Dérive de R_contact | < 50 mΩ /100 cycles | **[P]** |
-| Dispersion entre contacts | ≤ `[BL]` mΩ | **[BL]** |
+| **Borne absolue** `Rn` (à tout palier) | ≤ `[BL]` mΩ | **[BL]** |
+| **Dérive cumulée** `ΔR` (depuis `R0`, fin d'endurance) | ≤ `[BL]` mΩ | **[BL]** |
+| **Dérive relative** `ΔR%` (optionnelle) | ≤ `[BL]` % | **[BL]** |
+| **Variation inter-palier** `ΔR_step` (détection de saut) | ≤ `[BL]` mΩ | **[BL]** |
+| Dispersion `R0` entre contacts | ≤ `[BL]` mΩ | **[BL]** |
 
 ### Champs à finaliser au baselining (`[BL]`)
 
-- **R_contact initiale max** et **dispersion** admissibles (mΩ).
-- **Courant de mesure** 4 fils (A) et incertitude associée.
+Les seuils **ne se déduisent pas** de la seule valeur générique « 50 mΩ » : ils
+sont fixés au baselining **à partir** (a) des **séries représentatives**
+([comparaison des familles](../families-comparison.md)) et (b) de la **chute de
+tension admissible** sur le rail concerné (courant × `Rn` ≤ marge du rail).
+
+- **Borne absolue `Rn`**, **dérive cumulée `ΔR`** max, **`ΔR%`** éventuelle,
+  **`ΔR_step`** max — chiffrés + justifiés (source/série + chute de tension).
+- **Courant de mesure** 4 fils (A) et **incertitude** associée.
 
 ## Plan d'échantillonnage
 

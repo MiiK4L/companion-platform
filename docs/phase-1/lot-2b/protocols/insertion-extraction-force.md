@@ -54,7 +54,8 @@ force saturé.
 
 ## Remise en état / éléments destructibles
 
-Usure possible du connecteur ; remplacer le DUT entre campagnes si nécessaire ;
+Usure possible de l'assemblage ; **DUT neufs par campagne** (paire complète, cf.
+[définition du DUT](README.md)) — **pas** de substitution en cours de campagne ;
 ré-étalonner le capteur de force.
 
 ## Données brutes attendues

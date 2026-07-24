@@ -15,7 +15,7 @@ SPDX-License-Identifier: CC-BY-4.0
 | Événement | Définition instrumentée | Observable / capteur | Seuil |
 |-----------|-------------------------|----------------------|-------|
 | **Cycle d'insertion** | 1 insertion complète + 1 retrait complet, engagement/désengagement vérifiés | Compteur mécanique + capteur de position | comptage |
-| **Dérive de résistance de contact** | Écart de R_contact vs valeur initiale du **même contact** | **Mesure 4 fils** (Kelvin), par contact | dérive < **50 mΩ** /100 cycles **[P]** |
+| **Dérive de résistance de contact** | `ΔR = Rn − R0` (cumulée) et `Rn` (absolue) du **même contact** ; définitions dans le [protocole R_contact](contact-resistance.md) | **Mesure 4 fils** (Kelvin), par contact | borne absolue `Rn` + dérive cumulée `ΔR` **[BL]** (pas « 50 mΩ/100 cycles ») |
 | **Intermittence** | Ouverture transitoire d'un contact sous charge | Détecteur d'intermittence (seuil de tension/impédance, fenêtre temporelle) | événement > **1 µs** **[P]** |
 | **Défaillance de contact** | R_contact hors borne **ou** intermittence répétée **ou** perte de continuité | 4 fils + détecteur d'intermittence + continuité | R > `[BL]` **ou** ≥ `[BL]` intermittences |
 | **Défaillance mécanique** | Perte de rétention, déformation, fissure, jeu excessif | Inspection + mesure de force de rétention | force < `[BL]` N **ou** défaut visuel |

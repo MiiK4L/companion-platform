@@ -54,6 +54,36 @@ Le protocole générique **précise déjà** :
 - **Traçabilité** : **DUT** et **contact mesuré** identifiés (numérotation stable),
   journalisés avec chaque relevé et donnée brute (SHA-256 au rapport).
 
+## Définition du DUT (paire / assemblage accouplé)
+
+Un essai porte sur une **paire accouplée complète**, pas sur un « connecteur »
+isolé. Le **DUT** est donc un **assemblage** comprenant :
+
+- la **partie Host** (embase côté Host) ;
+- la **partie module** (embase/bord côté module) ;
+- le **support** associé (PCB, nappe, **bord de carte** ou porte-contacts) ;
+- le **système de rétention** (verrou, guide, clip).
+
+**Identifiants distincts par moitié** (`DUT-n.Host`, `DUT-n.Module`) + un
+identifiant d'assemblage (`DUT-n`), journalisés à chaque relevé.
+
+### Campagnes destructives (endurance) — règles figées avant essai
+
+- **DUT neufs par campagne** : chaque campagne indépendante démarre avec des
+  assemblages **neufs** (pas de réutilisation d'une campagne à l'autre).
+- **Comptage** : `n_dut` est compté **par campagne** ; le **nombre total
+  d'assemblages** requis = `n_dut × n_campaigns` (les deux moitiés comptées).
+- **Remplacement des deux côtés ensemble** : Host et module d'un même DUT sont
+  **neufs ensemble** ; on ne mixe pas des moitiés d'âges différents.
+- **Attribution d'une défaillance** : chaque moitié étant identifiée, une
+  défaillance est **imputée au côté Host ou module** par inspection + mesure 4 fils
+  localisée ; si l'attribution est impossible, elle est **consignée comme
+  indéterminée** (jamais devinée).
+- **Pas de « remplacer si nécessaire »** en cours de campagne : le plan
+  d'échantillonnage fixe **à l'avance** le nombre d'assemblages ; tout
+  remplacement non prévu **invalide** la série concernée (écart tracé), sans
+  substitution silencieuse.
+
 ## Protocoles génériques
 
 | Protocole | Identifiant | État | Rapport futur | `DEC-*` |
