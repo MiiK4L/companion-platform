@@ -33,6 +33,12 @@ stade). Aucune appréciation « fait » sans source ni définition.
 
 > Sources **consultées le 2026-07-23** (voir la section « Sources datasheet » en
 > fin de page). Champs non documentés = **inconnu** (jamais inventés).
+>
+> **Obsolescence des données documentaires** — les caractéristiques documentaires
+> sont utilisées pour **comparer les familles**. Elles pourront **évoluer avec les
+> révisions des datasheets**. Les **campagnes d'essais** utiliseront **toujours les
+> caractéristiques applicables à la révision exacte** des composants effectivement
+> testés.
 
 ### (F1) Board-to-board / mezzanine
 | Série (fab.) | Pas · contacts | Cycles annoncés | Courant nom. · derating | R_contact init/max | Force ins./rétention | Temp. | Détrompage / séquencement | Source |

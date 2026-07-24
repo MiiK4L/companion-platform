@@ -54,8 +54,8 @@ Pour **chaque contact identifié** :
 ### Champs à finaliser au baselining (`[BL]`)
 
 Les seuils **ne se déduisent pas** de la seule valeur générique « 50 mΩ » : ils
-sont fixés au baselining **à partir** (a) des **séries représentatives**
-([comparaison des familles](../families-comparison.md)) et (b) de la **chute de
+sont fixés au baselining **à partir** (a) des **séries représentatives
+documentaires** ([comparaison des familles](../families-comparison.md)) et (b) de la **chute de
 tension admissible** sur le rail concerné (courant × `Rn` ≤ marge du rail).
 
 - **Borne absolue `Rn`**, **dérive cumulée `ΔR`** max, **`ΔR%`** éventuelle,

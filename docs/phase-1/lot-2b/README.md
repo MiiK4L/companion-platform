@@ -43,6 +43,16 @@ close sans bloquer l'autre. Voir le [registre des décisions](../decisions-regis
 >
 > Détail dans [pinout.md](pinout.md).
 
+## Terminologie : « série représentative documentaire »
+
+> **Série représentative documentaire** — série de composants réelle, citée
+> **uniquement** pour **établir des plages** et **vérifier qu'une famille possède
+> des solutions crédibles**, sur la base de sa **fiche technique**. Une telle
+> série **n'est pas retenue** pour le projet et **ne préjuge d'aucun choix**. À ne
+> pas confondre avec une **série/MPN retenu(e)**, qui n'existera qu'**après**
+> sélection de famille et essais. **Ce terme unique** est employé partout (pas de
+> « série documentaire » ni « série candidate »).
+
 ## Convention : statut d'une valeur numérique
 
 Identique au Lot 2A (voir la [table complète](../lot-2/README.md)) :
