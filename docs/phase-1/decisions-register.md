@@ -30,7 +30,7 @@ ADR-XXXX** (une ADR a été créée) · **Abandonné** (question retirée, avec 
 
 | `DEC-*` | Question | Options ouvertes | Validation principale | ADR (prévue) | Statut |
 |---------|----------|------------------|-----------------------|--------------|--------|
-| **DEC-L2-001** | Sûreté électrique du CX-Bus : principe d'isolation/commutation, protections, séquencement ; seuils inrush / court-circuit / bus-stuck / hot-plug électrique / retrait en transaction | Load switch (dédié / P-MOSFET / eFuse) · isolation I²C (répéteur / level-shifter / bus switch) · séquence d'alimentation · récupération bus (SCL / power-cycle / switch) | **L2** (banc : injection, oscillo, alim limitée) | 0014 | **Ouvert** — analyse + protocoles figés (L2A), **aucune mesure exécutée** |
+| **DEC-L2-001** | Sûreté électrique du CX-Bus : principe d'isolation/commutation, protections, séquencement ; seuils inrush / court-circuit / bus-stuck / hot-plug électrique / retrait en transaction | Load switch (dédié / P-MOSFET / eFuse) · isolation I²C (répéteur / level-shifter / bus switch) · séquence d'alimentation · récupération bus (SCL / power-cycle / switch) | **L2** (banc : injection, oscillo, alim limitée) | 0014 | **Ouvert** — analyse + protocoles **rédigés (Brouillon, baselining requis)** (L2A), **aucune mesure exécutée** |
 
 ## Lot 2B — Connecteur & endurance
 
