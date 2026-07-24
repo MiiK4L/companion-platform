@@ -26,13 +26,19 @@ challenge-réponse).
 
 ## 2. Réservations qui gardent le chemin ouvert (sans coût V1 significatif)
 
-| Réservation | Effet | Coût V1 |
-|-------------|-------|---------|
-| **Champ de version** du Manifest | permet d'introduire un profil « signé » plus tard | nul |
-| **TLV extensible** (types inconnus ignorables) | ajout de TLV « signature / certificat » sans casser les lecteurs V1 | nul |
-| **TLV réservé « évolutivité »** | emplacement documenté pour futures données d'auth | nul |
-| **Périmètre CRC explicite** | distinguer plus tard « intègre » de « authentifié » | nul |
-| Ne pas exclure un **rail/adressage** pour un futur élément actif | un SE/µC pourra être ajouté | nul |
+| Réservation | Effet | Coût V1 (honnête) |
+|-------------|-------|-------------------|
+| **Champ de version** du Manifest | permet d'introduire un profil « signé » plus tard | **coût de format** (négligeable) |
+| **TLV extensible** (types inconnus ignorables) | ajout de TLV « signature / certificat » sans casser les lecteurs V1 | **coût de format** |
+| **TLV réservé « évolutivité »** | emplacement documenté pour futures données d'auth | **coût de format** (faible) |
+| **Périmètre CRC explicite** | distinguer plus tard « intègre » de « authentifié » | **coût logiciel** seulement |
+| **Ne pas fermer** l'ajout futur d'un élément actif (SE/µC) | compatibilité de principe | **coût potentiel de connectique / alimentation — à évaluer** (rien n'est réservé ici) |
+
+> ⚠️ **Ce lot ne réserve AUCUN rail ni contact physique**, ni adresse, ni budget
+> électrique. Réserver l'un de ces éléments **créerait une contrainte
+> d'architecture** relevant de L2/L6. Le Lot 3 **documente seulement les conditions
+> de compatibilité future** ; toute réservation réelle sera **arbitrée** dans la
+> décision concernée.
 
 ## 3. Options futures possibles (documentées, non retenues)
 

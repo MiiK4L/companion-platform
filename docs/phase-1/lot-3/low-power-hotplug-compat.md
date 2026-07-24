@@ -14,19 +14,33 @@ SPDX-License-Identifier: CC-BY-4.0
 ## 1. Lecture **sans alimenter le reste du module**
 
 Exigence : identifier le module **sans mettre sous tension l'ensemble** de ses
-périphériques (économie d'énergie, sûreté). Implications par architecture :
+périphériques (économie d'énergie, sûreté). Cela suppose un **domaine
+d'alimentation permettant, si l'architecture retenue l'exige, d'alimenter
+uniquement la fonction d'identification sans activer les autres charges du
+module** — **sans présumer** ici d'un rail ou d'un contact CX-Bus **nouveau**.
 
-| Architecture | Lecture rail d'identification isolé | Remarque |
-|--------------|-------------------------------------|----------|
-| EEPROM (+EUI) / simple | **Host-powered possible** **[H]** | alimentée par un rail d'ID limité, `VMOD` coupé |
+> **Le Lot 3 ne crée ni rail ni contact.** L'exposition des rails et la stratégie
+> de puissance restent **ouvertes** en **`DEC-L2-003`** (arbitrage L2). Le Lot 3
+> **exprime seulement des exigences de compatibilité future**.
+
+**Exigences (candidates) du domaine d'alimentation de l'identification** :
+
+| Exigence | Contenu | Étiquette |
+|----------|---------|-----------|
+| Courant maximal | plafond de la fonction d'ID seule | **[BL]** |
+| Absence de back-powering | pas de ré-alimentation parasite (entrée [2A](../lot-2/back-powering.md)) | **[H]** |
+| Temps de disponibilité | délai avant que l'ID soit lisible | **[BL]** |
+| Comportement `VMOD` coupé | ID lisible **ou** non, défini ; pas de réveil des autres charges | **[H]** |
+| Haute-Z des autres interfaces | interfaces non-ID en haute impédance pendant la lecture d'ID | **[H]** |
+
+Implications **par architecture** (compatibilité de principe, non un choix de rail) :
+
+| Architecture | Alimentation de la fonction d'ID | Remarque |
+|--------------|----------------------------------|----------|
+| EEPROM (+EUI) / simple | **Host-powered possible** **[H]** | passive |
 | 1-Wire | Host-powered / parasite **[H]** | une ligne + masse |
-| µC actif | **Module-powered** (doit démarrer) **[H]** | conso au boot ; à cadrer |
+| µC actif | **Module-powered** (doit démarrer) **[H]** | conso au boot ; à caractériser |
 | Secure Element (+mém.) | Host-powered possible **[H]** | selon alimentation |
-
-> Le **rail d'identification isolé** est une **entrée du Lot 2A**
-> ([isolation/commutation](../lot-2/isolation-and-switching.md),
-> [back-powering](../lot-2/back-powering.md)) : lire l'ID **avant** d'alimenter
-> `VMOD`. Le choix `VBAT`/rails exposés reste `DEC-L2-003`.
 
 ## 2. Résolution non ambiguë (rappel neutre, cf. architectures §5)
 
