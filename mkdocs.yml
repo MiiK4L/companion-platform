@@ -129,6 +129,24 @@ nav:
               - Intermittence: phase-1/lot-2b/protocols/intermittence.md
               - Force insertion/extraction: phase-1/lot-2b/protocols/insertion-extraction-force.md
               - Inspection mécanique: phase-1/lot-2b/protocols/mechanical-inspection.md
+      - "Lot 3 — Identification des modules":
+          - Vue d'ensemble: phase-1/lot-3/README.md
+          - Architectures d'identification: phase-1/lot-3/identification-architectures.md
+          - Format du Manifest: phase-1/lot-3/manifest-format.md
+          - Évolutivité (authentification): phase-1/lot-3/authentication-evolutivity.md
+          - Provisioning production: phase-1/lot-3/provisioning.md
+          - Pannes & UX: phase-1/lot-3/failure-and-ux.md
+          - Faible conso & hot-plug: phase-1/lot-3/low-power-hotplug-compat.md
+          - Composants candidats: phase-1/lot-3/candidate-components.md
+          - "Protocoles (identification)":
+              - Vue d'ensemble: phase-1/lot-3/protocols/README.md
+              - Définitions des événements: phase-1/lot-3/protocols/event-definitions.md
+              - Détection & lecture d'identité: phase-1/lot-3/protocols/identity-detection-read.md
+              - Parsing borné du Manifest: phase-1/lot-3/protocols/manifest-bounded-parsing.md
+              - Corruption & lecture partielle: phase-1/lot-3/protocols/corruption-partial-read.md
+              - Provisioning & doublons: phase-1/lot-3/protocols/provisioning-duplicate-detection.md
+              - Périphérique absent/lent/bloqué: phase-1/lot-3/protocols/peripheral-absent-slow-stuck.md
+              - Hot-plug pendant lecture: phase-1/lot-3/protocols/hotplug-during-read.md
   - Guides:
       - Contribuer au code: guides/contributing-code.md
       - Style de code: guides/code-style.md
