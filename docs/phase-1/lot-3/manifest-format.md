@@ -35,6 +35,25 @@ SPDX-License-Identifier: CC-BY-4.0
 | **Limites de ressources Host** | RAM/temps de parse plafonnés | **[BL]** |
 | **Politique de rejet / dégradé** | définie (voir §4) | **[BL]** |
 
+## 2bis. Règles de parsing déterministe & sûr (à figer)
+
+Un parser réellement **déterministe et sûr** exige, en plus des bornes du §1 :
+
+| Règle | Politique candidate | Étiquette |
+|-------|---------------------|-----------|
+| **TLV dupliqué** | rejet **ou** « premier gagne » **ou** « dernier gagne » — **une** règle fixée | **[BL]** |
+| **Ordre des TLV** | **pas d'ordre imposé** (ou ordre canonique explicite) | **[BL]** |
+| **Imbrication** | **interdite** (ou profondeur max bornée) | **[BL]** |
+| **`offset + longueur`** | validés **sans débordement entier** (arithmétique bornée) | **[H]** |
+| **Longueur TLV > octets restants** | **rejet** (jamais de lecture hors trame) | **[H]** |
+| **Alignement / padding** | défini (ou aucun) ; padding **vérifié** | **[BL]** |
+| **Nombre maximal de TLV** | plafonné (anti « milliers de petits TLV ») | **[BL]** |
+| **Taille maximale d'un champ** | plafonnée par champ | **[BL]** |
+| **Encodage des chaînes** | jeu + **terminaison/longueur** définis (pas de dépassement) | **[BL]** |
+| **Unicité des champs obligatoires** | un obligatoire **répété** → rejet | **[H]** |
+| **Capacités contradictoires** | politique définie (rejet / priorité / dégradé) | **[BL]** |
+| **Versions compatibles** | **liste/plage exacte** de versions acceptées | **[BL]** |
+
 ## 3. Structure candidate (illustrative, non figée)
 
 Encodage **TLV** pressenti (extensibilité + champs inconnus ignorables) :
@@ -64,8 +83,34 @@ Encodage **TLV** pressenti (extensibilité + champs inconnus ignorables) :
 > Le mode **dégradé** (module présent mais Manifest non pleinement exploitable)
 > est un comportement **explicite**, relié au [modèle de confiance](failure-and-ux.md).
 
+## 5. Cohérence atomique (écriture / mise à jour interrompue)
+
+Une écriture/mise à jour **interrompue** (coupure) ne doit pas laisser un Manifest
+**ambigu**. **Stratégie candidate — aucune retenue** :
+
+- **Manifest fabricant immuable** après provisioning (pas de MAJ sur le terrain) ;
+- **double copie A/B** (bascule atomique) ;
+- **compteur de génération** (la plus haute génération valide gagne) ;
+- **marqueur de validité écrit en dernier** (Manifest « armé » seulement complet) ;
+- **journal / mécanisme équivalent** ;
+- **retour à la dernière copie valide**.
+
+Précisions à figer :
+
+| Question | À définir |
+|----------|-----------|
+| Parties **réellement modifiables** après production | zone fabricant (verrouillée) vs zone utilisateur | 
+| La **zone utilisateur** appartient-elle au Manifest principal ? | oui / non (défini) |
+| Le **CRC** couvre-t-il la zone fabricant seule ou aussi l'utilisateur ? | périmètre exact |
+| **MAJ interrompue vs corruption permanente** | distinguées (marqueur/génération, cf. ci-dessus) |
+
+> Ces scénarios sont **testés** par les protocoles
+> [corruption/partiel](protocols/corruption-partial-read.md) et
+> [provisioning](protocols/provisioning-duplicate-detection.md) — **sans** créer
+> de septième protocole.
+
 ## Alimente
 
 - **`DEC-L3-002`** — format Manifest arrêté **après** comparaison + preuve d'un
-  **parsing borné** ([protocole dédié](protocols/manifest-bounded-parsing.md)).
-  **Aucun format figé ici.**
+  **parsing borné** ([protocole dédié](protocols/manifest-bounded-parsing.md)) +
+  **stratégie d'atomicité** validée. **Aucun format figé ici.**

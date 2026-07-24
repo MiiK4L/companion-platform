@@ -21,9 +21,12 @@ trame malformée **sans jamais allouer selon la taille annoncée** par le module
 
 ## Vecteurs de test (jeux de Manifests forgés)
 
-Manifests valides + **malformés** : taille annoncée > limite Host, longueur
-incohérente, TLV de type inconnu, version future, CRC faux, troncature, champ
-obligatoire manquant.
+Manifests valides + **malformés** : taille annoncée > limite Host ; longueur
+incohérente ; **`offset + longueur` provoquant un overflow entier** ; **longueur
+TLV dépassant les octets restants** ; TLV de type inconnu ; **TLV dupliqué** ;
+**TLV de longueur zéro** ; **milliers de petits TLV** ; **champ obligatoire
+répété** ; champ obligatoire manquant ; **padding malformé** ; version future ;
+**version connue mais structure incohérente** ; CRC faux ; troncature.
 
 ## Seuils de réussite / échec chiffrés
 
@@ -40,11 +43,24 @@ obligatoire manquant.
 - **Limite Host** de taille de Manifest (octets) ; **plafonds RAM/temps** de parse.
 - **Jeu de vecteurs** malformés figé ; périmètre exact du **CRC**.
 
-## Plan d'échantillonnage
+## Plan d'essai (essai **logiciel** — pas de `n_dut` matériel)
 
-- **Vecteurs** : ensemble figé (valides + malformés) · **`n_runs`** = tous les
-  vecteurs × répétitions · **`n_campaigns`** ≥ 2 (firmware Host + commit exact).
-- Instrumentation : mesure RAM/temps (traces firmware), détection de crash/débordement.
+Ce protocole est **logiciel** : la couverture ne se mesure pas en `n_dut` mais en
+**corpus + moyens de test** :
+
+- **Corpus déterministe versionné** : ensemble figé de vecteurs (valides +
+  malformés ci-dessus), sous contrôle de version (commit exact).
+- **Tests de propriétés** : invariants (jamais d'allocation > plafond, jamais de
+  lecture hors trame, TLV inconnu toujours sauté…).
+- **Fuzzing** : avec **seed(s) journalisée(s)** et **durée bornée** `[BL]`.
+- **Sanitizers** sur Host de test **si disponibles** (ASan/UBSan) pour
+  débordements/fuites.
+- **Versions du parser** testées + **commit exact** ; campagnes = exécutions
+  indépendantes reproductibles.
+
+Critères : **0 crash, 0 overflow, 0 fuite, 0 allocation hors plafond** sur corpus
+**et** fuzzing borné. *(Ces moyens sont **spécifiés** ici ; **non exécutés** dans
+cette PR.)*
 
 ## Critères d'arrêt immédiat
 

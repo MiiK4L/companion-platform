@@ -40,6 +40,18 @@ campagne tant qu'un `[BL]` subsiste**.
 - **Verdicts instrumentés** : voir [définitions des événements](event-definitions.md).
 - **Données brutes** : journaux + captures bus, horodatés ; SHA-256 au rapport.
 
+## Type d'essai (le plan d'échantillonnage s'y adapte)
+
+Le modèle `n_dut` **ne s'applique pas partout**. Chaque protocole précise **son
+type** :
+
+| Type | Grandeurs de couverture |
+|------|-------------------------|
+| **Matériel** (détection, absent/lent/bloqué, hot-plug) | `n_dut`, séries et **révisions physiques**, `n_campaigns` |
+| **Logiciel** (parsing borné) | **corpus versionné**, **seeds** de fuzzing, durée bornée, **versions du parser**, sanitizers |
+| **Provisioning** | **nombre de pièces**, **registre de production** (simulé/réel), répétitions |
+| **Panne bus** | **fixture** + architecture physique testée |
+
 ## Six protocoles distincts (un objectif chacun)
 
 | Protocole | Objectif | `DEC-*` |

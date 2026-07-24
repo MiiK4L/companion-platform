@@ -44,10 +44,11 @@ déjà utilisée → séparation zone fabricant/utilisateur.
   identité ↔ lot ↔ révision.
 - Politique **rework/RMA** (re-provisioning tracé ou interdit).
 
-## Plan d'échantillonnage
+## Plan d'essai (type **provisioning**)
 
-- **`n_dut`** ≥ `[BL]` (lot d'essai représentatif) · doublon(s) **injecté(s)
-  volontairement** · **`n_campaigns`** ≥ 2 (script + commit exact).
+- **Nombre de pièces** ≥ `[BL]` (lot d'essai représentatif) · **registre de
+  production** (simulé ou réel) · doublon(s) **injecté(s) volontairement** ·
+  **répétitions / `n_campaigns`** ≥ 2 (script + commit exact).
 
 ## Données brutes attendues
 

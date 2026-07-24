@@ -24,7 +24,9 @@ Face à une **corruption** (CRC invalide), une **lecture partielle** ou une
 ## Injection de défauts
 
 Corruption de bits (mémoire/bus), coupure en cours de lecture (partiel), octets
-manquants, CRC faux, identité tronquée.
+manquants, CRC faux, identité tronquée, **écriture / mise à jour du Manifest
+interrompue** (coupure en cours d'écriture — cf.
+[atomicité](../manifest-format.md)).
 
 ## Seuils de réussite / échec chiffrés
 
@@ -35,6 +37,8 @@ manquants, CRC faux, identité tronquée.
 | Identité partielle traitée comme fiable | **0** | **[P]** |
 | Capacités publiées sur Manifest corrompu | **0** | **[P]** |
 | État exposé correct (illisible/dégradé) | 100 % | **[P]** |
+| **MAJ interrompue distinguée d'une corruption permanente** | 100 % | **[P]** |
+| **Retour à la dernière copie valide** (si stratégie A/B/génération) | 100 % | **[P]/[BL]** |
 
 ### Champs à finaliser au baselining (`[BL]`)
 
