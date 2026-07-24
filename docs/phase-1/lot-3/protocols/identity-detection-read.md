@@ -12,19 +12,23 @@ SPDX-License-Identifier: CC-BY-4.0
 
 ## Lot & décision visée
 
-Lot 3 · alimente **`DEC-L3-001`** (détection de présence + lecture d'identité +
-résolution non ambiguë).
+Lot 3 · alimente **`DEC-L3-001`** (**détection de découvrabilité logique** +
+lecture d'identité + résolution non ambiguë).
 
 ## Objectif (une question mesurable)
 
-Le Host détecte-t-il la **présence**, lit-il l'**identité** (produit/instance) et
-**résout-il sans ambiguïté** le module présent, dans un délai borné ?
+Le Host obtient-il la **découvrabilité logique** (le périphérique d'ID **répond**),
+lit-il l'**identité** (produit/instance) et **résout-il sans ambiguïté** le module,
+dans un délai borné ? **La présence physique n'est mesurée que si la fixture
+inclut un mécanisme dédié indépendant** (sinon hors périmètre de cet essai).
 
 ## Conditions & instrumentation
 
 Module de test (architecture évaluée) ; Host de test (firmware + commit exact) ;
 analyseur de bus (I²C / 1-Wire) ; lecture d'ID **sans alimenter le reste du
-module** si l'architecture le permet.
+module** si l'architecture le permet. **Détection de présence physique** :
+uniquement si un **mécanisme dédié** (contact/capteur) est **explicitement** monté
+sur la fixture.
 
 ## Seuils de réussite / échec chiffrés
 

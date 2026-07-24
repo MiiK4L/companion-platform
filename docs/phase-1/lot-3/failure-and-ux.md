@@ -38,8 +38,16 @@ Manifest **corrompu/partiel** ⇒ capacités **non publiées**.
 | **Module illisible / corrompu** | message **distinct** de « pas de module » (aide au diagnostic) | **[H]** |
 | **Module inconnu mais lisible** | « type non pris en charge » ≠ « module défaillant » | **[H]** |
 | **Retrait** | état « module retiré » propre ; pas de blocage (cf. 2A retrait) | **[H]** |
-| **Retrait pendant lecture** | pas de crash ; retour à l'état « aucun module » | **[H]** |
+| **Retrait pendant lecture** | pas de crash ; retour à **« aucune présence logique détectée » / « module non détectable »**, **sans conclure à l'absence physique** | **[H]** |
 | **Erreurs répétées** | pas de boucle ; message stable ; journal pour diagnostic | **[BL]** |
+
+> **Modèle interne & journaux** (le libellé utilisateur peut rester simple, mais
+> l'état interne conserve la distinction) :
+>
+> - **absence physique confirmée** (uniquement si un mécanisme de présence dédié existe) ;
+> - **absence de réponse** (découvrabilité logique négative) ;
+> - **composant d'identification défaillant** (présent mais illisible) ;
+> - **alimentation ou insertion indéterminée**.
 
 > Distinguer nettement, pour l'utilisateur, **quatre états** : *aucune réponse* ·
 > *module reconnu* · *module inconnu (mais lisible)* · *module illisible/défaillant*.

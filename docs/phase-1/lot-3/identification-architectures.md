@@ -13,8 +13,9 @@ SPDX-License-Identifier: CC-BY-4.0
 
 On distingue **trois natures** à ne pas mettre au même niveau :
 
-1. **Architectures complètes d'identification** (§2) — fournissent présence +
-   identité (produit/instance).
+1. **Architectures de découverte & d'identification logique** (§2) — fournissent
+   une **réponse logique** et une **identité**, **pas nécessairement une preuve de
+   présence physique**.
 2. **Briques de stockage du Manifest** (§3) — stockent une **description**, **sans
    logique d'identification propre** ; **ne sont pas pénalisées ni favorisées**
    comme si elles répondaient seules aux trois couches.
@@ -50,10 +51,10 @@ présent **pas encore prêt** à répondre.
 | Présence physique | **non observable** (sauf signal dédié) | idem | idem | idem | idem |
 | Découvrabilité logique | dérivée (ACK I²C) | dérivée | dérivée (présence 1-Wire) | dérivée (réponse µC) | dérivée (ACK I²C) |
 | Identité de produit | provisionnée | provisionnée | provisionnée | provisionnée / firmware | provisionnée |
-| Identité d'instance | **native (EUI-64)** **[DS]** | provisionnée | **native (ROM ID 64 b)** **[DS]** | provisionnée / firmware | **native (n° série 72 b** ; **clé ≠ identifiant)** **[DS]** |
+| Identité d'instance | **native (EUI-64)** **[DS]** | provisionnée | **native (ROM ID 64 b)** **[DS]** | provisionnée / firmware | **n° série matériel natif (72 b)** ; **aptitude à servir d'identité d'instance CX-Bus À CONFIRMER** (accessibilité, stabilité, sémantique, variante) ; **une clé ≠ identifiant** **[DS]** |
 | Description (Manifest) | provisionnée (mémoire) | provisionnée | provisionnée (petite) | générée / provisionnée | provisionnée (**mémoire externe**) |
 
-## 2. Architectures complètes — matrice sur critères communs
+## 2. Architectures de découverte & d'identification logique — matrice sur critères communs
 
 Colonnes = architectures ; toutes évaluées sur les **mêmes** critères.
 
@@ -71,13 +72,18 @@ Colonnes = architectures ; toutes évaluées sur les **mêmes** critères.
 | Périphérique absent | pas d'ACK **[H]** | pas d'ACK | pas de présence 1-Wire | pas de réponse | pas d'ACK |
 | Réponse lente / bloqué | clock-stretch I²C **[H]** | idem | timing 1-Wire | dépend firmware | clock-stretch |
 | Compat hot-plug | à caractériser (temps de lecture) | à caractériser | à caractériser | à caractériser (boot µC) | à caractériser |
-| Host-powered vs Module-powered | **Host-powered possible** **[H]** | Host-powered | Host/parasite | **Module-powered** (actif) **[H]** | Host-powered possible |
-| Coût | faible **[H]** | faible **[H]** | moyen **[H]** | moyen **[H]** | plus élevé **[H]** |
-| Disponibilité / multi-fournisseur | multi-source (EUI Microchip/Atmel) **[DS]** | **richement multi-source** (Microchip/ST/Onsemi) **[DS]** | **mono-source** (Analog/Maxim) **[DS]** | multi-source (tout MCU) | multi-source (Microchip/NXP) **[DS]** |
+| Host-powered vs Module-powered | Host-powered **possible en principe** (budget/topologie à définir, `DEC-L2-003`) | idem | Host/parasite (à définir) | **Module-powered** (actif) | Host-powered possible (à définir) |
+| Coût | à comparer (sourcing daté) | à comparer | à comparer | à comparer | à comparer |
+| Disponibilité / secondes sources | **fabricant unique historique** (Microchip/Atmel) — pas de 2ᵉ source indépendante **[DS]** | **≥ 2 fabricants indépendants** (Microchip, ST) **[DS]** | **mono-source** (Analog/Maxim) **[DS]** | dépend de la série/implémentation | **2 fabricants indép. (Microchip, NXP), NON interchangeables** **[DS]** |
 | Évolution vers auth crypto | **faible** (pas de crypto) **[H]** | faible **[H]** | partielle (variantes sécurisées) **[H]** | logicielle (non HW-sûre) **[H]** | **native (chemin privilégié)** **[H]** |
-| Complexité firmware Host | faible **[H]** | faible **[H]** | moyenne (1-Wire) **[H]** | moyenne **[H]** | **élevée (pile crypto)** **[H]** |
-| Complexité firmware Module | nulle (passif) **[H]** | nulle **[H]** | nulle **[H]** | **élevée** **[H]** | moyenne **[H]** |
-| Testabilité en production | facile (relecture) **[H]** | facile **[H]** | moyenne **[H]** | à cadrer **[H]** | à cadrer **[H]** |
+| Complexité firmware Host | faible **[H·éch.]** | faible **[H·éch.]** | moyenne (1-Wire) **[H·éch.]** | moyenne **[H·éch.]** | **élevée (pile crypto)** **[H·éch.]** |
+| Complexité firmware Module | nulle (passif) **[H·éch.]** | nulle **[H·éch.]** | nulle **[H·éch.]** | **élevée** **[H·éch.]** | moyenne **[H·éch.]** |
+| Testabilité en production | à comparer (dépend de l'implémentation) | à comparer | à comparer | à comparer | à comparer |
+
+> **Échelle de complexité firmware `[H·éch.]`** (hypothèse à échelle définie) :
+> **nulle** = aucun code module (périphérique passif) · **faible** = lecture/CRC
+> simple côté Host · **moyenne** = pilote de bus dédié (1-Wire) ou logique d'énumération ·
+> **élevée** = état/protocole programmables (µC) ou pile cryptographique (SE).
 
 > **Secure Element** : porté **principalement comme chemin d'évolutivité vers
 > l'authentification** (§ [évolutivité](authentication-evolutivity.md)). Il **ne
@@ -140,6 +146,13 @@ final) :
   Host/Module-powered, évolutivité) ;
 - **absence de dépendance à une décision L2 encore ouverte** (`DEC-L2-003`).
 
+> La shortlist doit contenir **au moins deux architectures** à prototyper, **pas
+> seulement deux composants** : **deux composants passifs I²C très proches** (ex.
+> deux EEPROM) **ne satisfont pas** à eux seuls le critère de **diversité
+> architecturale**. Une shortlist crédible **pourrait** opposer, par exemple, une
+> **architecture passive à identité native** et une **architecture active ou un
+> bus différent** — **sans** que cet exemple constitue une **présélection**.
+>
 > La shortlist **sélectionne sans arbitrer** ; les prototypes et résultats
 > relèvent d'une **PR/campagne ultérieure**.
 

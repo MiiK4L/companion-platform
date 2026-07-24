@@ -56,7 +56,7 @@ type** :
 
 | Protocole | Objectif | `DEC-*` |
 |-----------|----------|---------|
-| [Détection & lecture d'identité](identity-detection-read.md) | présence + identité, résolution non ambiguë | `DEC-L3-001` |
+| [Détection & lecture d'identité](identity-detection-read.md) | découvrabilité logique + identité, résolution non ambiguë | `DEC-L3-001` |
 | [Parsing borné du Manifest](manifest-bounded-parsing.md) | parser Host jamais aveugle | `DEC-L3-002` |
 | [Corruption & lecture partielle](corruption-partial-read.md) | CRC, partiel, taille incohérente → rejet/dégradé | `DEC-L3-001/002` |
 | [Provisioning & détection des doublons](provisioning-duplicate-detection.md) | chaîne de confiance + anti-doublon | `DEC-L3-001` |
