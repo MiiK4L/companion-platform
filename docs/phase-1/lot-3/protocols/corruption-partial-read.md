@@ -38,17 +38,29 @@ interrompue** (coupure en cours d'écriture — cf.
 | Capacités publiées sur Manifest corrompu | **0** | **[P]** |
 | État exposé correct (illisible/dégradé) | 100 % | **[P]** |
 | **MAJ interrompue distinguée d'une corruption permanente** | 100 % | **[P]** |
-| **Retour à la dernière copie valide** (si stratégie A/B/génération) | 100 % | **[P]/[BL]** |
+| **Retour à la dernière copie valide** — **uniquement si** une stratégie A/B/génération est **réellement dans la campagne** | 100 % | **[P]/[BL]** (conditionnel) |
+
+> Les **stratégies d'atomicité candidates non retenues** (cf.
+> [Manifest §5](../manifest-format.md)) **ne deviennent pas** des critères
+> obligatoires : le « retour à la dernière copie valide » n'est évalué **que si**
+> la campagne teste effectivement une telle stratégie.
 
 ### Champs à finaliser au baselining (`[BL]`)
 
 - **Jeu de défauts** figé ; **définition du mode dégradé** (ce qui reste permis).
 - **Périmètre CRC** et politique de rejet (cf. [Manifest](../manifest-format.md)).
 
-## Plan d'échantillonnage
+## Plan de couverture (par **type** d'essai)
 
-- **`n_dut`** ≥ 2 · **vecteurs de corruption** figés · **`n_runs`** = vecteurs ×
-  répétitions · **`n_campaigns`** ≥ 2.
+Ce protocole mêle des cas de **natures différentes** : la couverture est **séparée
+par type** (cf. [types d'essai](README.md)).
+
+| Sous-plan | Nature | Couverture |
+|-----------|--------|-----------|
+| **Vecteurs logiciels** (corruption de trame, CRC faux, lecture partielle) | logiciel | **corpus versionné** + **mutations**, nombre de cas + campagnes (commit exact) |
+| **Injections bus** (corruption au niveau bus) | matériel | **fixture** + `n_dut` ≥ 2 + répétitions |
+| **Coupures pendant écriture** | matériel | **DUT physiques**, **phases d'injection** (début/milieu/fin d'écriture), **n_cycles** |
+| **Stratégie A/B** (retour copie valide) | conditionnel | **seulement si** la stratégie entre réellement dans la campagne |
 
 ## Données brutes attendues
 
