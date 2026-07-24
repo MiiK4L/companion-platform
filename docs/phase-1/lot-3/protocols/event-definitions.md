@@ -14,7 +14,8 @@ SPDX-License-Identifier: CC-BY-4.0
 
 | Événement | Définition instrumentée | Observable | Seuil |
 |-----------|-------------------------|------------|-------|
-| **Présence détectée** | réponse au niveau bus (ACK I²C / présence 1-Wire / réponse µC) | analyseur de bus + firmware Host | binaire |
+| **Découvrabilité logique** | le périphérique d'ID **répond** (ACK I²C / présence 1-Wire / réponse µC) — **≠ présence physique** | analyseur de bus + firmware Host | binaire |
+| **Présence physique** | module mécaniquement inséré | **signal/contact dédié si prévu ; sinon NON directement observable** | N/A si pas de signal |
 | **Identité lue & valide** | trame d'identité lue **et** CRC/validation OK | log Host + capture bus | conforme au format |
 | **CRC invalide (corruption)** | CRC calculé ≠ CRC lu (périmètre défini) | firmware Host | rejet |
 | **Lecture partielle** | longueur lue < longueur attendue **ou** trame tronquée | log + capture | rejet / dégradé |

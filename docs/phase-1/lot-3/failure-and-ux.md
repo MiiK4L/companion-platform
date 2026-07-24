@@ -41,8 +41,15 @@ Manifest **corrompu/partiel** ⇒ capacités **non publiées**.
 | **Retrait pendant lecture** | pas de crash ; retour à l'état « aucun module » | **[H]** |
 | **Erreurs répétées** | pas de boucle ; message stable ; journal pour diagnostic | **[BL]** |
 
-> Distinguer nettement, pour l'utilisateur, **quatre états** : *aucun module* ·
+> Distinguer nettement, pour l'utilisateur, **quatre états** : *aucune réponse* ·
 > *module reconnu* · *module inconnu (mais lisible)* · *module illisible/défaillant*.
+>
+> ⚠️ **Sans signal de présence dédié**, *aucune réponse* **ne distingue pas**
+> « module absent » de « module présent mais périphérique d'ID défaillant / mal
+> alimenté / pas encore prêt » : le Host conclut à une **absence de présence
+> logique**, non à une absence physique (cf.
+> [architectures §1](identification-architectures.md)). Le message UX reste donc
+> « aucun module détecté » sans **affirmer** l'absence physique.
 
 ## Alimente
 

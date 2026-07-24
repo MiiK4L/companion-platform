@@ -30,7 +30,7 @@ module** si l'architecture le permet.
 
 | Grandeur | Seuil | Étiquette |
 |----------|-------|-----------|
-| Détection de présence | 100 % (module présent) | **[P]** |
+| **Découvrabilité logique** (réponse ID ; **≠ présence physique**) | 100 % (module inséré) | **[P]** |
 | Lecture d'identité valide | 100 % (CRC/validation OK) | **[P]** |
 | Résolution ambiguë non gérée | 0 | **[P]** |
 | Temps de détection + lecture | ≤ `[BL]` ms | **[P]/[BL]** |
