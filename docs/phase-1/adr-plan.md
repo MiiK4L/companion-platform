@@ -39,7 +39,8 @@ un modèle « ADR créée en Proposé avant les essais » :
 | 0014 | DEC-L2-001 | Sûreté électrique CX-Bus (isolation/commutation, protections, séquencement) | L2 | exigences de sûreté satisfaites (reproductible) **+ alternatives isolation/commutation comparées + choix justifié (preuves/compromis)** |
 | 0015 | DEC-L2-002 | Connecteur CX-Bus (**famille + mécanique + mapping physique candidat + endurance**) | L2 | endurance / R_contact / force satisfaites (reproductible) **+ familles comparées + choix justifié (preuves/compromis)** |
 | *(n° à attribuer à la création)* | DEC-L2-003 | **Rails exposés (dont `VBAT`) + stratégie de puissance des modules** | L2 | rails arbitrés : back-powering (2A) + sûreté d'exposition `VBAT` **+ options P1/P2/P3 comparées + choix justifié (preuves/compromis)** |
-| 0016 | DEC-L3-001 | Mécanisme d'identification + **format binaire du Manifest** | L3 | comparaison d'architectures faite + lecture sûre démontrée |
+| 0016 | DEC-L3-001 | **Architecture d'identification** des modules (présence, identité produit/instance, provisioning) | L3 | option conforme + **architectures comparées** + lecture sûre démontrée + **justification par preuves et compromis documentés** |
+| *(n° à attribuer à la création)* | DEC-L3-002 | **Format et contenu du Manifest** (description) | L3 | format validé (**parsing borné prouvé**) + alternatives comparées + justification documentée |
 | 0017 | DEC-L4-001 | **Architecture d'affichage et moteur graphique V1** | L4 | budget du **moteur graphique candidat retenu** + FPS + conso mesurés dans le budget |
 | 0018 | DEC-L5-001 | Stratégie du cœur remplaçable (**socketage** ou alternative) | L5 | contact + deep-sleep mesurés ; sinon arbitrage (peut rouvrir ADR-0004) |
 | 0019 | DEC-L6-001 | Chaîne d'alimentation (charge/power-path/régulation/load switch + **jauge**) | L6 | chaîne mesurée ; jauge validée (< ±5 %) ou décision ADC |
