@@ -33,3 +33,35 @@ if [ "$found" -ne 0 ]; then
   exit 1
 fi
 echo "OK: ports/services/models/SDK sans include ESP-IDF/FreeRTOS/pilote/moteur"
+
+# ---------------------------------------------------------------------------
+# 2) Direction du graphe interne : ports -> services -> composition/adaptateurs.
+#    Les adaptateurs peuvent dépendre des ports ; JAMAIS l'inverse.
+# ---------------------------------------------------------------------------
+dir=0
+
+# ports/ et models/ ne doivent PAS inclure services/, adapters/ ni composition/.
+if grep -rnE '#include[[:space:]]*"(services|adapters|composition)/' \
+    "$ROOT/ports" "$ROOT/models"; then
+  echo "  ^ ports/ ou models/ dépend d'une couche supérieure (interdit)"
+  dir=1
+fi
+
+# services/ ne doit PAS inclure adapters/ ni composition/.
+if grep -rnE '#include[[:space:]]*"(adapters|composition)/' "$ROOT/services"; then
+  echo "  ^ services/ dépend des adaptateurs/composition (interdit)"
+  dir=1
+fi
+
+# Aucune couche "propre" ne doit inclure directement un fichier adapters/host/.
+if grep -rnE '#include[[:space:]]*"adapters/host/' \
+    "$ROOT/ports" "$ROOT/models" "$ROOT/services" "firmware/companion-sdk"; then
+  echo "  ^ une couche propre inclut un adaptateur host (interdit)"
+  dir=1
+fi
+
+if [ "$dir" -ne 0 ]; then
+  echo "FAIL: direction du graphe interne violée (ports -> services -> composition/adaptateurs)"
+  exit 1
+fi
+echo "OK: direction du graphe interne respectée (ports -> services -> composition/adaptateurs)"
