@@ -58,7 +58,7 @@ Voir le [registre des décisions](../decisions-register.md).
 
 | Livrable | Contenu |
 |----------|---------|
-| [Architectures d'identification](identification-architectures.md) | Complètes vs briques de stockage vs hybrides ; matrice sur critères communs |
+| [Architectures d'identification](identification-architectures.md) | Architectures de découverte et d'identification logique vs briques de stockage vs hybrides ; matrice sur critères communs |
 | [Format du Manifest](manifest-format.md) | Format candidat borné, versionné, extensible (`DEC-L3-002`) |
 | [Évolutivité — authentification](authentication-evolutivity.md) | Chemin crypto **sans l'imposer** en V1 ; **aucune décision** |
 | [Provisioning production](provisioning.md) | Chaîne de confiance opérationnelle |
@@ -77,8 +77,9 @@ Voir le [registre des décisions](../decisions-register.md).
 ## Critères de sortie
 
 - Quatre informations (présence / produit / instance / Manifest) **distinguées**.
-- Architectures **complètes** comparées ; **briques de stockage** comparées
-  séparément ; **compositions hybrides** étudiées ; **aucun gagnant**.
+- Architectures **de découverte et d'identification logique** comparées ;
+  **briques de stockage** comparées séparément ; **compositions hybrides**
+  étudiées ; **aucun gagnant**.
 - Format Manifest candidat **borné** (parser Host jamais aveugle).
 - Provisioning en **chaîne de confiance** documenté.
 - Pannes/UX et compat faible-conso/hot-plug **cadrées**.

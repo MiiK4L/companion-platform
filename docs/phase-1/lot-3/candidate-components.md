@@ -60,8 +60,11 @@ d'écriture · température/boîtiers · **statut de cycle de vie** · source.
 | **ATtiny412 / ATtiny1616** (tinyAVR) | Microchip | I²C/UART (firmware) | ID + desc. **générées** | conso active ; firmware module ; specs à relever | DS40002287A / DS40002204A |
 | **RP2040** | Raspberry Pi | I²C/… (firmware) | idem, plus de ressources | surdimensionné pour l'ID seul | RP2040 Datasheet (rév. 1.7.1) |
 
-> Un µC d'ID est **firmware-défini** ; la catégorie est **multi-source** (tout
-> petit MCU). Les caractéristiques dépendent de la série et du firmware (à relever).
+> Un µC d'ID est **firmware-défini**. La fonction peut être implémentée par
+> **plusieurs familles de MCU de fabricants différents**, mais **les solutions ne
+> sont pas nécessairement interchangeables** ; la **disponibilité** et la
+> **substituabilité** doivent être **évaluées par série et par implémentation**
+> (consommation, interface, programmation, comportement au démarrage).
 
 ### Secure Element (chemin d'évolutivité — voir §identité) — ≥ 2 séries
 | Réf. | Fab. | Interface | Éléments | Remarque | Source |

@@ -48,7 +48,7 @@ ADR-XXXX** (une ADR a été créée) · **Abandonné** (question retirée, avec 
 
 | `DEC-*` | Question | Options ouvertes | Validation principale | ADR (prévue) | Statut |
 |---------|----------|------------------|-----------------------|--------------|--------|
-| **DEC-L3-001** | Architecture d'identification (présence, identité produit/instance, provisioning, comportement en panne) | EEPROM+EUI · EEPROM simple · 1-Wire · µC actif · Secure Element (+ mém.) · **hybrides** | **L3** (banc HW+CODE : lecture sûre, résolution, provisioning) | 0016 | **Ouvert** — comparaison documentaire (L3) |
+| **DEC-L3-001** | Architecture de découverte et d'identification logique (découvrabilité logique, identité produit/instance, provisioning, comportement en panne ; présence physique = mécanisme dédié éventuel, hors résultat implicite) | EEPROM+EUI · EEPROM simple · 1-Wire · µC actif · Secure Element (+ mém.) · **hybrides** | **L3** (banc HW+CODE : lecture sûre, résolution, provisioning) | 0016 | **Ouvert** — comparaison documentaire (L3) |
 | **DEC-L3-002** | Format et contenu du **Manifest** (structure, versionnement, capacités, compatibilité, extensibilité) | TLV borné · champs oblig./opt. · politique dégradé | **L3** (parsing borné prouvé) | **future — n° attribué à la création** | **Ouvert** — format candidat (L3) |
 
 > **Authentification** : **aucune DEC ouverte** (hors V1) — exigence
