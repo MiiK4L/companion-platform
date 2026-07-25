@@ -48,7 +48,7 @@ un modèle « ADR créée en Proposé avant les essais » :
 | 0020 | DEC-L6-002 | **Architectures de stockage d'énergie** (chimie = propriété) + cible d'autonomie & budget | L6 | budget énergie mesuré + **architectures/chimies comparées** + cible d'autonomie provisoire justifiée |
 | *(n° à attribuer à la création)* | DEC-L6-003 | **Stratégie d'estimation de l'état de batterie** (ADC / jauge dédiée / hybride) | L6 | précision vs référence coulomb + approches comparées + choix justifié |
 | 0021 | DEC-L7-001 | **Base de temps** (source RTC interne/externe/TCXO, **validité de l'heure**, réveil, resync) | L7 | dérive/conso/Δt mesurés + sources comparées + choix justifié |
-| *(n° à attribuer à la création)* | DEC-L7-002 | **Modèle de persistance** (**support** NVS/LittleFS + **modèle de cohérence** journal/A-B/checkpoint…) | L7 | reprise sur coupures brutales (0 corruption) + approches comparées + choix justifié |
+| *(n° à attribuer à la création)* | DEC-L7-002 | **Modèle de persistance** — **trois axes** : **support** (NVS/LittleFS) + **modèle de cohérence** (journal/A-B/checkpoint/checksum) + **politique d'écriture** (immédiate/différée/à l'événement/périodique/au repos) | L7 | reprise sur coupures brutales (0 corruption) + approches comparées + choix justifié |
 | 0022 | DEC-L8-001 | **Runtime scripté et modèle de distribution des applications** | L8 | budget du **runtime scripté candidat** chiffré ; faisabilité (ou limites) d'installation dynamique démontrée |
 
 **Regroupements & séparations** : connecteur + **mapping physique** ensemble

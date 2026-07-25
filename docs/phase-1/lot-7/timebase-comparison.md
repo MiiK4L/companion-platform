@@ -15,8 +15,9 @@ SPDX-License-Identifier: CC-BY-4.0
 | Source | Principe | Illustré par (non retenu) |
 |--------|----------|---------------------------|
 | **(T1) RTC interne MCU** | horloge interne + resync ; **pas de tenue hors alim** sans domaine RTC alimenté | RTC ESP32-S3 (repli) |
-| **(T2) RTC externe standard** | RTC I²C + quartz externe, **sauvegarde par pile/supercap** | PCF8563 |
-| **(T3) RTC compensé (TCXO)** | oscillateur **compensé en température** → dérive faible | DS3231 (±2 ppm **[DS]**), RV-3028-C7 (±3 ppm, 45 nA **[DS]**) |
+| **(T2) RTC externe standard (quartz externe)** | RTC I²C + **quartz externe** ; sauvegarde pile/supercap | PCF8563 |
+| **(T3) RTC module ULP (quartz intégré + calibration usine)** | module **ultra-basse conso**, **quartz intégré**, **étalonnage usine + correction programmable** ; **non présenté comme TCXO** | RV-3028-C7 (±3 ppm, 45 nA **[DS]**) |
+| **(T4) RTC compensé en température (TCXO)** | **oscillateur compensé en température intégré** → dérive faible sur plage | DS3231 (±2 ppm **[DS]**) |
 
 ### Critères communs (dont **sources de réveil**, comme critère — pas une famille)
 

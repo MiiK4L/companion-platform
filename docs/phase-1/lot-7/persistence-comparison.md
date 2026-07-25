@@ -62,5 +62,6 @@ une heure **fausse** marquée « valide ».
 
 ## Alimente
 
-- **`DEC-L7-002`** — **support** et **modèle de cohérence** arbitrés **après**
-  mesures (reprise sur coupures). **Aucun support ni modèle retenu.**
+- **`DEC-L7-002`** — **support**, **modèle de cohérence** **et politique
+  d'écriture** (trois axes) arbitrés **après** mesures (reprise sur coupures).
+  **Aucun support, modèle ni politique retenu.**

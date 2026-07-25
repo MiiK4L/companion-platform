@@ -19,10 +19,9 @@ SPDX-License-Identifier: CC-BY-4.0
 - **`DEC-L7-001` — base de temps** : source de temps (RTC interne/externe/TCXO),
   **validité de l'heure**, sauvegarde de l'horloge, précision, **sources de
   réveil** (comme critère), **stratégie de resynchronisation** → **ADR-0021**.
-- **`DEC-L7-002` — modèle de persistance** : **support** (NVS/LittleFS…) **et**
-  **modèle de cohérence** (immédiate/différée/journal/transaction/A-B/checkpoint),
-  reprise après coupure, stockage heure+état, politique d'écriture → **ADR future
-  non réservée**.
+- **`DEC-L7-002` — modèle de persistance** : **support de persistance**, **modèle
+  de cohérence** et **politique d'écriture** — **trois axes distincts** ; reprise
+  après coupure, stockage heure+état → **ADR future non réservée**.
 
 ## Distinctions structurantes (deux axes par décision)
 
