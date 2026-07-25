@@ -17,8 +17,8 @@ Preuve d'architecture ; garantit que ports/services/SDK restent **portables**.
 
 Deux invariants : (1) **0 `#include`** de plateforme (ESP-IDF/FreeRTOS/pilote) ou
 de moteur (Lua/WASM/WAMR) dans `ports/`/`services/`/`models/`/`companion-sdk/` ;
-(2) **direction du graphe interne** respectée (`ports → services →
-composition/adaptateurs`, jamais l'inverse) ?
+(2) **dépendances internes orientées vers les ports** (`ports/models ← services ←
+composition/adaptateurs`, où `←` se lit « dépend de » — jamais l'inverse) ?
 
 ## Procédure (reproductible)
 

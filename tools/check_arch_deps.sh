@@ -35,8 +35,12 @@ fi
 echo "OK: ports/services/models/SDK sans include ESP-IDF/FreeRTOS/pilote/moteur"
 
 # ---------------------------------------------------------------------------
-# 2) Direction du graphe interne : ports -> services -> composition/adaptateurs.
-#    Les adaptateurs peuvent dépendre des ports ; JAMAIS l'inverse.
+# 2) Sens des dépendances internes : elles POINTENT vers les ports.
+#    Ordre des couches (du plus abstrait au plus concret) :
+#      ports/models  <-  services  <-  composition/adaptateurs
+#    La flèche "<-" se lit « dépend de » : services dépend des ports, composition
+#    et adaptateurs dépendent des ports/services — JAMAIS l'inverse. (Ceci décrit
+#    la DIRECTION DES DÉPENDANCES, pas un ordre d'exécution.)
 # ---------------------------------------------------------------------------
 dir=0
 
@@ -61,7 +65,7 @@ if grep -rnE '#include[[:space:]]*"adapters/host/' \
 fi
 
 if [ "$dir" -ne 0 ]; then
-  echo "FAIL: direction du graphe interne violée (ports -> services -> composition/adaptateurs)"
+  echo "FAIL: dépendances internes mal orientées (elles doivent pointer vers les ports ; ports/models <- services <- composition/adaptateurs)"
   exit 1
 fi
-echo "OK: direction du graphe interne respectée (ports -> services -> composition/adaptateurs)"
+echo "OK: dépendances internes orientées vers les ports (ports/models <- services <- composition/adaptateurs)"
