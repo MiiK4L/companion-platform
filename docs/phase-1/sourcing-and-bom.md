@@ -133,3 +133,36 @@ conception détaillée ; elle n'intègre ni le PCB final, ni la qualification co
 >
 > Tant que ces travaux ne sont pas menés, aucune nomenclature ne peut être qualifiée de
 > « BOM de production ».
+
+## 5. BOM candidate agrégée par fonction d'architecture (consolidation L9)
+
+> **Statut : Proposé — index de consolidation, aucune retenue.** Cette agrégation
+> **indexe par fonction d'architecture** les **séries représentatives candidates**
+> déjà sourcées lot par lot ; elle **renvoie** vers le détail (cycle de vie, stock,
+> statut par ligne) plutôt que de le recopier (anti-duplication). Les composants
+> **illustrent** une fonction — ils ne la définissent pas et **aucun n'est retenu**.
+> Le raisonnement reste **par fonction** ; les MPN sont **candidats** et vérifiés
+> **au moment du lot**.
+
+| Fonction d'architecture | Séries représentatives (éventail candidat) | `DEC-*` | Détail sourcé |
+|-------------------------|---------------------------------------------|---------|---------------|
+| Cœur de calcul | XIAO ESP32-S3 (réf. prototypage) · autre module ESP32-S3 · carte custom ESP32-S3 nu | `DEC-L1-002` | [comparaison des cœurs](lot-1/core-architecture-comparison.md) |
+| Sûreté / commutation CX-Bus | Load switch (TPS22918 / AP22913 / P-MOSFET) · buffer I²C (TCA9517 / LTC4302 / PCA9508) · traducteur (PCA9306 / TXB0104) · PESD | `DEC-L2-001` | [composants L2A](lot-2/candidate-components.md) |
+| Connecteur CX-Bus | 5 familles : mezzanine (DF40 / SlimStack) · card-edge · FPC/FFC · pogo (Mill-Max) · filaire verrouillable (témoin) | `DEC-L2-002` | [familles L2B](lot-2b/families-comparison.md) |
+| Identification module | EEPROM+EUI (24AA02E64 / AT24MAC402) · EEPROM (24AA64 / M24C64) · 1-Wire (DS28E07 / DS2431) · µC (ATtiny / RP2040) · Secure Element (ATECC608 / SE050) · FRAM (MB85RC / FM24) | `DEC-L3-001` | [composants L3](lot-3/candidate-components.md) |
+| Dalle / contrôleur d'affichage | TFT (ST7789 / ILI9341 / GC9A01) · OLED (SSD1351 / SSD1331) · Sharp Memory LCD (LS013B7DH03 / LS027B7DH01) · transflectif (à sourcer) | `DEC-L4-001` | [composants L4](lot-4/candidate-components.md) |
+| Moteur / pilote graphique | Moteur (LVGL / µGFX / maison) · pilote (LovyanGFX / TFT_eSPI / esp_lcd) | `DEC-L4-002` | [moteur graphique](lot-4/graphics-engine-comparison.md) |
+| Support / socketage du cœur | Barrettes 2,54 mm (Harwin / Samtec) · tulipe (Mill-Max / Preci-Dip) · mezzanine (DF40 / SlimStack) · ZIF/LIF (Aries / Würth) · baseline soudée (témoin) | `DEC-L5-001` | [composants L5](lot-5/candidate-components.md) |
+| Charge / power-path / régulation | Charge simple (MCP73831 / TP4056 / LTC4054) · power-path (BQ24074 / BQ25185 / BQ24232) · régulateur (TLV757P / TPS62840 / AP2112) | `DEC-L6-001` | [composants L6](lot-6/candidate-components.md) |
+| Stockage d'énergie | Architectures mono/multi-cellule, protection intégrée ; chimies **propriété** (LiPo / Li-Ion / LiFePO4) | `DEC-L6-002` | [stockage d'énergie](lot-6/energy-storage-comparison.md) |
+| Estimation d'état batterie | Jauge (MAX17048 / LC709203F / BQ27441) · ADC seul · hybride | `DEC-L6-003` | [estimation d'état](lot-6/battery-state-estimation.md) |
+| Base de temps (RTC) | Quartz externe (PCF8563) · module ULP quartz intégré (RV-3028-C7) · TCXO (DS3231) | `DEC-L7-001` | [base de temps](lot-7/timebase-comparison.md) |
+| Persistance (support) | NVS · LittleFS · (autres supports comparés) | `DEC-L7-002` | [persistance](lot-7/persistence-comparison.md) |
+| Runtime scripté | Lua · WASM/WAMR · autre | `DEC-L8-001` | [runtimes](lot-8/scripted-runtime-comparison.md) |
+| Distribution des applications | Install dynamique « sans reflash » · bundle OTA · hybride | `DEC-L8-002` | [modèle de distribution](lot-8/app-distribution-model.md) |
+
+> **Rappel de niveau** : cette agrégation reste au **niveau BOM candidate**
+> (§3, niveaux 1–2) — **jamais** une BOM de production (§4). La **shortlist
+> qualifiée** (niveau 3) ne sera produite qu'après les **rapports de mesure
+> reproductibles** de la Phase 2. Voir la
+> [feuille de route des décisions](lot-9/decision-roadmap.md).
