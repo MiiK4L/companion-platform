@@ -42,7 +42,7 @@ post-baseline = **écart tracé, non rétroactif** ; **aucune campagne tant qu'u
 |-----------|----------|---------|
 | [Budget RAM du moteur](ram-budget.md) | empreinte mémoire vs budget L1 | `DEC-L4-002` |
 | [FPS / rendu](rendering-fps.md) | débit d'images sous scénarios | `DEC-L4-002` |
-| [Performances perçues](perceived-performance.md) | réveil, init, tearing, fluidité, stabilité, latence | `DEC-L4-001/002` |
+| [Performances perçues](perceived-performance.md) | réveil, init, tearing, débit d'images (FPS), jitter, latence | `DEC-L4-001/002` |
 | [Conso & rétroéclairage](backlight-power.md) | conso par niveau ; extinction/reprise | `DEC-L4-001` |
 | [Contention SPI](spi-contention.md) | partage écran ↔ CX-Bus (R2) | `DEC-L4-001` |
 

@@ -14,13 +14,15 @@ SPDX-License-Identifier: CC-BY-4.0
 ## Lot & décision visée
 
 Lot 4 · alimente **`DEC-L4-001`** (matériel : réveil/init/tearing) et
-**`DEC-L4-002`** (moteur : fluidité/stabilité/latence).
+**`DEC-L4-002`** (moteur : débit d'images/stabilité/latence).
 
 ## Objectif (une question mesurable)
 
-L'expérience perçue est-elle **acceptable** : réveil et initialisation rapides,
-**pas de tearing** hors spec, animations **fluides et stables**, latence d'entrée
-bornée ?
+Les **grandeurs observables** suivantes respectent-elles leurs seuils : **temps de
+réveil** (ms), **temps d'initialisation** (ms), **tearing** (compte d'événements
+hors spec), **débit d'images** (FPS), **jitter inter-frame** (ms d'écart-type),
+**latence entrée→affichage** (ms) ? *(Aucun jugement subjectif : chaque critère
+est une métrique + méthode, ou un `[BL]` à définir.)*
 
 ## Grandeurs mesurées (instrumentées — voir [définitions](event-definitions.md))
 
@@ -29,7 +31,7 @@ bornée ?
 | **Temps de réveil** (veille → 1ʳᵉ frame valide) | ≤ `[BL]` ms | **[P]/[BL]** | horodatage réveil→frame |
 | **Temps d'initialisation** (boot → écran opérationnel) | ≤ `[BL]` ms | **[P]/[BL]** | horodatage boot→frame |
 | **Tearing** | 0 hors spec | **[P]/[BL]** | **caméra haute vitesse** / signal TE |
-| **Fluidité** (FPS effectif ressenti) | ≥ ≈ 30 fps | **[P]** | cf. [FPS](rendering-fps.md) |
+| **Débit d'images effectif** (FPS) | ≥ ≈ 30 fps | **[P]** | mesure sur fenêtre, cf. [FPS](rendering-fps.md) |
 | **Stabilité d'animation** (jitter inter-frame) | ≤ `[BL]` ms d'écart-type | **[P]/[BL]** | intervalles inter-frames |
 | **Latence perçue** (entrée → réaction), si applicable | ≤ `[BL]` ms | **[P]/[BL]** | horodatage entrée→frame |
 
