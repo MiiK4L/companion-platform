@@ -21,7 +21,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 add_executable(host_tests
   services/app_manager.c
   adapters/host/fake_runtime.c
-  adapters/host/mock_storage.c
+  adapters/host/mock_app_source.c
   adapters/host/mock_log.c
   composition/composition_root.c
   tests/test_app_manager.c

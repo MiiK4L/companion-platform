@@ -9,13 +9,15 @@
 int g_test_failures = 0;
 
 void test_launch_success(void);
-void test_storage_not_found(void);
-void test_runtime_load_fail(void);
+void test_source_not_found(void);
+void test_runtime_failure(void);
+void test_runtime_swappable(void);
 
 int main(void) {
   test_launch_success();
-  test_storage_not_found();
-  test_runtime_load_fail();
+  test_source_not_found();
+  test_runtime_failure();
+  test_runtime_swappable();
 
   if (g_test_failures == 0) {
     printf("host-skeleton tests: OK\n");
