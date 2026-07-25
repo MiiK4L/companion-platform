@@ -226,6 +226,13 @@ nav:
               - Build & tests host: phase-1/lot-8/protocols/host-build-and-tests.md
               - Graphe de dépendances: phase-1/lot-8/protocols/dependency-graph-check.md
               - Faisabilité runtime: phase-1/lot-8/protocols/runtime-feasibility.md
+      - "Lot 9 — Synthèse & spécification consolidée":
+          - Vue d'ensemble: phase-1/lot-9/README.md
+          - Hors périmètre: phase-1/lot-9/out-of-scope.md
+          - Synthèse Phase 1 (L1–L8): phase-1/lot-9/synthesis.md
+          - Feuille de route des décisions: phase-1/lot-9/decision-roadmap.md
+          - Préparation à la Phase 2: phase-1/lot-9/phase-2-readiness.md
+          - Spécification consolidée (draft): phase-1/lot-9/consolidated-specification.md
   - Guides:
       - Contribuer au code: guides/contributing-code.md
       - Style de code: guides/code-style.md
