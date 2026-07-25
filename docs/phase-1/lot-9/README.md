@@ -6,14 +6,19 @@ SPDX-License-Identifier: CC-BY-4.0
 
 # Lot 9 — Checkpoint documentaire et préparation des campagnes
 
-> **Statut : Proposé — checkpoint documentaire.** Ce lot **clôt le volet
-> documentaire initial** (L1–L8) et **prépare** les campagnes de mesure. **Il ne
-> clôt PAS la Phase 1** : le **volet expérimental** (mesures, prototypes,
-> rapports, ADR 0013+) et les [critères de sortie de la Phase 1](../execution.md)
-> **restent à exécuter**. **Aucune DEC n'est arbitrée, aucune ADR 0013+ n'est
-> créée ni acceptée, aucun composant n'est retenu, aucune mesure exécutée.** La
-> spécification consolidée est un **draft** : **aucune promotion vers `rc.1`**
-> (celle-ci relève de la sortie de Phase 1, après mesures).
+> **Statut : Proposé — checkpoint documentaire.**
+>
+> **Les travaux documentaires initiaux (lots L1 à L9) sont terminés. La Phase 1
+> reste ouverte jusqu'à l'exécution des campagnes expérimentales prévues par le
+> plan.**
+>
+> Ce lot **prépare** les campagnes de mesure ; il **ne clôt PAS la Phase 1** : le
+> **volet expérimental** (mesures, prototypes, rapports, ADR 0013+) et les
+> [critères de sortie de la Phase 1](../execution.md) **restent à exécuter**.
+> **Aucune DEC n'est arbitrée, aucune ADR 0013+ n'est créée ni acceptée, aucun
+> composant n'est retenu, aucune mesure exécutée.** La spécification consolidée
+> est un **draft** : **aucune promotion vers `rc.1`** (celle-ci relève de la
+> sortie de Phase 1, après mesures).
 
 ## Pourquoi ce lot
 
@@ -36,7 +41,7 @@ Il ne **duplique pas** le contenu des lots : la synthèse **renvoie** vers L1–
 
 | Clos par ce lot | **Toujours ouvert** (Phase 1 expérimentale) |
 |-----------------|---------------------------------------------|
-| Le **volet documentaire** L1–L8 (analyses, protocoles rédigés, sourcing) | Les **campagnes de mesure** et **prototypes** |
+| Le **volet documentaire** L1–L9 (analyses, protocoles rédigés, sourcing, consolidation) | Les **campagnes de mesure** et **prototypes** |
 | La **consolidation** (synthèse, roadmap, readiness, spec draft) | La **création des ADR 0013+** (après mesures) |
 | — | La **promotion de la SPEC** vers `rc.1` |
 | — | Les **critères de sortie de la Phase 1** ([execution](../execution.md)) |
