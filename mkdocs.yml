@@ -198,6 +198,19 @@ nav:
               - Fuite module coupé: phase-1/lot-6/protocols/module-leakage.md
               - Charge & thermique: phase-1/lot-6/protocols/charge-thermal.md
               - Décharge réelle: phase-1/lot-6/protocols/real-discharge.md
+      - "Lot 7 — Base de temps & persistance":
+          - Vue d'ensemble: phase-1/lot-7/README.md
+          - Base de temps (source & validité): phase-1/lot-7/timebase-comparison.md
+          - Stratégie de resynchronisation: phase-1/lot-7/resync-strategy.md
+          - Modèle de persistance: phase-1/lot-7/persistence-comparison.md
+          - Composants candidats: phase-1/lot-7/candidate-components.md
+          - "Protocoles (temps & persistance)":
+              - Vue d'ensemble: phase-1/lot-7/protocols/README.md
+              - Définitions des événements: phase-1/lot-7/protocols/event-definitions.md
+              - Dérive vs référence: phase-1/lot-7/protocols/drift-vs-reference.md
+              - Consommation RTC: phase-1/lot-7/protocols/rtc-consumption.md
+              - Δt sur cycles deep-sleep: phase-1/lot-7/protocols/delta-t-wake-cycles.md
+              - Reprise sur coupures brutales: phase-1/lot-7/protocols/state-recovery-brutal-cuts.md
   - Guides:
       - Contribuer au code: guides/contributing-code.md
       - Style de code: guides/code-style.md
