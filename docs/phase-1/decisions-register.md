@@ -14,7 +14,7 @@ est créée **après** les mesures, lorsqu'un arbitrage est possible.
 **Statuts d'un `DEC-*`** : **Ouvert** (question posée, non tranchée) · **Arbitré →
 ADR-XXXX** (une ADR a été créée) · **Abandonné** (question retirée, avec trace).
 
-> À ce stade (**lots documentaires** L1, L2A et L2B), les décisions ci-dessous
+> À ce stade (**lots documentaires** L1, L2A, L2B et L3), les décisions ci-dessous
 > sont **Ouvertes** et leurs éléments **Proposés** : aucune n'est arbitrée,
 > **aucune ADR n'est créée** (les validations reproductibles nécessaires relèvent
 > des campagnes de mesure à venir).
@@ -43,6 +43,19 @@ ADR-XXXX** (une ADR a été créée) · **Abandonné** (question retirée, avec 
 > révisable, **hors** `DEC-L2-002`) du **mapping physique candidat** (relève de
 > `DEC-L2-002`) — voir [pinout](lot-2b/pinout.md). `DEC-L2-002` et `DEC-L2-003`
 > **évoluent indépendamment**. **Aucun MPN, aucune famille retenue, aucune ADR.**
+
+## Lot 3 — Identification des modules
+
+| `DEC-*` | Question | Options ouvertes | Validation principale | ADR (prévue) | Statut |
+|---------|----------|------------------|-----------------------|--------------|--------|
+| **DEC-L3-001** | Architecture de découverte et d'identification logique (découvrabilité logique, identité produit/instance, provisioning, comportement en panne ; présence physique = mécanisme dédié éventuel, hors résultat implicite) | EEPROM+EUI · EEPROM simple · 1-Wire · µC actif · Secure Element (+ mém.) · **hybrides** | **L3** (banc HW+CODE : lecture sûre, résolution, provisioning) | 0016 | **Ouvert** — comparaison documentaire (L3) |
+| **DEC-L3-002** | Format et contenu du **Manifest** (structure, versionnement, capacités, compatibilité, extensibilité) | TLV borné · champs oblig./opt. · politique dégradé | **L3** (parsing borné prouvé) | **future — n° attribué à la création** | **Ouvert** — format candidat (L3) |
+
+> **Authentification** : **aucune DEC ouverte** (hors V1) — exigence
+> d'**évolutivité** documentée ([évolutivité](lot-3/authentication-evolutivity.md)) ;
+> une DEC dédiée ne sera ouverte que si une vraie décision se présente. Les trois
+> couches **Identité / Description / Authentification** restent distinctes. **Aucun
+> MPN, aucune architecture retenue, aucune ADR.**
 
 > Les identifiants `DEC-*` des lots suivants seront ajoutés ici à l'ouverture de
 > chaque lot (une PR par lot).
