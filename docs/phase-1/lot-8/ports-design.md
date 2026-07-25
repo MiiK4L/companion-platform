@@ -18,11 +18,13 @@ adaptateurs la **fournissent**. Aucun port ne connaît de plateforme concrète.
 
 ```c
 typedef struct IRuntime {
-  void *self;                                             // contexte (adaptateur)
-  rt_status_t (*load)(void *self, const uint8_t *u, size_t n);
-  rt_status_t (*run)(void *self);
+  void *self;                                     // contexte (adaptateur)
+  rt_status_t (*launch)(void *self, AppArtifactView artifact);  // vue OPAQUE
 } IRuntime;
 ```
+
+> `IRuntime` **n'impose aucun cycle** (`load→run`, streaming, mapping…) : un seul
+> `launch(vue opaque)` ; le « comment » appartient au moteur (adaptateur).
 
 ## Ports matérialisés (déclarations candidates)
 
@@ -35,7 +37,13 @@ typedef struct IRuntime {
 | `IInput` | entrée utilisateur | `ports/iinput.h` |
 | `IPower` | énergie (chaîne = Lot 6) | `ports/ipower.h` |
 | **`ILog`** | **journalisation abstraite** | `ports/ilog.h` |
+| **`IAppSource`** | **résolution d'une réf. d'app → vue opaque** (distribution = `DEC-L8-002`) | `ports/iappsource.h` |
 | **`IRuntime`** | **moteur scripté abstrait** (choix = `DEC-L8-001`) | `ports/iruntime.h` |
+
+> **`IAppSource`** et **`AppArtifactView`** (modèle opaque) permettent à
+> l'`AppManager` de **déléguer** sans présumer du stockage, de l'adressage
+> (nom/hash), du streaming ou du chargement — ces choix restent des
+> **adaptateurs** ou des décisions futures (`DEC-L8-002`).
 
 > **`ILog`** est un port à part entière (ajouté à ce lot) : les services
 > journalisent **via le port**, jamais via un backend concret.

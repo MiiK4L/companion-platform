@@ -27,12 +27,12 @@ SPDX-License-Identifier: CC-BY-4.0
               ┌──────────────────────────┼──────────────────────────┐
               ▼                          ▼                          ▼
       ┌───────────────┐         ┌───────────────┐          ┌───────────────┐
-      │  Port IStorage│         │  Port IRuntime│          │   Port ILog   │   (+ IClock,
-      │  (interface)  │         │  (interface)  │          │  (interface)  │    IBus, IDisplay,
-      └───────▲───────┘         └───────▲───────┘          └───────▲───────┘    IInput, IPower)
-              │ implémente              │ implémente               │ implémente
+      │ Port IAppSource│        │  Port IRuntime│          │   Port ILog   │   (+ IClock,
+      │  (interface)  │         │  (interface)  │          │  (interface)  │    IStorage, IBus,
+      └───────▲───────┘         └───────▲───────┘          └───────▲───────┘    IDisplay, IInput,
+              │ implémente              │ implémente               │ implémente  IPower)
       ┌───────┴───────┐         ┌───────┴───────┐          ┌───────┴───────┐
-      │  MockStorage  │         │  FakeRuntime  │          │    MockLog    │   Adaptateurs host
+      │ MockAppSource │         │  FakeRuntime  │          │    MockLog    │   Adaptateurs host
       │  (adaptateur) │         │  (bouchon)    │          │  (adaptateur) │   (cible ESP-IDF =
       └───────────────┘         └───────────────┘          └───────────────┘   hors périmètre)
 ```
@@ -47,7 +47,7 @@ SPDX-License-Identifier: CC-BY-4.0
 | Rôle | Matérialisation | Fichiers |
 |------|-----------------|----------|
 | **Ports** | interfaces abstraites | `ports/*.h` |
-| **Modèles** | types de données | `models/app_descriptor.h` |
+| **Modèles** | vue **opaque** neutre | `models/app_artifact_view.h` |
 | **Services** | orchestration (câblage minimal) | `services/app_manager.{h,c}` |
 | **Adaptateurs host** | mocks/bouchons | `adapters/host/*.{h,c}` |
 | **Adaptateurs cible ESP-IDF** | *(hors périmètre — spécifiés, non écrits)* | — |
@@ -59,20 +59,25 @@ SPDX-License-Identifier: CC-BY-4.0
 
 ## Démonstration (test host)
 
-Le test host prouve, **sans moteur réel** :
+Le test host prouve, **sans moteur réel** et **sans modèle de chargement imposé** :
 
-1. `AppManager` lit l'unité d'une app via le **port `IStorage`** (mock) ;
-2. la charge et l'exécute via le **port `IRuntime`** (**`FakeRuntime`**, bouchon) ;
+1. `AppManager` **résout** une référence via le **port `IAppSource`** → **vue
+   opaque** (le service **n'inspecte pas** l'artefact) ;
+2. **délègue** le lancement au **port `IRuntime`** (**`FakeRuntime`**, bouchon) —
+   **aucun cycle `load→run` imposé**, un seul appel `launch(vue)` ;
 3. journalise via le **port `ILog`** (mock) ;
-4. l'`AppManager` **ne référence aucune** implémentation Lua/WAMR/NVS.
+4. l'`AppManager` **ne référence aucune** implémentation Lua/WAMR ni aucun
+   stockage/format : **délégation pure** (pas de tampon, pas de taille, pas
+   d'adressage).
 
 ```
-HostComposition (possède mocks) ──▶ AppManager ──▶ IStorage/IRuntime/ILog
+HostComposition (possède mocks) ──▶ AppManager ──▶ IAppSource / IRuntime / ILog
                                           (ne connaît que les ports)
 ```
 
 Un **changement de runtime** (Lua ↔ WAMR ↔ FakeRuntime) **ne touche pas**
-`AppManager` : seule la composition root change.
+`AppManager` : seule la composition root change (démontré par
+`test_runtime_swappable`).
 
 ## Vérifications (CI)
 

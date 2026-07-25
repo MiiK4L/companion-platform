@@ -15,8 +15,10 @@ Preuve d'architecture ; garantit que ports/services/SDK restent **portables**.
 
 ## Objectif (mesurable)
 
-Y a-t-il **0 `#include`** de plateforme concrète (ESP-IDF/FreeRTOS/pilote) ou de
-moteur (Lua/WASM/WAMR) dans `ports/`, `services/`, `models/`, `companion-sdk/` ?
+Deux invariants : (1) **0 `#include`** de plateforme (ESP-IDF/FreeRTOS/pilote) ou
+de moteur (Lua/WASM/WAMR) dans `ports/`/`services/`/`models/`/`companion-sdk/` ;
+(2) **direction du graphe interne** respectée (`ports → services →
+composition/adaptateurs`, jamais l'inverse) ?
 
 ## Procédure (reproductible)
 

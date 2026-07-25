@@ -9,18 +9,30 @@ SPDX-License-Identifier: CC-BY-4.0
 > **Statut : Ouvert / Proposé.** Règle **testée en CI**. Outil :
 > `tools/check_arch_deps.sh` ; job : `host-tests.yml`.
 
-## La règle
+## Deux règles vérifiées
 
+**Règle 1 — pas de plateforme/moteur.**
 > **Aucun `#include` de plateforme concrète (ESP-IDF, FreeRTOS, pilote) ni de
 > moteur d'exécution concret (Lua/WASM/WAMR) dans `ports/`, `services/`, `models/`
-> et `companion-sdk/`.** Les détails de plateforme et de moteur vivent
-> **exclusivement** dans les **adaptateurs**.
+> et `companion-sdk/`.**
+
+**Règle 2 — direction du graphe interne** (`ports → services → composition/adaptateurs`).
+> **`ports/` et `models/` n'incluent ni `services/`, ni `adapters/`, ni
+> `composition/` ; `services/` n'inclut ni `adapters/` ni `composition/` ; aucune
+> couche propre n'inclut directement un fichier `adapters/host/`.** Les adaptateurs
+> **peuvent** dépendre des ports ; **jamais l'inverse**.
+
+Les détails de plateforme et de moteur vivent **exclusivement** dans les
+**adaptateurs** ; les dépendances **remontent** toujours vers l'abstraction.
 
 ## Vérification
 
-`tools/check_arch_deps.sh` recherche des includes interdits (`esp_`, `freertos`,
+`tools/check_arch_deps.sh` applique **les deux règles** : (1) includes de
+plateforme/moteur interdits (`esp_`, `esp-idf`, `sdkconfig`, `freertos`,
 `driver/`, `nvs`, `littlefs`, `lvgl`, `lua`, `wasm`, `wamr`…) dans les zones
-« propres ». Il **échoue** (exit ≠ 0) si un seul est trouvé — bloquant la CI.
+« propres » ; (2) **direction du graphe interne** (ports/models ⊅
+services/adapters/composition ; services ⊅ adapters/composition ; couches propres
+⊅ `adapters/host/`). Il **échoue** (exit ≠ 0) au premier manquement — bloquant la CI.
 
 | Zone | Doit être indépendante de |
 |------|---------------------------|

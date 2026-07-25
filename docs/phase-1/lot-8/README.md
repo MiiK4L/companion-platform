@@ -42,10 +42,10 @@ Sous `firmware/host-skeleton/` (Apache-2.0) : **interfaces de ports**, **modèle
 
 | Élément | Fichiers |
 |---------|----------|
-| Ports (interfaces C **candidates**) | `ports/{iclock,istorage,ibus,idisplay,iinput,ipower,ilog,iruntime}.h` |
-| Modèles (types de données) | `models/app_descriptor.h` |
-| Service (câblage minimal) | `services/app_manager.{h,c}` — dépend **des ports uniquement** |
-| Adaptateurs host (mocks) | `adapters/host/{fake_runtime,mock_storage,mock_log}.{h,c}` |
+| Ports (interfaces C **candidates**) | `ports/{iclock,istorage,ibus,idisplay,iinput,ipower,ilog,iappsource,iruntime}.h` |
+| Modèles (vue **opaque**, neutre) | `models/app_artifact_view.h` |
+| Service (délégation pure) | `services/app_manager.{h,c}` — dépend **des ports uniquement**, aucun modèle de chargement |
+| Adaptateurs host (mocks/bouchon) | `adapters/host/{fake_runtime,mock_app_source,mock_log}.{h,c}` |
 | Composition root | `composition/composition_root.{h,c}` |
 | Tests host (harnais minimal) | `tests/{test_support.h,test_app_manager.c,test_main.c}` |
 
@@ -55,9 +55,12 @@ Le squelette **prouve** que l'architecture est **implémentable et testable** ; 
 **ne commence pas** l'implémentation du firmware. **Exclus** : aucun **runtime
 réel**, aucune **logique métier**, aucun **scheduler**, aucun **driver**, aucun
 **HAL réel**, aucun **code ESP-IDF**, aucun **code embarqué**. Le **langage C** est
-une **conséquence** de la plateforme ESP-IDF actée (pas une décision) ; le
-**framework de test n'est pas figé** (harnais minimal sans dépendance) ; les
-**signatures de ports sont candidates**, pas une API figée.
+choisi pour ce squelette host comme **convention d'implémentation provisoire et
+réversible** ; **ce choix ne constitue pas encore une décision définitive sur
+l'ensemble du firmware** (ESP-IDF prend en charge C **et** C++ ; aucune ADR ne
+fige le langage à ce stade). Le **framework de test n'est pas figé** (harnais
+minimal sans dépendance) ; les **signatures de ports sont candidates**, pas une
+API figée.
 
 ## Critères de sortie
 
