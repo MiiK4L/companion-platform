@@ -17,8 +17,18 @@ Alimente **`DEC-L5-001`** (tenue mécanique du support).
 
 ## Objectif (une question mesurable)
 
-Le support tient-il **≥ N cycles** d'insertion **sans dégradation**, **0
-intermittence** sous **vibration**, et quelle **épaisseur** ajoute-t-il ?
+Pour **un même couple support + même carte**, le support tient-il **≥ N cycles**
+d'insertion **sans dégradation**, **0 intermittence** sous **vibration**, et
+quelle **épaisseur** ajoute-t-il ?
+
+## Frontière (à ne pas confondre avec l'usure du support)
+
+- **Ce protocole** : **une même carte** ré-insérée sur **le même support**, cycles
+  répétés → usure **combinée** support + carte (tenue mécanique du couple).
+- **Cas d'usage principal du projet** : **plusieurs cartes cœur *différentes*** sur
+  **un même support** → traité **séparément** par
+  [usure du support (remplacements successifs)](support-wear-repeated-swap.md),
+  qui **isole** l'usure du support et la **variabilité inter-cartes**.
 
 ## Conditions
 
