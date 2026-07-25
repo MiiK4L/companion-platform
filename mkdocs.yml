@@ -147,6 +147,23 @@ nav:
               - Provisioning & doublons: phase-1/lot-3/protocols/provisioning-duplicate-detection.md
               - Périphérique absent/lent/bloqué: phase-1/lot-3/protocols/peripheral-absent-slow-stuck.md
               - Hot-plug pendant lecture: phase-1/lot-3/protocols/hotplug-during-read.md
+      - "Lot 4 — Écran & moteur graphique":
+          - Vue d'ensemble: phase-1/lot-4/README.md
+          - Couches d'affichage: phase-1/lot-4/display-abstraction.md
+          - Familles d'affichage: phase-1/lot-4/display-families-comparison.md
+          - Moteur graphique: phase-1/lot-4/graphics-engine-comparison.md
+          - Budget mémoire & FPS: phase-1/lot-4/memory-and-fps-budget.md
+          - Énergie & rétroéclairage: phase-1/lot-4/power-and-backlight.md
+          - Partage SPI: phase-1/lot-4/spi-sharing.md
+          - Composants candidats: phase-1/lot-4/candidate-components.md
+          - "Protocoles (affichage)":
+              - Vue d'ensemble: phase-1/lot-4/protocols/README.md
+              - Définitions des événements: phase-1/lot-4/protocols/event-definitions.md
+              - Budget RAM du moteur: phase-1/lot-4/protocols/ram-budget.md
+              - FPS / rendu: phase-1/lot-4/protocols/rendering-fps.md
+              - Performances perçues: phase-1/lot-4/protocols/perceived-performance.md
+              - Conso & rétroéclairage: phase-1/lot-4/protocols/backlight-power.md
+              - Contention SPI: phase-1/lot-4/protocols/spi-contention.md
   - Guides:
       - Contribuer au code: guides/contributing-code.md
       - Style de code: guides/code-style.md
