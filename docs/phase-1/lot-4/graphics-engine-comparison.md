@@ -11,18 +11,22 @@ SPDX-License-Identifier: CC-BY-4.0
 > dalle que par ses capacités exposées**. Valeurs `[DS]/[H]/[BL]` ; **aucune
 > `[M]`**. → **ADR future (n° non réservé)**.
 
-## Deux couches distinctes
+## Quatre catégories logicielles distinctes (à ne jamais confondre)
 
-| Couche | Rôle | Exemples | Décision |
-|--------|------|----------|----------|
-| **Moteur UI** | Widgets, rendu, animations, **stratégie mémoire** | **LVGL**, **moteur maison**, autres | **`DEC-L4-002`** |
-| **HAL / pilotage** | Traduit le rendu vers le contrôleur | **LovyanGFX**, **TFT_eSPI**, **esp_lcd (ESP-IDF)** | **adaptateur** (révisable, hors `DEC-L4-002`) |
+| Catégorie | Rôle | Exemples | Décision |
+|-----------|------|----------|----------|
+| **Framework UI** | Widgets, layout, événements (**inclut** un moteur de rendu) | **LVGL** | **`DEC-L4-002`** |
+| **Moteur de rendu** | Cœur de rasterisation / composition | intégré à LVGL, **ou moteur maison** | **`DEC-L4-002`** |
+| **Bibliothèque graphique** | Primitives de dessin **+ pilotes de contrôleurs** | **LovyanGFX**, **TFT_eSPI** | **adaptateur** (hors `DEC-L4-002`) |
+| **Pilote matériel** | Pilote de contrôleur bas niveau | **esp_lcd (ESP-IDF)** | **adaptateur** (hors `DEC-L4-002`) |
 
-> La **couche HAL/pilotage** est un **adaptateur** derrière l'abstraction
-> ([display-abstraction](display-abstraction.md)) : elle peut changer sans rouvrir
-> le choix de moteur UI.
+> **Distinctions strictes** : un **framework UI** (LVGL) **n'est pas** une
+> **bibliothèque graphique** (LovyanGFX). Les catégories **bibliothèque graphique**
+> et **pilote matériel** sont des **adaptateurs** derrière l'abstraction
+> ([display-abstraction](display-abstraction.md)) : elles peuvent changer **sans
+> rouvrir** `DEC-L4-002`.
 
-## 1. Couche moteur UI — comparaison
+## 1. Framework UI + moteur de rendu — comparaison
 
 | Critère | LVGL | Moteur maison | (autre) |
 |---------|------|---------------|---------|
@@ -45,14 +49,17 @@ SPDX-License-Identifier: CC-BY-4.0
 > **contraintes imposées par le matériel** (`DEC-L4-001`, voir
 > [budget mémoire](memory-and-fps-budget.md)).
 
-## 2. Couche HAL / pilotage — comparaison (adaptateur, hors décision moteur)
+## 2. Bibliothèque graphique & pilote matériel — comparaison (adaptateurs, hors décision moteur)
 
-| Critère | LovyanGFX | TFT_eSPI | esp_lcd (ESP-IDF) |
-|---------|-----------|----------|-------------------|
+| Critère | LovyanGFX *(biblio. graphique)* | TFT_eSPI *(biblio. graphique)* | esp_lcd *(pilote matériel IDF)* |
+|---------|--------------------------------|--------------------------------|---------------------------------|
 | Contrôleurs supportés | large **[H]** | large **[H]** | via pilotes IDF **[H]** |
 | DMA / performance | oui **[H]** | oui **[H]** | oui (natif IDF) **[H]** |
 | Intégration ESP-IDF | bonne **[H]** | bonne **[H]** | **native** **[H]** |
 | Statut (adaptateur) | révisable | révisable | révisable |
+
+> Ces catégories sont **distinctes** du **framework UI** (§1) et **n'entrent pas**
+> dans `DEC-L4-002`.
 
 ## Alimente
 
