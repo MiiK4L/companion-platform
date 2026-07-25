@@ -57,5 +57,17 @@ ADR-XXXX** (une ADR a été créée) · **Abandonné** (question retirée, avec 
 > couches **Identité / Description / Authentification** restent distinctes. **Aucun
 > MPN, aucune architecture retenue, aucune ADR.**
 
+## Lot 4 — Écran & moteur graphique
+
+| `DEC-*` | Question | Options ouvertes | Validation principale | ADR (prévue) | Statut |
+|---------|----------|------------------|-----------------------|--------------|--------|
+| **DEC-L4-001** | Matériel d'affichage : famille de dalle, contrôleur, **interface physique** (SPI/QSPI/RGB), format/résolution, contraintes mémoire imposées | TFT couleur · Memory LCD · OLED couleur · **transflectif** ; SPI/QSPI ; rond/carré/rect | **L4** (banc : FPS, conso, contention SPI) | 0017 | **Ouvert** — comparaison documentaire (L4) |
+| **DEC-L4-002** | Moteur graphique : architecture de rendu, **stratégie mémoire/buffers**, budget exploité, pipeline | moteur UI (LVGL · maison · …) ; buffer partiel/direct/double | **L4** (banc : RAM, FPS, perçu) | **future — n° à la création** | **Ouvert** — comparaison documentaire (L4) |
+
+> **Couches séparées** ([display-abstraction](lot-4/display-abstraction.md)) : la
+> **couche HAL/pilotage** (LovyanGFX/TFT_eSPI/esp_lcd) est un **adaptateur**
+> révisable, **hors** `DEC-L4-002`. `DEC-L4-001` (matériel) et `DEC-L4-002`
+> (moteur) **indépendants**. **Aucune techno retenue, aucun MPN, aucune ADR.**
+
 > Les identifiants `DEC-*` des lots suivants seront ajoutés ici à l'ouverture de
 > chaque lot (une PR par lot).
