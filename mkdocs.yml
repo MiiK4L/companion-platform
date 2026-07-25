@@ -181,6 +181,23 @@ nav:
               - Endurance + vibration: phase-1/lot-5/protocols/insertion-endurance-vibration.md
               - Usure du support (remplacements): phase-1/lot-5/protocols/support-wear-repeated-swap.md
               - GPIO cœur absent: phase-1/lot-5/protocols/gpio-core-absent.md
+      - "Lot 6 — Énergie (alim, stockage, estimation)":
+          - Vue d'ensemble: phase-1/lot-6/README.md
+          - Architecture d'alimentation: phase-1/lot-6/power-chain-architecture.md
+          - Charge / power-path: phase-1/lot-6/charge-powerpath-comparison.md
+          - Régulation: phase-1/lot-6/regulation-comparison.md
+          - Estimation d'état: phase-1/lot-6/battery-state-estimation.md
+          - Stockage d'énergie: phase-1/lot-6/energy-storage-comparison.md
+          - Méthode budget énergie: phase-1/lot-6/energy-budget-method.md
+          - Composants candidats: phase-1/lot-6/candidate-components.md
+          - "Protocoles (énergie)":
+              - Vue d'ensemble: phase-1/lot-6/protocols/README.md
+              - Définitions des événements: phase-1/lot-6/protocols/event-definitions.md
+              - Conso par mode: phase-1/lot-6/protocols/consumption-per-mode.md
+              - Précision d'estimation: phase-1/lot-6/protocols/state-estimation-accuracy.md
+              - Fuite module coupé: phase-1/lot-6/protocols/module-leakage.md
+              - Charge & thermique: phase-1/lot-6/protocols/charge-thermal.md
+              - Décharge réelle: phase-1/lot-6/protocols/real-discharge.md
   - Guides:
       - Contribuer au code: guides/contributing-code.md
       - Style de code: guides/code-style.md
