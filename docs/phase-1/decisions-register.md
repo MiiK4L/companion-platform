@@ -110,5 +110,20 @@ ADR-XXXX** (une ADR a été créée) · **Abandonné** (question retirée, avec 
 > `DEC-L1-001` ; conso = budget L6 ; abstraction horloge/stockage = L8. **Aucune
 > techno retenue, aucun MPN, aucune ADR ; seuils `[BL]`.**
 
+## Lot 8 — Squelette ports/adaptateurs & runtime scripté
+
+| `DEC-*` | Question | Options ouvertes | Validation principale | ADR (prévue) | Statut |
+|---------|----------|------------------|-----------------------|--------------|--------|
+| **DEC-L8-001** | Runtime scripté V1 (moteur d'exécution des apps) | Lua · WASM/WAMR · autre | **L8** (POC : RAM/flash par app, faisabilité) | 0022 | **Ouvert** — comparaison documentaire (L8) |
+| **DEC-L8-002** | Modèle de distribution des applications (**indépendant du runtime**) | install dynamique « sans reflash » · bundle OTA · hybride | **L8** (faisabilité R7) | **future — n° à la création** | **Ouvert** — comparaison documentaire (L8) |
+
+> **Décisions indépendantes** : le modèle de distribution ne dépend pas du runtime,
+> et réciproquement. Le **runtime est abstrait par le port `IRuntime`** — l'`AppManager`
+> ne dépend jamais d'une implémentation (prouvé par le squelette host + `FakeRuntime`).
+> Le **squelette host** (`firmware/host-skeleton/`) est une **preuve d'architecture**
+> (interfaces/modèles/composition root/mocks/tests host en CI) — **pas** une
+> implémentation firmware ([hors périmètre](lot-8/out-of-scope.md)). **Aucune techno
+> retenue, aucune ADR ; seuils RAM/flash `[BL]`.**
+
 > Les identifiants `DEC-*` des lots suivants seront ajoutés ici à l'ouverture de
 > chaque lot (une PR par lot).

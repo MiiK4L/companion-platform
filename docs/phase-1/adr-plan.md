@@ -49,7 +49,8 @@ un modèle « ADR créée en Proposé avant les essais » :
 | *(n° à attribuer à la création)* | DEC-L6-003 | **Stratégie d'estimation de l'état de batterie** (ADC / jauge dédiée / hybride) | L6 | précision vs référence coulomb + approches comparées + choix justifié |
 | 0021 | DEC-L7-001 | **Base de temps** (source RTC interne/externe/TCXO, **validité de l'heure**, réveil, resync) | L7 | dérive/conso/Δt mesurés + sources comparées + choix justifié |
 | *(n° à attribuer à la création)* | DEC-L7-002 | **Modèle de persistance** — **trois axes** : **support** (NVS/LittleFS) + **modèle de cohérence** (journal/A-B/checkpoint/checksum) + **politique d'écriture** (immédiate/différée/à l'événement/périodique/au repos) | L7 | reprise sur coupures brutales (0 corruption) + approches comparées + choix justifié |
-| 0022 | DEC-L8-001 | **Runtime scripté et modèle de distribution des applications** | L8 | budget du **runtime scripté candidat** chiffré ; faisabilité (ou limites) d'installation dynamique démontrée |
+| 0022 | DEC-L8-001 | **Runtime scripté V1** (Lua / WASM-WAMR…) | L8 | budget RAM/flash du **runtime candidat** chiffré + runtimes comparés + choix justifié ; **abstrait par le port `IRuntime`** |
+| *(n° à attribuer à la création)* | DEC-L8-002 | **Modèle de distribution des applications** (install dynamique vs bundle OTA) — **indépendant du runtime** | L8 | faisabilité (ou limites) d'install dynamique démontrée (R7) + approches comparées + choix justifié |
 
 **Regroupements & séparations** : connecteur + **mapping physique** ensemble
 (0015) ; l'**allocation logique** des signaux CX-Bus reste une **contrainte SPEC
