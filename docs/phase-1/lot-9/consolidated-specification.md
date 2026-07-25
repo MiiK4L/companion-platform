@@ -13,7 +13,8 @@ SPDX-License-Identifier: CC-BY-4.0
 > - **Aucune ADR 0013+ n'est créée ni acceptée** (règle « ADR *après* mesures
 >   reproductibles », [cadre §3](../validation-framework.md)).
 > - **Ce document n'est PAS `spec-v1.0.0-rc.1`.** La promotion vers `rc.1` est un
->   **résultat de Phase 2** (mesures + cohérence démontrée), pas de ce lot.
+>   **résultat de la sortie de Phase 1** (après les campagnes de mesure du volet
+>   expérimental), pas de ce checkpoint documentaire.
 > - Les **interfaces** (brochage, signatures de ports) sont **candidates et
 >   révisables**.
 >
@@ -25,9 +26,9 @@ SPDX-License-Identifier: CC-BY-4.0
 
 La spécification consolidée agrège, en un seul point d'entrée, **ce qui est acté**
 (décisions d'architecture des ADR 0000-0012) et **ce qui reste à trancher** (les
-17 `DEC-*` de la Phase 1). Elle sert de **référence de lecture** avant l'entrée en
-Phase 2 ; elle ne se substitue ni aux ADR, ni aux lots, vers lesquels elle
-**renvoie**.
+17 `DEC-*` de la Phase 1). Elle sert de **référence de lecture** avant les
+**campagnes de mesure** (volet expérimental de la Phase 1) ; elle ne se substitue
+ni aux ADR, ni aux lots, vers lesquels elle **renvoie**.
 
 ## 2. Acquis architectural acté (ADR 0000-0012)
 
@@ -94,22 +95,22 @@ spécification.
 
 ## 6. Critères d'acceptation (comment cette spec deviendra rc.1)
 
-Le passage de **draft consolidé** à **`spec-v1.0.0-rc.1`** est un **résultat de
-Phase 2** et suppose :
+Le passage de **draft consolidé** à **`spec-v1.0.0-rc.1`** est un **résultat de la
+sortie de Phase 1** (après les campagnes de mesure du volet expérimental) et suppose :
 
 1. l'**exécution** des protocoles ([feuille de route](decision-roadmap.md)),
    produisant des **résultats reproductibles** ;
 2. la **création des ADR 0013+** sur preuves ([plan des ADR](../adr-plan.md)),
    selon les 4 conditions du [cadre §3](../validation-framework.md) ;
 3. la **résolution** des couplages transverses (SPI partagé, budget énergie) ;
-4. la satisfaction des [critères de sortie de la campagne](../execution.md).
+4. la satisfaction des [critères de sortie de la Phase 1](../execution.md).
 
-**`spec-v1.0.0` (sans `rc`)** reste **hors Phase 1 et hors Phase 2 documentaire** :
-il exigera une carte Host **intégrée**, **plusieurs types de modules** et une
-**campagne d'interopérabilité**.
+**`spec-v1.0.0` (sans `rc`)** reste **au-delà de la Phase 1** : il exigera une
+carte Host **intégrée**, **plusieurs types de modules** et une **campagne
+d'interopérabilité**.
 
 ## Renvois
 
 - [Vue d'ensemble du Lot 9](README.md) · [Synthèse Phase 1](synthesis.md)
-- [Feuille de route des décisions](decision-roadmap.md) · [Préparation à la Phase 2](phase-2-readiness.md)
+- [Feuille de route des décisions](decision-roadmap.md) · [Préparation des campagnes de mesure](campaign-readiness.md)
 - [Registre des décisions](../decisions-register.md) · [Plan des ADR](../adr-plan.md) · [Registre des ADR](../../adr/README.md)

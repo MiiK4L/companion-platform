@@ -164,5 +164,5 @@ conception détaillée ; elle n'intègre ni le PCB final, ni la qualification co
 > **Rappel de niveau** : cette agrégation reste au **niveau BOM candidate**
 > (§3, niveaux 1–2) — **jamais** une BOM de production (§4). La **shortlist
 > qualifiée** (niveau 3) ne sera produite qu'après les **rapports de mesure
-> reproductibles** de la Phase 2. Voir la
+> reproductibles** des **campagnes de la Phase 1** (volet expérimental). Voir la
 > [feuille de route des décisions](lot-9/decision-roadmap.md).

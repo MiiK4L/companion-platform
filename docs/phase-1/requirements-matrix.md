@@ -99,14 +99,14 @@ Critères mesurables qui **déclenchent** cet arbitrage (dès qu'**au moins un**
 
 ## Consolidation Phase 1 (Lot 9)
 
-À la clôture documentaire ([Lot 9](lot-9/README.md)), cette matrice reste un
+Au checkpoint documentaire ([Lot 9](lot-9/README.md)), cette matrice reste un
 support de **cadrage** : **aucune cible chiffrée n'est fixée**, toutes restent
-« à confirmer » par les mesures de **Phase 2**. La traçabilité
-**exigence ↔ lot ↔ `DEC-*` ↔ protocole ↔ risque** est consolidée par la
-[synthèse](lot-9/synthesis.md) et ordonnée par la
+« à confirmer » par les **campagnes de mesure de la Phase 1** (volet expérimental).
+La traçabilité **exigence ↔ lot ↔ `DEC-*` ↔ protocole ↔ risque** est consolidée
+par la [synthèse](lot-9/synthesis.md) et ordonnée par la
 [feuille de route des décisions](lot-9/decision-roadmap.md). Les **déclencheurs
 d'arbitrage du cœur** ci-dessus alimentent `DEC-L1-002` (décision **tardive**,
-cf. [readiness](lot-9/phase-2-readiness.md)).
+cf. [préparation des campagnes](lot-9/campaign-readiness.md)).
 
 ## Renvois
 

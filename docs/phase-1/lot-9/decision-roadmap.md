@@ -4,11 +4,12 @@ SPDX-FileCopyrightText: 2026 Companion Platform contributors
 SPDX-License-Identifier: CC-BY-4.0
 -->
 
-# Feuille de route des décisions (vers la Phase 2)
+# Feuille de route des décisions (campagnes de mesure de Phase 1)
 
 > **Statut : Proposé — planification des arbitrages.** Pour chaque `DEC-*`, ce
 > document indique les **prérequis**, le(s) **protocole(s)** qui la tranchera(ont),
-> les **preuves attendues** et l'**ordre recommandé** des arbitrages en Phase 2.
+> les **preuves attendues** et l'**ordre recommandé** des arbitrages lors des
+> **campagnes de mesure de la Phase 1** (volet expérimental, encore à conduire).
 > **Il ne tranche rien** : il ordonne le travail de mesure à venir. Les seuils
 > chiffrés restent `[BL]` (fixés au baselining, en tête de campagne).
 
@@ -43,7 +44,7 @@ résultat + grandeurs, seuils `[BL]`).
 
 | `DEC-*` | Prérequis | Protocole(s) | Preuves attendues |
 |---------|-----------|--------------|-------------------|
-| `DEC-L1-001` | Candidat de cœur de référence disponible ; [budget GPIO](../lot-1/gpio-bus-budget.md) figé | Banc de **bring-up GPIO/bus** (protocole à instancier depuis le [modèle](../templates/test-protocol-template.md)) | Décompte GPIO **sans conflit** sur le candidat ; topologie SPI (partagé vs séparé) démontrée ; option expander/partage **comparée** en coût global |
+| `DEC-L1-001` | Besoins plateforme et **budget GPIO documentaire de référence** disponibles, hypothèses **identifiées et révisables** ; candidat de cœur de référence disponible | Banc de **bring-up GPIO/bus** (protocole à instancier depuis le [modèle](../templates/test-protocol-template.md)) | Décompte GPIO **sans conflit** sur le candidat ; topologie SPI (partagé vs séparé) démontrée ; option expander/partage **comparée** en coût global |
 
 ### Vague 1 — HW critique & prérequis L3
 
@@ -83,6 +84,6 @@ résultat + grandeurs, seuils `[BL]`).
 
 ## Renvois
 
-- [Synthèse Phase 1](synthesis.md) · [Préparation à la Phase 2](phase-2-readiness.md)
+- [Synthèse Phase 1](synthesis.md) · [Préparation des campagnes de mesure](campaign-readiness.md)
 - [Registre des décisions](../decisions-register.md) · [Plan des ADR](../adr-plan.md) · [Registre des risques](../risk-register.md)
 - [Cadre de validation](../validation-framework.md) · [Ordre d'exécution & critères de sortie](../execution.md)

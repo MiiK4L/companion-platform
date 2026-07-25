@@ -116,11 +116,11 @@ DEC-L1-001 (GPIO/bus) ── préalable ──┬── DEC-L2-001 (sûreté) �
   (convergence L4/L5/L6/L7) restent les points les plus sensibles.
 - **Rien n'est figé** : aucun composant retenu, aucune ADR, aucune mesure. La
   suite est **gouvernée** par la [feuille de route](decision-roadmap.md) et la
-  [préparation à la Phase 2](phase-2-readiness.md).
+  [préparation des campagnes de mesure](campaign-readiness.md).
 
 ## Renvois
 
 - [Registre des décisions](../decisions-register.md) · [Plan des ADR](../adr-plan.md)
 - [Registre des risques](../risk-register.md) · [Matrice des exigences](../requirements-matrix.md)
-- [Feuille de route des décisions](decision-roadmap.md) · [Préparation à la Phase 2](phase-2-readiness.md)
+- [Feuille de route des décisions](decision-roadmap.md) · [Préparation des campagnes de mesure](campaign-readiness.md)
 - [Spécification consolidée (draft)](consolidated-specification.md)

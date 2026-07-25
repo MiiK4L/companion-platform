@@ -17,7 +17,7 @@ ADR-XXXX** (une ADR a été créée) · **Abandonné** (question retirée, avec 
 > À ce stade (**lots documentaires L1 à L8, consolidés en L9**), les **17
 > décisions** ci-dessous sont **Ouvertes** et leurs éléments **Proposés** : aucune
 > n'est arbitrée, **aucune ADR n'est créée** (les validations reproductibles
-> nécessaires relèvent des **campagnes de mesure de la Phase 2**).
+> nécessaires relèvent des **campagnes de mesure de la Phase 1** (volet expérimental)).
 
 ## Lot 1 — Exigences & architecture du cœur
 
@@ -128,15 +128,16 @@ ADR-XXXX** (une ADR a été créée) · **Abandonné** (question retirée, avec 
 > Les identifiants `DEC-*` des lots suivants seront ajoutés ici à l'ouverture de
 > chaque lot (une PR par lot).
 
-## Clôture documentaire (Lot 9)
+## Checkpoint documentaire (Lot 9)
 
-La Phase 1 est **close côté documentaire** : les **17 `DEC-*`** (L1–L8) sont
-**toutes Ouvertes / Proposé**, **aucune n'est arbitrée**, **aucune ADR 0013+
-n'existe**. Le [Lot 9](lot-9/README.md) **consolide** cet état sans le modifier :
+Le **volet documentaire** de la Phase 1 est **clos** (le volet **expérimental** —
+mesures, ADR — restant ouvert) : les **17 `DEC-*`** (L1–L8) sont **toutes Ouvertes
+/ Proposé**, **aucune n'est arbitrée**, **aucune ADR 0013+ n'existe**. Le
+[Lot 9](lot-9/README.md) **consolide** cet état sans le modifier :
 
 - **Synthèse** transverse (état, couplages, graphe) : [synthesis](lot-9/synthesis.md).
-- **Ordre des arbitrages** de Phase 2 : [feuille de route](lot-9/decision-roadmap.md).
-- **Préparation à la mesure** (critère objectif de démarrage) : [readiness](lot-9/phase-2-readiness.md).
+- **Ordre des arbitrages** (campagnes de mesure de Phase 1) : [feuille de route](lot-9/decision-roadmap.md).
+- **Préparation des campagnes** (critère objectif de démarrage) : [readiness](lot-9/campaign-readiness.md).
 - **Vue d'ensemble** actée + ouverte : [spécification consolidée (draft)](lot-9/consolidated-specification.md).
 
 Le statut des ADR prévisionnelles est rappelé dans le [plan des ADR](adr-plan.md).
