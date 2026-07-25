@@ -69,5 +69,18 @@ ADR-XXXX** (une ADR a été créée) · **Abandonné** (question retirée, avec 
 > révisable, **hors** `DEC-L4-002`. `DEC-L4-001` (matériel) et `DEC-L4-002`
 > (moteur) **indépendants**. **Aucune techno retenue, aucun MPN, aucune ADR.**
 
+## Lot 5 — Cœur remplaçable & socketage
+
+| `DEC-*` | Question | Options ouvertes | Validation principale | ADR (prévue) | Statut |
+|---------|----------|------------------|-----------------------|--------------|--------|
+| **DEC-L5-001** | **Stratégie de socketage/support** du cœur remplaçable (mécanique + électrique) | Barrettes 2,54 mm · tulipe précision · mezzanine · ZIF/LIF · (baseline soudée = référence non remplaçable) | **L5** (banc : contact, endurance, vibration, **usure remplacements successifs**, épaisseur) | 0018 | **Ouvert** — comparaison documentaire (L5) |
+
+> **Principe « cœur remplaçable » = déjà Accepté** ([ADR-0004](../adr/0004-coeur-de-calcul-socket.md)),
+> hors de ce lot. Le **deep-sleep système** est une **mesure (R3)**, **pas une
+> DEC** : elle alimente **principalement `DEC-L1-002`** (choix du cœur, peut
+> rouvrir ADR-0004) **et** les décisions ultérieures power/domaines de
+> puissance/autonomie (cf. [mesure deep-sleep](lot-5/deep-sleep-measurement.md)).
+> **Aucun support retenu, aucun MPN, aucune ADR.**
+
 > Les identifiants `DEC-*` des lots suivants seront ajoutés ici à l'ouverture de
 > chaque lot (une PR par lot).

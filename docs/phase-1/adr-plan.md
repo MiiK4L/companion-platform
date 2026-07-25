@@ -43,7 +43,7 @@ un modèle « ADR créée en Proposé avant les essais » :
 | *(n° à attribuer à la création)* | DEC-L3-002 | **Format et contenu du Manifest** (description) | L3 | format validé (**parsing borné prouvé**) + alternatives comparées + justification documentée |
 | 0017 | DEC-L4-001 | **Matériel d'affichage** (dalle, contrôleur, **interface physique**, format/résolution, contraintes mémoire imposées) | L4 | famille/contrôleur conforme + **familles comparées** + conso/FPS compatibles + justification par preuves et compromis |
 | *(n° à attribuer à la création)* | DEC-L4-002 | **Moteur graphique** (architecture de rendu, **stratégie mémoire/buffers**, budget exploité, pipeline) | L4 | budget du **moteur candidat** + FPS mesurés dans le budget + alternatives comparées ; **indépendant** de la dalle (via capacités exposées) |
-| 0018 | DEC-L5-001 | Stratégie du cœur remplaçable (**socketage** ou alternative) | L5 | contact + deep-sleep mesurés ; sinon arbitrage (peut rouvrir ADR-0004) |
+| 0018 | DEC-L5-001 | **Stratégie de socketage/support** du cœur remplaçable (mécanique + électrique) | L5 | contact/endurance/vibration/épaisseur mesurés + **familles comparées** + choix justifié (preuves/compromis) |
 | 0019 | DEC-L6-001 | Chaîne d'alimentation (charge/power-path/régulation/load switch + **jauge**) | L6 | chaîne mesurée ; jauge validée (< ±5 %) ou décision ADC |
 | 0020 | DEC-L6-002 | **Batterie + cible d'autonomie & budget énergétique** | L6 | budget énergie mesuré ; cible d'autonomie provisoire justifiée |
 | 0021 | DEC-L7-001 | **RTC & base de temps** + persistance | L7 | dérive/conso/Δt/reprise d'état aux seuils |
