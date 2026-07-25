@@ -36,6 +36,17 @@ pas.
 3. Croiser avec la **capacité utile mesurée** (décharge réelle vs estimation).
 4. En déduire une **autonomie**, puis une **cible provisoire** justifiée (révisable).
 
+## Hypothèses, marges & traçabilité (partie intégrante de la méthode)
+
+- **Hypothèses documentées** : chaque poste/estimation porte son **statut**
+  (`[DS]/[C]/[H]/[BL]/[M]`) et sa **source** ; aucune valeur « nue ».
+- **Marges** : marge appliquée au budget **explicitée et justifiée** (pas une
+  valeur cachée), en `[BL]`.
+- **Provenance des mesures** : chaque poste renvoie à **son protocole** (colonne
+  « Source de la mesure » ci-dessus) et à la **révision exacte** testée.
+- **Traçabilité** : budget = **somme reproductible** de postes horodatés (commit
+  firmware, config, DUT), rejouable ; les données brutes sont hashées (SHA-256).
+
 ## Seuils & cibles (tous `[BL]`)
 
 > **Aucun seuil figé ici** : cible d'autonomie, conso par mode admissible, capacité
@@ -43,7 +54,27 @@ pas.
 > mesuré très inférieur déclenche un **arbitrage écran/batterie/mode** (R4, lien
 > [déclencheurs L5](../lot-5/arbitration-triggers.md)).
 
+## Frontière avec les DEC (strictement méthodologique)
+
+> Ce document décrit **uniquement comment construire et comparer** le budget
+> énergétique (postes, modes, hypothèses documentées, marges, provenance des
+> mesures, traçabilité) — **sans présumer du résultat**. Il **ne contient aucune
+> préférence implicite ni cible de conception**.
+>
+> Les **choix d'architecture** restent **exclusivement** dans les décisions :
+>
+> | Choix | Décision (hors ce document) |
+> |-------|-----------------------------|
+> | Charge / power-path / **PMIC** / régulation | `DEC-L6-001` |
+> | **Architecture de stockage / chimie** de batterie | `DEC-L6-002` |
+> | **Stratégie d'estimation** d'état (ADC / jauge / hybride) | `DEC-L6-003` |
+>
+> La méthode **s'applique de la même manière** quelle que soit l'option retenue par
+> ces DEC : elle **compare** des budgets, elle n'en **choisit** aucun.
+
 ## Alimente
 
-- **`DEC-L6-002`** — budget énergie v1 + **cible d'autonomie provisoire**, établis
-  **après** mesures. **Aucune cible décrétée ici.**
+- **`DEC-L6-002`** — **fournit la méthode** de budget + cible d'autonomie
+  provisoire, établis **après** mesures. La méthode **ne décide** ni l'architecture
+  ni la chimie ni l'estimation (→ `DEC-L6-001/002/003`). **Aucune cible décrétée
+  ici.**
