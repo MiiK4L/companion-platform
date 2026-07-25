@@ -1,0 +1,39 @@
+# SPDX-FileCopyrightText: 2026 Companion Platform contributors
+#
+# SPDX-License-Identifier: Apache-2.0
+
+name: Host tests
+
+# Lot 8 — preuve d'architecture : compile et exécute les tests HOST du squelette
+# ports/adaptateurs (sans matériel, sans ESP-IDF), et vérifie la règle
+# d'inversion de dépendances (0 include plateforme/moteur dans ports/services/SDK).
+#
+# GitHub Actions épinglées au SHA (reproductible + sécurisé) ; commentaire =
+# version lisible. Montées de version gérées par Dependabot.
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  host-skeleton:
+    name: Squelette host (build + tests)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Récupérer le dépôt
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Vérifier la règle d'inversion de dépendances
+        run: bash tools/check_arch_deps.sh
+      - name: Configurer (CMake)
+        run: cmake -S firmware/host-skeleton -B firmware/host-skeleton/build
+      - name: Compiler
+        run: cmake --build firmware/host-skeleton/build
+      - name: Exécuter les tests host
+        run: ctest --test-dir firmware/host-skeleton/build --output-on-failure
