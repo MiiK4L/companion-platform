@@ -70,3 +70,20 @@ supplémentaires seront arrêtés à la création, dans la PR du lot.
   mécanique finale) — phases ultérieures.
 - **Authentification cryptographique** des modules (décision de sécurité
   distincte, si un jour retenue).
+
+## Statut au checkpoint documentaire (Lot 9)
+
+À la clôture du **volet documentaire** de la Phase 1 ([Lot 9](lot-9/README.md)) —
+le volet **expérimental** (mesures, ADR) restant ouvert :
+
+- **Aucune ADR 0013+ n'est créée ni acceptée.** La liste ci-dessus reste
+  **prévisionnelle** ; les numéros « à attribuer à la création » ne sont **pas**
+  réservés (l'ordre est purement indicatif).
+- La règle est respectée : l'**ADR se crée après les mesures** (campagnes de la
+  Phase 1), sur un résultat **reproductible**, avec les 4 conditions du
+  [cadre §3](validation-framework.md).
+- L'**ordre recommandé** de création (donc d'arbitrage) est donné par la
+  [feuille de route des décisions](lot-9/decision-roadmap.md) ; l'**état de
+  préparation** de chaque mesure par la [préparation des campagnes](lot-9/campaign-readiness.md).
+- Tant qu'aucune ADR 0013+ n'existe, la **spécification** reste un
+  [draft consolidé](lot-9/consolidated-specification.md) — **non** `rc.1`.
