@@ -36,15 +36,31 @@ Deux vues d'un même registre : **évaluation** puis **suivi**.
 
 | ID | Propriétaire | Échéance de revue | Mitigation envisagée | Risque résiduel | Décision d'acceptation |
 | --- | --- | --- | --- | --- | --- |
-| R1 | Mainteneur | fin L1 / L2 | Décompte formel ; **arbitrage** (module alt., custom, expander/partage bus, réduction périmètre, optim. logicielle) | à évaluer | à décider en L9 |
-| R2 | Mainteneur | fin L2 | Cartographier accès SPI ; CS dédiés / arbitrage ; SPI module optionnel | à évaluer | à décider en L9 |
+| R1 | Mainteneur | fin L1 / L2 | Décompte formel ; **arbitrage** (module alt., custom, expander/partage bus, réduction périmètre, optim. logicielle) | à évaluer | consolidé en L9 ; accepté/clos en Phase 2 (mesure) |
+| R2 | Mainteneur | fin L2 | Cartographier accès SPI ; CS dédiés / arbitrage ; SPI module optionnel | à évaluer | consolidé en L9 ; accepté/clos en Phase 2 (mesure) |
 | R3 | Mainteneur | fin L5 | Mesurer deep-sleep ; si > cible, **arbitrage** pouvant rouvrir [ADR-0004](../adr/0004-coeur-de-calcul-socket.md) | à évaluer | à décider (structurant) |
 | R4 | Mainteneur | fin L6 | Mesures conso ; veille écran agressive ; cible d'autonomie arbitrée en L6 | à évaluer | à décider en L6/L9 |
-| R5 | Mainteneur | fin L2 | Isolation/commutation bus ; protections ; banc hot-plug (seuils reproductibles) | à évaluer | à décider en L9 |
-| R6 | Mainteneur | fin L3 | Rail d'identification isolé/limité ; comparer ≥ 2 architectures | à évaluer | à décider en L9 |
+| R5 | Mainteneur | fin L2 | Isolation/commutation bus ; protections ; banc hot-plug (seuils reproductibles) | à évaluer | consolidé en L9 ; accepté/clos en Phase 2 (mesure) |
+| R6 | Mainteneur | fin L3 | Rail d'identification isolé/limité ; comparer ≥ 2 architectures | à évaluer | consolidé en L9 ; accepté/clos en Phase 2 (mesure) |
 | R7 | Mainteneur | fin L8 | Chiffrer RAM/flash ; repli sur modèle statique / bundle OTA | à évaluer | à décider en L8/L9 |
-| R8 | Mainteneur | continue | ≥ 2 sources par composant critique ; veille cycle de vie | à évaluer | à décider en L9 |
-| R9 | Mainteneur | fin L1 / L5 | Enveloppe mécanique tôt ; contraintes de forme au dimensionnement | à évaluer | à décider en L9 |
+| R8 | Mainteneur | continue | ≥ 2 sources par composant critique ; veille cycle de vie | à évaluer | consolidé en L9 ; accepté/clos en Phase 2 (mesure) |
+| R9 | Mainteneur | fin L1 / L5 | Enveloppe mécanique tôt ; contraintes de forme au dimensionnement | à évaluer | consolidé en L9 ; accepté/clos en Phase 2 (mesure) |
+
+## Disposition à la clôture documentaire (Lot 9)
+
+Le [Lot 9](lot-9/README.md) **consolide** l'analyse des risques mais **n'en
+accepte ni n'en clôt aucun** : la clôture documentaire ne fournit **aucune
+preuve reproductible**. En conséquence :
+
+- **R1–R9 restent Ouverts / En analyse.** Aucune mitigation n'est **vérifiée**
+  (donc aucun passage en *Mitigé*), aucun risque résiduel n'est **accepté** sur
+  base documentaire.
+- La **disposition** (acceptation, clôture ou mitigation vérifiée) intervient en
+  **Phase 2**, à l'exécution des protocoles associés — voir la
+  [feuille de route des décisions](lot-9/decision-roadmap.md) et la
+  [préparation à la Phase 2](lot-9/phase-2-readiness.md).
+- **R3** (deep-sleep) conserve son statut **structurant** : l'atteinte de son
+  déclencheur peut rouvrir [ADR-0004](../adr/0004-coeur-de-calcul-socket.md).
 
 ## Gouvernance des risques
 
