@@ -92,6 +92,7 @@ nav:
       - "Modèle : rapport de mesure": phase-1/templates/measurement-report-template.md
       - ADR prévisionnelles 0013+: phase-1/adr-plan.md
       - Registre des décisions (DEC-*): phase-1/decisions-register.md
+      - Revue d'architecture L1–L4: phase-1/architecture-review-l1-l4.md
       - "Lot 1 — Exigences & cœur":
           - Vue d'ensemble: phase-1/lot-1/README.md
           - Budget GPIO / bus: phase-1/lot-1/gpio-bus-budget.md
