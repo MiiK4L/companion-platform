@@ -4,7 +4,7 @@
 
 #include "composition/composition_root.h"
 
-void host_composition_build(HostComposition *c, const char *known_ref,
+void host_composition_build(HostComposition *c, AppReference known_ref,
                             void *fake_handle, rt_status_t launch_result) {
   // 1) Initialiser les adaptateurs host (possédés par la composition).
   mock_app_source_init(&c->source, known_ref, fake_handle);

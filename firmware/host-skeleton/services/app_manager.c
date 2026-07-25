@@ -15,10 +15,10 @@ void app_manager_init(AppManager *am, IAppSource source, IRuntime runtime,
   am->log = log;
 }
 
-am_status_t app_manager_launch(AppManager *am, const char *app_ref) {
+am_status_t app_manager_launch(AppManager *am, AppReference reference) {
   AppArtifactView artifact = {0};
 
-  if (am->source.resolve(am->source.self, app_ref, &artifact) != AS_OK) {
+  if (am->source.resolve(am->source.self, reference, &artifact) != AS_OK) {
     am->log.log(am->log.self, LOG_WARN, "app_manager: source resolve failed");
     return AM_ERR_SOURCE;
   }

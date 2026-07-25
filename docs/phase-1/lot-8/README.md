@@ -43,7 +43,7 @@ Sous `firmware/host-skeleton/` (Apache-2.0) : **interfaces de ports**, **modèle
 | Élément | Fichiers |
 |---------|----------|
 | Ports (interfaces C **candidates**) | `ports/{iclock,istorage,ibus,idisplay,iinput,ipower,ilog,iappsource,iruntime}.h` |
-| Modèles (vue **opaque**, neutre) | `models/app_artifact_view.h` |
+| Modèles (référence + vue **opaques**, neutres) | `models/app_reference.h`, `models/app_artifact_view.h` |
 | Service (délégation pure) | `services/app_manager.{h,c}` — dépend **des ports uniquement**, aucun modèle de chargement |
 | Adaptateurs host (mocks/bouchon) | `adapters/host/{fake_runtime,mock_app_source,mock_log}.{h,c}` |
 | Composition root | `composition/composition_root.{h,c}` |

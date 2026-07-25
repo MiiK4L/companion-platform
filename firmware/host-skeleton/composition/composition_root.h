@@ -22,9 +22,10 @@ typedef struct HostComposition {
 } HostComposition;
 
 // Construit la composition : initialise les mocks/bouchons puis injecte leurs
-// ports dans l'AppManager. La durée de vie de `c` doit couvrir tout usage de
-// `c->app_manager`.
-void host_composition_build(HostComposition *c, const char *known_ref,
+// ports dans l'AppManager. `known_ref` est une référence OPAQUE empruntée : ses
+// octets doivent rester valides tant que `c` est utilisée. La durée de vie de
+// `c` doit couvrir tout usage de `c->app_manager`.
+void host_composition_build(HostComposition *c, AppReference known_ref,
                             void *fake_handle, rt_status_t launch_result);
 
 #endif  // COMPANION_COMPOSITION_ROOT_H

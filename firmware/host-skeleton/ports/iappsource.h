@@ -10,6 +10,7 @@
 #define COMPANION_PORTS_IAPPSOURCE_H
 
 #include "models/app_artifact_view.h"
+#include "models/app_reference.h"
 
 typedef enum {
   AS_OK = 0,
@@ -18,9 +19,11 @@ typedef enum {
 
 typedef struct IAppSource {
   void *self;
-  // Résout `app_ref` en une vue opaque `out`. Le service ne connaît QUE cette
-  // interface (pas la manière dont la source obtient l'artefact).
-  as_status_t (*resolve)(void *self, const char *app_ref, AppArtifactView *out);
+  // Résout la référence OPAQUE `reference` en une vue opaque `out`. Le service
+  // ne connaît QUE cette interface (ni le format de la référence, ni la manière
+  // dont la source obtient l'artefact). `reference` est EMPRUNTÉE : ses octets
+  // ne doivent être supposés valides que pendant l'appel.
+  as_status_t (*resolve)(void *self, AppReference reference, AppArtifactView *out);
 } IAppSource;
 
 #endif  // COMPANION_PORTS_IAPPSOURCE_H

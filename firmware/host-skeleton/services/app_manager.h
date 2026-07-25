@@ -32,8 +32,9 @@ typedef struct AppManager {
 void app_manager_init(AppManager *am, IAppSource source, IRuntime runtime,
                       ILog log);
 
-// Délégation pure : résout la référence via la source (vue opaque), puis délègue
-// le lancement au runtime. AUCUNE lecture/interprétation d'octets ici.
-am_status_t app_manager_launch(AppManager *am, const char *app_ref);
+// Délégation pure : résout la référence OPAQUE via la source (vue opaque), puis
+// délègue le lancement au runtime. AUCUNE lecture/interprétation d'octets ici —
+// `reference` traverse le service sans être inspectée.
+am_status_t app_manager_launch(AppManager *am, AppReference reference);
 
 #endif  // COMPANION_SERVICES_APP_MANAGER_H

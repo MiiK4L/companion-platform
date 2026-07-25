@@ -40,10 +40,19 @@ typedef struct IRuntime {
 | **`IAppSource`** | **résolution d'une réf. d'app → vue opaque** (distribution = `DEC-L8-002`) | `ports/iappsource.h` |
 | **`IRuntime`** | **moteur scripté abstrait** (choix = `DEC-L8-001`) | `ports/iruntime.h` |
 
-> **`IAppSource`** et **`AppArtifactView`** (modèle opaque) permettent à
-> l'`AppManager` de **déléguer** sans présumer du stockage, de l'adressage
-> (nom/hash), du streaming ou du chargement — ces choix restent des
-> **adaptateurs** ou des décisions futures (`DEC-L8-002`).
+> **`IAppSource`** consomme une **`AppReference`** opaque (`{ const void *data;
+> size_t size; }` — jamais typée `const char *`, pour ne rien présumer :
+> nom, chemin, hash ou UUID binaire) et produit une **`AppArtifactView`** opaque.
+> L'`AppManager` **délègue** ainsi sans présumer du stockage, de l'adressage, du
+> streaming ou du chargement — ces choix restent des **adaptateurs** ou des
+> décisions futures (`DEC-L8-002`). Signature candidate :
+>
+> ```c
+> as_status_t (*resolve)(void *self, AppReference reference, AppArtifactView *out);
+> ```
+>
+> Référence et vue sont **empruntées** (valides pendant l'appel, aucune rétention,
+> aucun transfert de propriété — cf. [règles d'injection](dependency-injection-rules.md)).
 
 > **`ILog`** est un port à part entière (ajouté à ce lot) : les services
 > journalisent **via le port**, jamais via un backend concret.

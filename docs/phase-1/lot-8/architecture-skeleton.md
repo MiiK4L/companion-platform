@@ -47,7 +47,7 @@ SPDX-License-Identifier: CC-BY-4.0
 | Rôle | Matérialisation | Fichiers |
 |------|-----------------|----------|
 | **Ports** | interfaces abstraites | `ports/*.h` |
-| **Modèles** | vue **opaque** neutre | `models/app_artifact_view.h` |
+| **Modèles** | référence + vue **opaques** neutres | `models/app_reference.h`, `models/app_artifact_view.h` |
 | **Services** | orchestration (câblage minimal) | `services/app_manager.{h,c}` |
 | **Adaptateurs host** | mocks/bouchons | `adapters/host/*.{h,c}` |
 | **Adaptateurs cible ESP-IDF** | *(hors périmètre — spécifiés, non écrits)* | — |
