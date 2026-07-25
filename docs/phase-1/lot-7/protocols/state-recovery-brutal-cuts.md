@@ -34,7 +34,7 @@ support (NVS/LittleFS…) × modèle de cohérence (journal/A-B/checkpoint…) t
 | Corruption non détectée | **0** | **[P]** |
 | Reprise à un état cohérent | 100 % sur **`[BL]`** coupures | **[P]/[BL]** |
 | MAJ interrompue distinguée de corruption | 100 % | **[P]** |
-| Heure fausse marquée « valide » | **0** | **[P]** |
+| Heure fausse exposée comme « heure valide » (au lieu d'« heure inconnue ») | **0** | **[P]** |
 
 > Le plan évoque **100 coupures / 0 corruption** ; le **nombre** est `[BL]`.
 

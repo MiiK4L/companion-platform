@@ -17,15 +17,16 @@ SPDX-License-Identifier: CC-BY-4.0
 | **Dérive** | écart d'horloge vs **référence de temps** sur une durée | comparaison à une référence (GPS/atomic/labo) | ≤ **[BL]** ppm |
 | **Consommation base de temps** | courant du RTC (+ sauvegarde) | µA/nA-mètre | ≤ **[BL]** |
 | **Erreur de Δt au réveil** | écart entre Δt réel et Δt calculé après deep-sleep | référence + horodatage | 0 sur `[BL]` cycles |
-| **Heure invalide non signalée** | heure présentée comme « valide » alors qu'inconnue/fausse | état de validité firmware | **0** (interdit) |
+| **Heure inconnue non signalée** | heure exposée comme « heure valide » alors qu'elle est « heure inconnue » / fausse | état de validité firmware (**valide / inconnue**) | **0** (interdit) |
 | **Corruption non détectée (persistance)** | état restauré incohérent sans détection | checksum/génération | **0** |
 | **Reprise après coupure brutale** | retour à un état cohérent après power-off non contrôlé | vérification checksum + état | 100 % |
 
 ## Notes
 
-- **Heure fausse marquée « valide »** = **échec** absolu : le firmware doit exposer
-  **inconnue/resynchronisée** plutôt que fabriquer une heure (cf.
-  [validité](../timebase-comparison.md)).
+- **Heure fausse marquée « heure valide »** = **échec** absolu : le firmware
+  n'expose que **deux états** — **heure valide / heure inconnue** — et **ne fabrique
+  jamais** une heure (cf. [validité](../timebase-comparison.md)). La
+  **resynchronisation** est un **événement** (met à jour la **provenance**), pas un état.
 - **Distinguer** coupure d'écriture (récupérable) et **corruption** permanente
   (marqueur/génération, cf. [persistance](../persistence-comparison.md)).
 - Corrélation : chaque événement horodaté, rattaché au DUT + config + commit

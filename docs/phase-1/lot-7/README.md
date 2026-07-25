@@ -26,14 +26,18 @@ SPDX-License-Identifier: CC-BY-4.0
 
 ## Distinctions structurantes (deux axes par décision)
 
-- **`DEC-L7-001`** : **source de temps ≠ validité de l'heure.** Choisir un RTC
-  **ne garantit pas** qu'une heure soit **fiable après une perte d'alimentation** :
-  la **validité** (valide / inconnue / resynchronisée) est un **axe distinct** de la
-  **source** (voir [base de temps](timebase-comparison.md)).
-- **`DEC-L7-002`** : **support de persistance ≠ modèle de cohérence.** NVS/LittleFS
-  (**support**) et écriture immédiate/différée/journal/transaction/A-B/checkpoint
-  (**modèle de cohérence**) sont **deux axes distincts**, comparés **séparément**
-  (voir [persistance](persistence-comparison.md)).
+- **`DEC-L7-001`** : **source de temps ≠ validité ≠ provenance.** Choisir un RTC
+  **ne garantit pas** une heure **fiable après une perte d'alimentation**. Trois
+  choses distinctes : la **source** (RTC interne/externe/TCXO) ; l'**état de
+  validité** (**heure valide / heure inconnue** — deux valeurs) ; la **provenance /
+  niveau de confiance** (RTC conservé, resync USB, source externe, utilisateur…).
+  **« resynchronisée » est un ÉVÉNEMENT**, pas un état (voir
+  [base de temps](timebase-comparison.md)).
+- **`DEC-L7-002`** : **support ≠ modèle de cohérence ≠ politique d'écriture.** Le
+  **support** (NVS/LittleFS, *où*), le **modèle de cohérence** (journal/transaction/
+  A-B/checkpoint/checksum, *comment*) et la **politique d'écriture** (immédiate/
+  différée/à l'événement/périodique/au repos, *quand*) sont **trois axes distincts**,
+  comparés **séparément** (voir [persistance](persistence-comparison.md)).
 
 ## Frontières avec les décisions déjà ouvertes
 
@@ -53,9 +57,9 @@ SPDX-License-Identifier: CC-BY-4.0
 
 | Livrable | Décision | Contenu |
 |----------|----------|---------|
-| [Base de temps](timebase-comparison.md) | L7-001 | Source (interne/externe/TCXO) **et** validité de l'heure ; réveil = critère |
-| [Stratégie de resynchronisation](resync-strategy.md) | L7-001 | jamais / USB / périodique / source externe |
-| [Persistance](persistence-comparison.md) | L7-002 | **support** vs **modèle de cohérence** (deux axes) |
+| [Base de temps](timebase-comparison.md) | L7-001 | Source (interne/externe/TCXO), **validité** (valide/inconnue), **provenance** ; réveil = critère |
+| [Stratégie de resynchronisation](resync-strategy.md) | L7-001 | **déclencheurs** × **politique** (deux dimensions) |
+| [Persistance](persistence-comparison.md) | L7-002 | **support** × **cohérence** × **politique d'écriture** (trois axes) |
 | [Composants candidats](candidate-components.md) | L7-001 | Séries sourcées illustratives (PCF8563 / RV-3028-C7 / DS3231 / interne) |
 | [Protocoles](protocols/README.md) | tous | Typés (Brouillon, `[BL]`) : dérive, conso RTC, Δt/cycles, reprise sur coupures |
 
@@ -67,7 +71,8 @@ SPDX-License-Identifier: CC-BY-4.0
 
 ## Critères de sortie
 
-- **2 décisions ouvertes** ; **source ≠ validité** et **support ≠ cohérence**
-  explicitement distingués.
+- **2 décisions ouvertes** ; distinctions explicites : **source ≠ validité ≠
+  provenance** · **déclencheurs ≠ politique** (resync) · **support ≠ cohérence ≠
+  politique d'écriture**.
 - Base de temps, resynchronisation et persistance comparées ; **aucun gagnant**.
 - Frontières L1/L6/L8 respectées ; protocoles typés en Brouillon (`[BL]`).

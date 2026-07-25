@@ -30,7 +30,7 @@ Cycles deep-sleep → réveil (alarme RTC / timer / mouvement selon architecture
 | Grandeur | Seuil | Étiquette |
 |----------|-------|-----------|
 | Erreur de Δt | 0 sur **`[BL]`** cycles | **[BL]** |
-| Perte de validité au réveil | 0 (état correct exposé) | **[P]** |
+| État de validité au réveil (**heure valide / heure inconnue**) exposé correctement | 100 % | **[P]** |
 
 > Le plan évoque **100 cycles / erreur 0** ; le **nombre exact** est `[BL]`
 > (baselining).

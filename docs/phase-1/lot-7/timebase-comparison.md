@@ -34,21 +34,36 @@ SPDX-License-Identifier: CC-BY-4.0
 > capacités matérielles : RTC, GPIO, accéléromètre, timer, USB), **pas** une famille
 > de comparaison indépendante.
 
-## Axe 2 — Validité de l'heure (distinct de la source)
+## Axe 2 — Validité de l'heure (ÉTAT : **valide / inconnue**)
 
 > **Choisir un RTC ne garantit pas qu'une heure soit fiable après une perte
-> d'alimentation.** La **validité** est un **état** géré par le firmware, orthogonal
-> à la source.
+> d'alimentation.** La **validité** est un **état** (à **deux valeurs**) géré par le
+> firmware, orthogonal à la source.
 
 | État | Signification | Conséquence |
 |------|---------------|-------------|
-| **Valide** | heure tenue (sauvegarde ok) ou resynchronisée récemment | utilisable |
-| **Inconnue** | 1er démarrage, sauvegarde perdue, RTC jamais réglé | **ne pas présenter d'heure fausse** ; marquer « inconnue » |
-| **Resynchronisée** | corrigée via une [stratégie de resync](resync-strategy.md) | validité restaurée + tracée |
+| **heure valide** | heure fiable (source tenue **ou** resynchronisée) | utilisable |
+| **heure inconnue** | 1ᵉʳ démarrage, sauvegarde perdue, RTC jamais réglé | **ne jamais présenter d'heure fausse** ; exposer « inconnue » |
 
-- Le firmware **expose l'état de validité** (valide/inconnue/resynchronisée) et ne
-  **fabrique jamais** une heure « plausible ».
-- La **transition** inconnue → valide passe par une **resynchronisation** (voir doc dédiée).
+> **« resynchronisée » n'est PAS un état** : c'est un **événement** (transition
+> `inconnue → valide`, ou mise à jour d'une heure valide) qui **met à jour la
+> provenance** (axe 3). Le firmware **n'expose que deux états** (valide / inconnue)
+> et ne **fabrique jamais** une heure « plausible ».
+
+## Axe 3 — Provenance / niveau de confiance de l'heure (distinct de l'état)
+
+Quand l'heure est **valide**, sa **provenance** (comment elle a été obtenue)
+qualifie le **niveau de confiance** — dimension **distincte** de l'état :
+
+| Provenance | Niveau de confiance (indicatif) |
+|------------|---------------------------------|
+| **RTC conservé** (sauvegarde/switchover) | selon dérive de la source |
+| **Resync USB** (hôte/réseau) | élevé au moment de la resync |
+| **Source externe** (réseau, GNSS, module) | élevé |
+| **Saisie utilisateur** | selon l'utilisateur |
+
+> La **provenance** est **horodatée et tracée** ; elle est **mise à jour par un
+> événement de resynchronisation** ([politique de resync](resync-strategy.md)).
 
 ## Alimente
 

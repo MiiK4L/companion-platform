@@ -100,14 +100,15 @@ ADR-XXXX** (une ADR a été créée) · **Abandonné** (question retirée, avec 
 
 | `DEC-*` | Question | Options ouvertes | Validation principale | ADR (prévue) | Statut |
 |---------|----------|------------------|-----------------------|--------------|--------|
-| **DEC-L7-001** | Base de temps : **source** (RTC interne/externe/TCXO) **et validité de l'heure** (valide/inconnue/resynchronisée), sauvegarde, réveil (critère), resync | RTC interne+resync · RTC I²C standard · TCXO ; resync jamais/USB/périodique/externe | **L7** (banc : dérive, conso, Δt) | 0021 | **Ouvert** — comparaison documentaire (L7) |
-| **DEC-L7-002** | Modèle de persistance : **support** (NVS/LittleFS…) **et modèle de cohérence** (immédiate/différée/journal/transaction/A-B/checkpoint), reprise après coupure, politique d'écriture | supports × modèles (axes distincts) | **L7** (banc : reprise sur coupures brutales) | **future — n° à la création** | **Ouvert** — comparaison documentaire (L7) |
+| **DEC-L7-001** | Base de temps : **source** (RTC interne/externe/TCXO), **validité de l'heure** (**valide / inconnue**), **provenance/confiance**, sauvegarde, réveil (critère), resync (**déclencheurs × politique**) | RTC interne+resync · RTC I²C standard · TCXO | **L7** (banc : dérive, conso, Δt) | 0021 | **Ouvert** — comparaison documentaire (L7) |
+| **DEC-L7-002** | Modèle de persistance : **support** (NVS/LittleFS…), **modèle de cohérence** (journal/transaction/A-B/checkpoint/checksum) **et politique d'écriture** (immédiate/différée/à l'événement/périodique/au repos) — **trois axes distincts** | supports × cohérence × politique d'écriture | **L7** (banc : reprise sur coupures brutales) | **future — n° à la création** | **Ouvert** — comparaison documentaire (L7) |
 
-> **Deux axes par décision** : `DEC-L7-001` sépare **source de temps** et
-> **validité de l'heure** (un RTC ne garantit pas une heure fiable après perte
-> d'alim) ; `DEC-L7-002` sépare **support** et **modèle de cohérence**. **Frontières** :
-> budget IRQ réveil = `DEC-L1-001` ; conso = budget L6 ; abstraction horloge/stockage
-> = L8. **Aucune techno retenue, aucun MPN, aucune ADR ; seuils `[BL]`.**
+> **Axes distincts** : `DEC-L7-001` sépare **source** / **validité** (valide ou
+> inconnue ; « resynchronisée » = **événement**, pas un état) / **provenance** ;
+> resync = **déclencheurs × politique**. `DEC-L7-002` sépare **support** /
+> **cohérence** / **politique d'écriture**. **Frontières** : budget IRQ réveil =
+> `DEC-L1-001` ; conso = budget L6 ; abstraction horloge/stockage = L8. **Aucune
+> techno retenue, aucun MPN, aucune ADR ; seuils `[BL]`.**
 
 > Les identifiants `DEC-*` des lots suivants seront ajoutés ici à l'ouverture de
 > chaque lot (une PR par lot).

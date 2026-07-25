@@ -6,10 +6,11 @@ SPDX-License-Identifier: CC-BY-4.0
 
 # Lot 7 — Modèle de persistance (*Proposé*, `DEC-L7-002`)
 
-> **Statut : Ouvert / Proposé.** **Deux axes d'architecture distincts** : le
-> **support de persistance** et le **modèle de cohérence** — comparés
-> **séparément** (à ne pas mélanger). Stocke **heure + état**. Valeurs `[DS]/[H]/[BL]` ;
-> **aucune `[M]`**. → **ADR future non réservée**.
+> **Statut : Ouvert / Proposé.** **Trois axes d'architecture distincts** : le
+> **support de persistance** (*où*), le **modèle de cohérence** (*comment*) et la
+> **politique d'écriture** (*quand*) — comparés **séparément** (à ne pas mélanger).
+> Stocke **heure + état**. Valeurs `[DS]/[H]/[BL]` ; **aucune `[M]`**. → **ADR future
+> non réservée**.
 
 ## Axe 1 — Support de persistance
 
@@ -19,20 +20,30 @@ SPDX-License-Identifier: CC-BY-4.0
 | **(P2) LittleFS** (système de fichiers) | FS à **wear-leveling**, résistant aux coupures | fichiers ; plus riche |
 | **(P3) Secteur brut / EEPROM externe** | écriture directe d'une zone | contrôle fin ; à gérer soi-même |
 
-## Axe 2 — Modèle de cohérence (orthogonal au support)
+## Axe 2 — Modèle de cohérence (**comment** garantir l'intégrité, orthogonal au support)
 
 | Modèle | Principe | Robustesse coupure |
 |--------|----------|--------------------|
-| **(M1) Écriture immédiate** | écrit à chaque changement | simple ; usure flash ↑ |
-| **(M2) Écriture différée** | regroupe/écrit périodiquement | perte des derniers changements possible |
-| **(M3) Journal (log)** | append-only + rejeu au boot | reprise après coupure |
-| **(M4) Transaction** | tout-ou-rien (commit) | forte cohérence |
-| **(M5) Double copie A/B** | bascule atomique entre 2 copies | retour à la dernière valide |
-| **(M6) Checkpoint** | instantanés périodiques + delta | compromis taille/fréquence |
+| **(M1) Journal (log)** | append-only + rejeu au boot | reprise après coupure |
+| **(M2) Transaction** | tout-ou-rien (commit) | forte cohérence |
+| **(M3) Double copie A/B** | bascule atomique entre 2 copies | retour à la dernière valide |
+| **(M4) Checkpoint** | instantanés périodiques + delta | compromis taille/fréquence |
+| **(M5) Checksum / génération** | détection de corruption / MAJ interrompue | détection, pas correction seule |
 
-> Le **support** (axe 1) et le **modèle de cohérence** (axe 2) sont **indépendants** :
-> un même support (ex. LittleFS) peut porter **plusieurs** modèles (journal, A/B,
-> checkpoint). La comparaison les traite **séparément**.
+## Axe 3 — Politique d'écriture (**quand** décider d'écrire, indépendant des axes 1 et 2)
+
+| Politique | Principe | Vigilance |
+|-----------|----------|-----------|
+| **(W1) Immédiate** | écrit à chaque changement | usure flash ↑ |
+| **(W2) Différée / groupée** | regroupe puis écrit | perte des derniers changements possible |
+| **(W3) À l'événement** | écrit sur événements clés (arrêt, veille…) | dépend de la détection d'événement |
+| **(W4) Périodique** | écrit à intervalle | compromis usure/fraîcheur |
+| **(W5) Au repos** | écrit quand le système est inactif | latence de persistance |
+
+> **Trois axes indépendants** : le **support** (axe 1, *où*), le **modèle de
+> cohérence** (axe 2, *comment*) et la **politique d'écriture** (axe 3, *quand*) se
+> combinent librement (ex. LittleFS + journal + écriture différée). La comparaison
+> les traite **séparément** — **à ne pas mélanger**.
 
 ## Reprise après coupure brutale (exigence transverse)
 
@@ -41,7 +52,7 @@ SPDX-License-Identifier: CC-BY-4.0
 | Détection d'écriture interrompue | distinguer coupure vs corruption (checksum/génération) | **[H]** |
 | Retour à un état cohérent | dernière copie/transaction valide | **[BL]** |
 | Intégrité (checksum) | 0 corruption non détectée | **[P]/[BL]** |
-| Politique d'écriture | fréquence vs usure flash vs perte tolérée | **[BL]** |
+| Compromis politique d'écriture (axe 3) | fréquence vs usure flash vs perte tolérée | **[BL]** |
 
 ## Stockage de l'heure
 

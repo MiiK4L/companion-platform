@@ -10,14 +10,31 @@ SPDX-License-Identifier: CC-BY-4.0
 > lui-même : **quand** et **comment** corriger l'heure. Valeurs `[H]/[BL]` ;
 > **aucune `[M]`**.
 
-## Approches comparées
+## Deux dimensions distinctes : déclencheurs vs politique
 
-| Approche | Principe | Vigilance |
-|----------|----------|-----------|
-| **(S0) Jamais** | on fait confiance à la source (RTC précis + sauvegarde) | dérive cumulée non corrigée ; validité perdue si sauvegarde échoue |
-| **(S1) Au branchement USB** | resync à chaque connexion filaire (hôte/temps réseau) | dépend de la fréquence des branchements |
-| **(S2) Périodique** | resync à intervalle défini si une source est disponible | coût énergie/complexité |
-| **(S3) Source externe** | via une source de temps (réseau, module, GNSS…) | dépend de la disponibilité de la source |
+La resynchronisation combine **deux dimensions indépendantes** :
+
+### Dimension A — **Déclencheurs** (quel événement peut lancer une resync)
+
+| Déclencheur | Principe |
+|-------------|----------|
+| **USB branché** | connexion filaire (hôte / temps réseau) disponible |
+| **Temps écoulé** | seuil de temps depuis la dernière resync atteint |
+| **Utilisateur** | réglage manuel |
+| **Source disponible** | une source externe (réseau, module, GNSS…) devient accessible |
+
+### Dimension B — **Politique** (règle décidant quand appliquer une resync)
+
+| Politique | Principe | Vigilance |
+|-----------|----------|-----------|
+| **Jamais** | on fait confiance à la source (RTC + sauvegarde) | dérive non corrigée ; validité perdue si sauvegarde échoue |
+| **À chaque alimentation** | resync au démarrage/branchement | dépend de la présence d'un déclencheur |
+| **Périodique** | resync à intervalle défini | coût énergie/complexité |
+| **Opportuniste** | resync **si** un déclencheur est disponible, sans forcer | robuste, non déterministe |
+
+> **Déclencheur ≠ politique** : un même déclencheur (USB branché) peut être exploité
+> par des politiques différentes (à chaque alimentation, ou opportuniste). La
+> comparaison croise **A × B**.
 
 ## Lien avec la validité de l'heure
 
