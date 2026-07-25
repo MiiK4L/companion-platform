@@ -1,0 +1,90 @@
+<!--
+SPDX-FileCopyrightText: 2026 Companion Platform contributors
+
+SPDX-License-Identifier: CC-BY-4.0
+-->
+
+# Lot 8 — Rôles & squelette (preuve d'architecture)
+
+> **Statut : Ouvert / Proposé.** Matérialise les **rôles** de l'architecture
+> actée en code host. Le **nommage des dossiers est une conséquence**, pas un
+> préalable ; **`HAL` ne redevient pas le centre**. Code : `firmware/host-skeleton/`.
+
+## Schéma d'architecture (ports / adaptateurs / services / composition root)
+
+```
+                         ┌──────────────────────────────┐
+                         │      Composition root        │  connaît le concret ;
+                         │  (host : mocks / cible : IDF) │  possède les adaptateurs
+                         └───────────────┬──────────────┘
+                       injecte les ports │ (construit + câble)
+                                         ▼
+                         ┌──────────────────────────────┐
+                         │        Services              │  AppManager…
+                         │  (dépendent des PORTS seuls) │  aucune logique métier
+                         └───────────────┬──────────────┘
+                        appelle via port │
+              ┌──────────────────────────┼──────────────────────────┐
+              ▼                          ▼                          ▼
+      ┌───────────────┐         ┌───────────────┐          ┌───────────────┐
+      │ Port IAppSource│        │  Port IRuntime│          │   Port ILog   │   (+ IClock,
+      │  (interface)  │         │  (interface)  │          │  (interface)  │    IStorage, IBus,
+      └───────▲───────┘         └───────▲───────┘          └───────▲───────┘    IDisplay, IInput,
+              │ implémente              │ implémente               │ implémente  IPower)
+      ┌───────┴───────┐         ┌───────┴───────┐          ┌───────┴───────┐
+      │ MockAppSource │         │  FakeRuntime  │          │    MockLog    │   Adaptateurs host
+      │  (adaptateur) │         │  (bouchon)    │          │  (adaptateur) │   (cible ESP-IDF =
+      └───────────────┘         └───────────────┘          └───────────────┘   hors périmètre)
+```
+
+- Sens des flèches « dépend de / fournit » : **services → ports ← adaptateurs**.
+- La **composition root** est le **seul** nœud qui connaît les implémentations
+  concrètes ; changer un adaptateur (ex. `FakeRuntime` → moteur réel) **n'affecte
+  ni les ports ni les services**.
+
+## Rôles matérialisés → fichiers
+
+| Rôle | Matérialisation | Fichiers |
+|------|-----------------|----------|
+| **Ports** | interfaces abstraites | `ports/*.h` |
+| **Modèles** | référence + vue **opaques** neutres | `models/app_reference.h`, `models/app_artifact_view.h` |
+| **Services** | orchestration (câblage minimal) | `services/app_manager.{h,c}` |
+| **Adaptateurs host** | mocks/bouchons | `adapters/host/*.{h,c}` |
+| **Adaptateurs cible ESP-IDF** | *(hors périmètre — spécifiés, non écrits)* | — |
+| **Composition root** | câblage host | `composition/composition_root.{h,c}` |
+| **Companion SDK (façade)** | *(structure existante `firmware/companion-sdk/`)* | — |
+
+> Les **drivers** sont des **détails internes des adaptateurs cible** : ils
+> n'apparaissent **pas** dans les ports/services/SDK (vérifié).
+
+## Démonstration (test host)
+
+Le test host prouve, **sans moteur réel** et **sans modèle de chargement imposé** :
+
+1. `AppManager` **résout** une référence via le **port `IAppSource`** → **vue
+   opaque** (le service **n'inspecte pas** l'artefact) ;
+2. **délègue** le lancement au **port `IRuntime`** (**`FakeRuntime`**, bouchon) —
+   **aucun cycle `load→run` imposé**, un seul appel `launch(vue)` ;
+3. journalise via le **port `ILog`** (mock) ;
+4. l'`AppManager` **ne référence aucune** implémentation Lua/WAMR ni aucun
+   stockage/format : **délégation pure** (pas de tampon, pas de taille, pas
+   d'adressage).
+
+```
+HostComposition (possède mocks) ──▶ AppManager ──▶ IAppSource / IRuntime / ILog
+                                          (ne connaît que les ports)
+```
+
+Un **changement de runtime** (Lua ↔ WAMR ↔ FakeRuntime) **ne touche pas**
+`AppManager` : seule la composition root change (démontré par
+`test_runtime_swappable`).
+
+## Vérifications (CI)
+
+- **Build host** (CMake) + **tests host** (`ctest`) verts — `host-tests.yml`.
+- **Graphe de dépendances** : `tools/check_arch_deps.sh` (0 include interdit).
+
+## Alimente
+
+- Preuve que l'architecture actée est **implémentable/testable** ; base de la
+  composition **cible** (ultérieure). **Aucune signature figée.**
