@@ -44,8 +44,9 @@ un modèle « ADR créée en Proposé avant les essais » :
 | 0017 | DEC-L4-001 | **Matériel d'affichage** (dalle, contrôleur, **interface physique**, format/résolution, contraintes mémoire imposées) | L4 | famille/contrôleur conforme + **familles comparées** + conso/FPS compatibles + justification par preuves et compromis |
 | *(n° à attribuer à la création)* | DEC-L4-002 | **Moteur graphique** (architecture de rendu, **stratégie mémoire/buffers**, budget exploité, pipeline) | L4 | budget du **moteur candidat** + FPS mesurés dans le budget + alternatives comparées ; **indépendant** de la dalle (via capacités exposées) |
 | 0018 | DEC-L5-001 | **Stratégie de socketage/support** du cœur remplaçable (mécanique + électrique) | L5 | contact/endurance/vibration/épaisseur mesurés + **familles comparées** + choix justifié (preuves/compromis) |
-| 0019 | DEC-L6-001 | Chaîne d'alimentation (charge/power-path/régulation/load switch + **jauge**) | L6 | chaîne mesurée ; jauge validée (< ±5 %) ou décision ADC |
-| 0020 | DEC-L6-002 | **Batterie + cible d'autonomie & budget énergétique** | L6 | budget énergie mesuré ; cible d'autonomie provisoire justifiée |
+| 0019 | DEC-L6-001 | **Architecture d'alimentation du Host** (charge/power-path/**régulation**/protections/domaines) | L6 | chaîne mesurée + **architectures comparées** + choix justifié (preuves/compromis) ; power-gating module = `DEC-L2-003` |
+| 0020 | DEC-L6-002 | **Architectures de stockage d'énergie** (chimie = propriété) + cible d'autonomie & budget | L6 | budget énergie mesuré + **architectures/chimies comparées** + cible d'autonomie provisoire justifiée |
+| *(n° à attribuer à la création)* | DEC-L6-003 | **Stratégie d'estimation de l'état de batterie** (ADC / jauge dédiée / hybride) | L6 | précision vs référence coulomb + approches comparées + choix justifié |
 | 0021 | DEC-L7-001 | **RTC & base de temps** + persistance | L7 | dérive/conso/Δt/reprise d'état aux seuils |
 | 0022 | DEC-L8-001 | **Runtime scripté et modèle de distribution des applications** | L8 | budget du **runtime scripté candidat** chiffré ; faisabilité (ou limites) d'installation dynamique démontrée |
 
@@ -54,8 +55,10 @@ un modèle « ADR créée en Proposé avant les essais » :
 révisable** (hors ADR de connecteur) ; les **rails exposés / `VBAT`** forment une
 **décision séparée** (`DEC-L2-003`), dont l'**ADR n'a pas de numéro réservé** —
 il sera **attribué à sa création** pour éviter toute collision (l'ordre actuel est
-**purement prévisionnel**). Alimentation + jauge ensemble (0019) ; batterie +
-autonomie ensemble (0020). Le numérotage exact et d'éventuels regroupements
+**purement prévisionnel**). Architecture d'alimentation Host (0019, **régulation
+incluse**) ; **estimation d'état de batterie = décision séparée** (`DEC-L6-003`,
+ADR future non réservée) ; stockage d'énergie + autonomie ensemble (0020). Le
+numérotage exact et d'éventuels regroupements
 supplémentaires seront arrêtés à la création, dans la PR du lot.
 
 ## Ce qui reste hors périmètre de ces ADR (Phase 1)

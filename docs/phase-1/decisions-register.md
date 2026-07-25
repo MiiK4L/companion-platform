@@ -82,5 +82,19 @@ ADR-XXXX** (une ADR a été créée) · **Abandonné** (question retirée, avec 
 > puissance/autonomie (cf. [mesure deep-sleep](lot-5/deep-sleep-measurement.md)).
 > **Aucun support retenu, aucun MPN, aucune ADR.**
 
+## Lot 6 — Énergie : alimentation, stockage & estimation d'état
+
+| `DEC-*` | Question | Options ouvertes | Validation principale | ADR (prévue) | Statut |
+|---------|----------|------------------|-----------------------|--------------|--------|
+| **DEC-L6-001** | Architecture d'alimentation du Host (charge, power-path, **régulation**, protections, domaines) | charge simple/power-path/PMIC · LDO/buck/buck-boost/multi-rails | **L6** (banc : conso, charge/ΔT, fuite) | 0019 | **Ouvert** — comparaison documentaire (L6) |
+| **DEC-L6-002** | Architectures de **stockage d'énergie** (chimie = **propriété**) + budget & cible d'autonomie | mono/multi-cellule · protection intégrée · format ; LiPo/Li-Ion/LiFePO4 (propriété) | **L6** (banc : décharge réelle, capacité) | 0020 | **Ouvert** — comparaison documentaire (L6) |
+| **DEC-L6-003** | **Stratégie d'estimation de l'état de batterie** (ADC / jauge dédiée / hybride) | ADC seul · jauge modèle · jauge coulomb · hybride | **L6** (banc : précision vs coulomb) | **future — n° à la création** | **Ouvert** — comparaison documentaire (L6) |
+
+> **Frontière** : le **power-gating module / rails exposés / `VBAT`** relève de
+> **`DEC-L2-003`** (non rouvert, non dupliqué). Le **deep-sleep** (R3, L5) et la
+> **conso écran** (L4) sont des **entrées** du budget. La **régulation** est une
+> **sous-fonction** de `DEC-L6-001` (pas une DEC séparée). **Aucune techno retenue,
+> aucun MPN, aucune ADR ; seuils (précision, fuite, ΔT, autonomie) `[BL]`.**
+
 > Les identifiants `DEC-*` des lots suivants seront ajoutés ici à l'ouverture de
 > chaque lot (une PR par lot).
