@@ -17,6 +17,8 @@ SPDX-License-Identifier: CC-BY-4.0
 >   expérimental), pas de ce checkpoint documentaire.
 > - Les **interfaces** (brochage, signatures de ports) sont **candidates et
 >   révisables**.
+> - **Ce document consolide l'état documentaire du projet. Il ne constitue pas une
+>   spécification contractuelle, ni une architecture figée.**
 >
 > Ce document **rassemble** l'acquis stable (architecture actée) et les
 > contraintes encore ouvertes, pour offrir une **vue d'ensemble** — sans rien
