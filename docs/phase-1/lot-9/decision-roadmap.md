@@ -35,6 +35,32 @@ fois L1 clos et un banc d'alimentation de base disponible.
 | **3 — Convergence énergie** | `DEC-L6-001`, `DEC-L6-002`, `DEC-L6-003` | Le budget énergie **agrège** deep-sleep (L5), conso écran (L4) et conso RTC (L7). |
 | **4 — Décision tardive & structurante** | `DEC-L1-002` | Le choix du cœur dépend de RAM/écran (L4) et deep-sleep/socket (L5) ; peut **rouvrir [ADR-0004](../../adr/0004-coeur-de-calcul-socket.md)**. |
 
+### Chemin critique & parallélisme
+
+**Chemin critique** (la plus longue chaîne de dépendances, à sécuriser en
+priorité) : **L1 → L2 → L6 → arbitrage du cœur (`DEC-L1-002`)**. Tout retard sur
+ce chemin retarde la clôture des campagnes.
+
+```text
+L1 (préalable — DEC-L1-001)
+ ├──► L2 ─┬──► L3            (identification : après isolation/rail d'ID de L2)
+ │        └──► (contention SPI partagée ↔ L4)
+ ├──► L4 ┐
+ ├──► L5 ┼──► L6  (convergence énergie) ──► DEC-L1-002  (arbitrage du cœur)
+ ├──► L7 ┘        agrège deep-sleep (L5), conso écran (L4), conso RTC (L7)
+ └──► L8          (preuve host déjà verte ; POC cible ensuite)
+```
+
+**Exécutables en parallèle** (une fois **L1** clos et un banc d'alimentation de
+base disponible) : **L4, L5, L7, L8** — indépendants entre eux. **L3** démarre
+**après L2**. **L6** est un **point de convergence** : il ne se conclut qu'une
+fois disponibles les entrées de L4, L5 et L7. **`DEC-L1-002`** (choix du cœur) est
+**la dernière** : elle consomme les résultats de L4, L5 et la cible d'autonomie L6.
+
+> **Nota** : `DEC-L8-001/002` (logiciel) se **parallélisent sans contrainte
+> matérielle** pour la partie host ; seuls leurs volets **cible** (RAM/flash
+> embarqué, install dynamique) attendent une toolchain et des POC.
+
 ## Feuille de route par décision
 
 Chaque ligne : **prérequis** → **protocole(s)** → **preuves attendues** (type de
