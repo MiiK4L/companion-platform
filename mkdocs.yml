@@ -165,6 +165,22 @@ nav:
               - Performances perçues: phase-1/lot-4/protocols/perceived-performance.md
               - Conso & rétroéclairage: phase-1/lot-4/protocols/backlight-power.md
               - Contention SPI: phase-1/lot-4/protocols/spi-contention.md
+      - "Lot 5 — Cœur remplaçable & socketage":
+          - Vue d'ensemble: phase-1/lot-5/README.md
+          - Comparaison des supports: phase-1/lot-5/socket-support-comparison.md
+          - Contraintes élec. & méca.: phase-1/lot-5/electrical-mechanical-constraints.md
+          - Mesure deep-sleep: phase-1/lot-5/deep-sleep-measurement.md
+          - GPIO cœur absent: phase-1/lot-5/gpio-behavior-core-absent.md
+          - Déclencheurs d'arbitrage: phase-1/lot-5/arbitration-triggers.md
+          - Composants candidats: phase-1/lot-5/candidate-components.md
+          - "Protocoles (cœur/socket)":
+              - Vue d'ensemble: phase-1/lot-5/protocols/README.md
+              - Définitions des événements: phase-1/lot-5/protocols/event-definitions.md
+              - Deep-sleep système: phase-1/lot-5/protocols/deep-sleep-current.md
+              - Résistance de contact: phase-1/lot-5/protocols/contact-resistance-socket.md
+              - Endurance + vibration: phase-1/lot-5/protocols/insertion-endurance-vibration.md
+              - Usure du support (remplacements): phase-1/lot-5/protocols/support-wear-repeated-swap.md
+              - GPIO cœur absent: phase-1/lot-5/protocols/gpio-core-absent.md
   - Guides:
       - Contribuer au code: guides/contributing-code.md
       - Style de code: guides/code-style.md
