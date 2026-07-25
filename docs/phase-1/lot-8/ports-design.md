@@ -50,6 +50,24 @@ typedef struct IRuntime {
 - **Aucune dépendance** : les en-têtes de ports n'incluent **ni** ESP-IDF **ni**
   moteur (vérifié, cf. [règle de dépendances](dependency-rules.md)).
 
+## Évolution & versionnement des interfaces (tant qu'elles sont **candidates**)
+
+Les ports sont **candidats** : ils **évolueront**. Règles pendant cette phase :
+
+- **Pas de garantie de stabilité** : aucune promesse de compatibilité ascendante
+  tant que les signatures sont candidates (statut affiché dans chaque en-tête).
+- **Changement libre mais tracé** : une modification de signature est un **écart
+  documenté** (commit + mise à jour de ce document) ; le squelette et ses tests
+  **doivent rester verts** après tout changement (garde-fou CI).
+- **Un seul point d'impact** : un changement de port n'impacte que **les
+  adaptateurs** et **le point d'appel du service** — jamais la sémantique du bus
+  (grâce à l'inversion de dépendances).
+- **Versionnement différé** : une politique de **version d'interface** (ex.
+  `IRuntime` v1/v2, ou un champ de version) n'est **arrêtée qu'à la consolidation**
+  (Phase 2+), **quand** le port passe de *candidat* à *stable* — pas dans ce lot.
+- **Critère de passage candidat → stable** : port éprouvé par ≥ 1 adaptateur réel
+  (cible) **et** ≥ 1 adaptateur mock, signatures inchangées sur une itération.
+
 ## Alimente
 
 - L'architecture **actée** (ports/adaptateurs) ; les signatures restent

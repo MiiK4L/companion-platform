@@ -10,11 +10,15 @@
 set -euo pipefail
 
 ROOT="firmware/host-skeleton"
-# Zones "propres" (indépendantes de la plateforme et des moteurs).
+# Zones "propres" (indépendantes de la plateforme et des moteurs) :
+# ports/, services/, models/ du squelette + le SDK (firmware/companion-sdk).
 TARGETS=("$ROOT/ports" "$ROOT/services" "$ROOT/models" "firmware/companion-sdk")
 
-# Motif d'include interdit dans ces zones.
-PATTERN='#include[[:space:]]*[<"](esp_|freertos|freertos/|driver/|nvs|nvs_flash|littlefs|lvgl|lua|lauxlib|lualib|wasm|wamr|wasm_export)'
+# Motif d'include interdit dans ces zones :
+# - plateforme : ESP-IDF (esp_*, esp-idf, sdkconfig), FreeRTOS, pilotes (driver/),
+#   stockage bas niveau (nvs*, littlefs) ;
+# - moteurs/UI concrets : lvgl, lua*, wasm/wamr.
+PATTERN='#include[[:space:]]*[<"](esp_|esp-idf|sdkconfig|freertos|freertos/|driver/|nvs|nvs_flash|littlefs|lvgl|lua|lauxlib|lualib|wasm|wamr|wasm_export)'
 
 found=0
 for t in "${TARGETS[@]}"; do

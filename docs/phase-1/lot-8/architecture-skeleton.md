@@ -10,6 +10,38 @@ SPDX-License-Identifier: CC-BY-4.0
 > actée en code host. Le **nommage des dossiers est une conséquence**, pas un
 > préalable ; **`HAL` ne redevient pas le centre**. Code : `firmware/host-skeleton/`.
 
+## Schéma d'architecture (ports / adaptateurs / services / composition root)
+
+```
+                         ┌──────────────────────────────┐
+                         │      Composition root        │  connaît le concret ;
+                         │  (host : mocks / cible : IDF) │  possède les adaptateurs
+                         └───────────────┬──────────────┘
+                       injecte les ports │ (construit + câble)
+                                         ▼
+                         ┌──────────────────────────────┐
+                         │        Services              │  AppManager…
+                         │  (dépendent des PORTS seuls) │  aucune logique métier
+                         └───────────────┬──────────────┘
+                        appelle via port │
+              ┌──────────────────────────┼──────────────────────────┐
+              ▼                          ▼                          ▼
+      ┌───────────────┐         ┌───────────────┐          ┌───────────────┐
+      │  Port IStorage│         │  Port IRuntime│          │   Port ILog   │   (+ IClock,
+      │  (interface)  │         │  (interface)  │          │  (interface)  │    IBus, IDisplay,
+      └───────▲───────┘         └───────▲───────┘          └───────▲───────┘    IInput, IPower)
+              │ implémente              │ implémente               │ implémente
+      ┌───────┴───────┐         ┌───────┴───────┐          ┌───────┴───────┐
+      │  MockStorage  │         │  FakeRuntime  │          │    MockLog    │   Adaptateurs host
+      │  (adaptateur) │         │  (bouchon)    │          │  (adaptateur) │   (cible ESP-IDF =
+      └───────────────┘         └───────────────┘          └───────────────┘   hors périmètre)
+```
+
+- Sens des flèches « dépend de / fournit » : **services → ports ← adaptateurs**.
+- La **composition root** est le **seul** nœud qui connaît les implémentations
+  concrètes ; changer un adaptateur (ex. `FakeRuntime` → moteur réel) **n'affecte
+  ni les ports ni les services**.
+
 ## Rôles matérialisés → fichiers
 
 | Rôle | Matérialisation | Fichiers |
