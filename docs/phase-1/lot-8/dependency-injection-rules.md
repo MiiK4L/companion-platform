@@ -34,12 +34,34 @@ SPDX-License-Identifier: CC-BY-4.0
 - La durée de vie des **adaptateurs** (possédés par la composition) doit
   **couvrir** celle des **services** qui utilisent leurs ports.
 - Concrètement : tant que `HostComposition c` est vivant, `c.app_manager` peut
-  utiliser `c.storage`/`c.runtime`/`c.log` en toute sûreté.
+  utiliser `c.source`/`c.runtime`/`c.log` en toute sûreté.
 - **Interdit** : passer un port dont le `self` pointe sur une variable locale qui
   sort de portée avant le service (règle documentée, non applicable au squelette
   qui n'en crée pas).
 
-## 4. Sens des dépendances (rappel)
+## 4. Emprunt des vues et références opaques (candidat, révisable)
+
+Deux modèles opaques traversent le service sans être interprétés :
+**`AppReference`** (entrée de `IAppSource.resolve`) et **`AppArtifactView`**
+(sortie de `resolve`, entrée de `IRuntime.launch`). Leur **contrat de durée de
+vie** est **candidat et révisable**, mais explicite dès maintenant :
+
+> **La vue est empruntée, reste valide uniquement pendant l'appel à `launch()` et
+> ne peut pas être conservée par le runtime. Aucun transfert de propriété n'a
+> lieu.**
+
+- **`AppReference`** est de même nature : ses octets (`data`, `size`) sont
+  **empruntés** et supposés valides **seulement pendant l'appel** à `resolve()`.
+  L'appelant (la composition, ici) en **possède** la mémoire sous-jacente.
+- **`AppArtifactView`** (`id`, `handle`) appartient à la **source** (l'adaptateur
+  `IAppSource`) : ni le service ni le runtime ne la **libèrent** ni ne la
+  **conservent** au-delà de l'appel.
+- **Aucun `free`, aucune copie profonde** n'est requise ou permise dans le
+  squelette : le contrat d'emprunt suffit à la preuve d'architecture. Un besoin
+  futur de **rétention** (ex. lancement asynchrone) serait une **décision
+  explicite** (adaptateur + éventuelle évolution de signature), pas un implicite.
+
+## 5. Sens des dépendances (rappel)
 
 ```
 composition root ──▶ services ──▶ ports ◀── adaptateurs ──▶ (plateforme)
