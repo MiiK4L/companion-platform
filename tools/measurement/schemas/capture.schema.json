@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Capture (artefacts bruts d'acquisition)",
+  "description": "Artefacts bruts d'acquisition (independants du type de mesure : analyseur logique, oscilloscope, alim, dump serie, log firmware, SWO/JTAG, image...) = source de verite du signal. Le CSV normalise est une VUE tracable au brut.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["parameters", "raw_artifacts", "normalized"],
+  "properties": {
+    "parameters": { "type": "object" },
+    "raw_artifacts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "format", "sha256"],
+        "properties": {
+          "name": { "type": "string", "minLength": 1 },
+          "format": { "type": "string", "minLength": 1 },
+          "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+        }
+      }
+    },
+    "normalized": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["series", "from_raw"],
+        "properties": {
+          "series": { "type": "string", "minLength": 1 },
+          "from_raw": { "type": "string", "minLength": 1 }
+        }
+      }
+    }
+  }
+}

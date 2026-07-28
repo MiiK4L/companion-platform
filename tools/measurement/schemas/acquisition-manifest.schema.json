@@ -20,6 +20,8 @@
   ],
   "properties": {
     "experiment_id": { "type": "string", "minLength": 3, "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$" },
+    "variant_id": { "type": "string", "minLength": 1, "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$" },
+    "capture_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
     "campaign_definition_id": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
     "definition_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
     "context_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },

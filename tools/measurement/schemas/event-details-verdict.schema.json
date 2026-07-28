@@ -12,6 +12,10 @@
     "analysis_tool": { "type": "string", "minLength": 1 },
     "analysis_tool_version": { "type": "string", "minLength": 1 },
     "decided_by": { "type": "string", "minLength": 1 },
-    "decided_at": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})$" }
+    "decided_at": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})$" },
+    "bl_refs": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^BL-[0-9]{3,}$" }
+    }
   }
 }
