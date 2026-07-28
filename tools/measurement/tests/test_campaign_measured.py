@@ -57,15 +57,15 @@ def _definition():
 def _context(git_dirty=False, dirty_sha=None):
     na = "x"
     build = {
-        "git_commit": "abc123",
+        "git_commit": "abc1234",
         "git_dirty": git_dirty,
         "toolchain": "gcc",
         "esp_idf_version": "5.2",
         "target": "esp32s3",
-        "build_configuration_hash": "cfg1",
-        "artifact_sha256": "deadbeef",
+        "build_configuration_hash": "b" * 64,
+        "artifact_sha256": "a" * 64,
         "tooling_version": "0.1.0",
-        "measurement_tooling_commit": "def456",
+        "measurement_tooling_commit": "def4567",
     }
     if dirty_sha is not None:
         build["dirty_diff_sha256"] = dirty_sha
