@@ -233,6 +233,14 @@ nav:
           - Feuille de route des décisions: phase-1/lot-9/decision-roadmap.md
           - Préparation des campagnes (Phase 1): phase-1/lot-9/campaign-readiness.md
           - Spécification consolidée (draft): phase-1/lot-9/consolidated-specification.md
+      - "Socle expérimental":
+          - Vue d'ensemble: phase-1/experiment-platform/README.md
+          - Architecture: phase-1/experiment-platform/architecture.md
+          - Banc de référence: phase-1/experiment-platform/reference-bench.md
+          - Modèle de données: phase-1/experiment-platform/measurement-data-model.md
+          - Outillage: phase-1/experiment-platform/tooling.md
+          - Cycle d'une campagne: phase-1/experiment-platform/campaign-workflow.md
+          - Hors périmètre: phase-1/experiment-platform/out-of-scope.md
   - Guides:
       - Contribuer au code: guides/contributing-code.md
       - Style de code: guides/code-style.md
