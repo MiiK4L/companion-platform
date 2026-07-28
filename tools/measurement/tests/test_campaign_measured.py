@@ -92,12 +92,21 @@ def _context(git_dirty=False, dirty_sha=None):
 def _baseline():
     return {
         "baseline_id": "baseline-1",
+        "baseline_version": 1,
         "protocol_ref": "example://test-real",
         "protocol_commit": "commit-xyz",
         "status": "approved",
         "approved_by": "reviewer-1",
         "approved_at": _TS,
-        "resolved_bl_fields": ["seuil_inrush", "duree"],
+        "bl_fields": [
+            {
+                "id": "BL-001",
+                "name": "seuil_inrush",
+                "value": "TBD",
+                "confidence": "hypothesis",
+                "justification": "hypothese de lancement",
+            },
+        ],
     }
 
 

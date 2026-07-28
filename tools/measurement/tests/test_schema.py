@@ -51,6 +51,7 @@ _ALL_SCHEMAS = (
     "baseline-record.schema.json",
     "analysis-result.schema.json",
     "measurement-series.schema.json",
+    "capture.schema.json",
     "event-details-acquisition.schema.json",
     "event-details-review.schema.json",
     "event-details-verdict.schema.json",
