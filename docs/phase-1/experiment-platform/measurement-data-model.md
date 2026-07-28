@@ -125,10 +125,21 @@ results/<campaign_definition_id>/<run_id>/
   report.md                   # vue derivee
 ```
 
+**Artefacts autoritaires** (immuables) : définition, contexte, baseline, séries,
+analyse, dirty-diff, **événements append-only**. **Vues dérivées** (régénérables) :
+`evidence-state.json`, `archive-index.json`, `report.md`. Ces dernières sont
+**reconstruites depuis les artefacts autoritaires** par `rebuild_derived` (CLI
+`rebuild-derived`) ; `verify_run` **tolère leur absence** et, si elles sont
+présentes, exige qu'elles **correspondent exactement** à leur reconstruction
+(l'état dérivé est **rejoué** depuis l'historique, transitions validées).
+
 L'archive est **autosuffisante pour la preuve** : définition, contexte, baseline,
 séries, analyse, verdicts et **transitions** sont tous **copiés/hashés** dans le
-run. `verify_run` recalcule **toutes** les empreintes, valide **tous** les schémas
-et vérifie la **chaîne d'événements**.
+run. Le Markdown généré (`report.md`) est une **vue**, pas la preuve primaire.
+`verify_run` recalcule **toutes** les empreintes, valide **tous** les schémas
+(dont les **détails d'événement par type**), vérifie la **chaîne d'événements**,
+**rejoue** l'historique (transitions légales) et contrôle la **cohérence des
+références** (experiment_id, protocol_ref, baseline, analyse).
 
 ## Renvois
 
