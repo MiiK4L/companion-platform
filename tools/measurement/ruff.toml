@@ -1,0 +1,13 @@
+# SPDX-FileCopyrightText: 2026 Companion Platform contributors
+#
+# SPDX-License-Identifier: Apache-2.0
+
+# Configuration de l'outil de lint/format du socle experimental.
+# Choix d'outillage INTERNE (non structurant) : n'entre pas dans le modele de
+# donnees ni dans l'architecture des campagnes.
+
+line-length = 95
+target-version = "py312"
+
+[lint]
+select = ["E", "F", "I", "W", "UP", "B"]

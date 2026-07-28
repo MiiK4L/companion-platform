@@ -1,0 +1,10 @@
+# SPDX-FileCopyrightText: 2026 Companion Platform contributors
+#
+# SPDX-License-Identifier: Apache-2.0
+
+# Outillage de developpement/CI du socle experimental (choix internes, non
+# structurants). Le coeur (paquet measurement/) ne depend d'AUCUN de ces
+# paquets : les tests utilisent la bibliotheque standard (unittest).
+#
+# Version epinglee (reproductible) ; montees gerees par Dependabot.
+ruff==0.16.0

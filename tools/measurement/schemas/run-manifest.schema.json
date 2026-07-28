@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Run manifest",
+  "description": "Manifeste d'une execution (sortie). Champs volatils: run_id, generated_at.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "campaign_definition_id",
+    "run_id",
+    "generated_at",
+    "nature",
+    "data_status",
+    "protocol_ref",
+    "dec",
+    "instrument",
+    "firmware_under_test",
+    "dut_hardware_revision",
+    "conditions",
+    "artifacts"
+  ],
+  "properties": {
+    "campaign_definition_id": { "type": "string" },
+    "run_id": { "type": "string" },
+    "generated_at": { "type": "string" },
+    "nature": { "type": "string", "enum": ["measured", "simulated"] },
+    "data_status": { "type": "string", "enum": ["M", "S"] },
+    "protocol_ref": { "type": "string" },
+    "dec": { "type": "string" },
+    "instrument": { "type": "object" },
+    "firmware_under_test": { "type": "string" },
+    "dut_hardware_revision": { "type": "string" },
+    "conditions": { "type": "object" },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "sha256"],
+        "properties": {
+          "path": { "type": "string" },
+          "sha256": { "type": "string" }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Campaign definition",
+  "description": "Definition d'une campagne de mesure (entree, sans champ volatil).",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["protocol_ref", "dec", "dut", "acquisition"],
+  "properties": {
+    "protocol_ref": { "type": "string" },
+    "dec": { "type": "string" },
+    "dut": {
+      "type": "object",
+      "required": ["description"],
+      "properties": {
+        "description": { "type": "string" },
+        "hardware_revision": { "type": "string" }
+      }
+    },
+    "parameters": { "type": "object" },
+    "firmware_under_test": { "type": "string" },
+    "instrument": { "type": "object" },
+    "conditions": { "type": "object" },
+    "acquisition": {
+      "type": "object",
+      "required": ["driver"],
+      "properties": {
+        "driver": { "type": "string" },
+        "config": { "type": "object" }
+      }
+    }
+  }
+}

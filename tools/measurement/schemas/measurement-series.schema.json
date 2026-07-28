@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Measurement series",
+  "description": "Serie de mesure: colonnes nommees avec unites, lignes de valeurs.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["name", "columns", "rows"],
+  "properties": {
+    "name": { "type": "string" },
+    "columns": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "unit"],
+        "properties": {
+          "name": { "type": "string" },
+          "unit": { "type": "string" }
+        }
+      }
+    },
+    "rows": { "type": "array" }
+  }
+}
