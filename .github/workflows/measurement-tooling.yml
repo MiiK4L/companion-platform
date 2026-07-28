@@ -1,0 +1,78 @@
+# SPDX-FileCopyrightText: 2026 Companion Platform contributors
+#
+# SPDX-License-Identifier: Apache-2.0
+
+name: Measurement tooling
+
+# Socle experimental — valide UNIQUEMENT l'infrastructure d'outillage des
+# campagnes (tools/measurement/), SANS aucun materiel : les drivers d'instrument
+# sont remplaces par le driver de simulation. N'execute aucune mesure reelle.
+#
+# Independante des autres workflows (host-tests, documentation, checks) : un
+# echec ici n'empeche pas d'interpreter les autres.
+#
+# GitHub Actions epinglees au SHA (reproductible + securise) ; commentaire =
+# version lisible. Montees de version gerees par Dependabot.
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: tools/measurement
+
+jobs:
+  tooling:
+    name: Outillage de mesure (sans materiel)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Récupérer le dépôt
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Installer Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+
+      - name: Installer l'outillage de dev (version épinglée)
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+
+      - name: Lint (ruff)
+        run: ruff check .
+
+      - name: Format (ruff, vérification)
+        run: ruff format --check .
+
+      - name: Tests unitaires & d'intégration (schéma, hash, reproductibilité)
+        run: python -m unittest discover -s tests -t .
+
+      - name: Génération d'un rapport d'exemple (CLI, campagne simulée)
+        run: |
+          python -m measurement.cli run \
+            --definition golden/campaign-definition.json \
+            --out "$RUNNER_TEMP/run_a" \
+            --run-id CI --generated-at "1970-01-01T00:00:00+00:00"
+          test -f "$(find "$RUNNER_TEMP/run_a" -name report.md)"
+
+      - name: Reproductibilité (mêmes entrées → mêmes artefacts)
+        run: |
+          python -m measurement.cli run \
+            --definition golden/campaign-definition.json \
+            --out "$RUNNER_TEMP/run_b" \
+            --run-id CI --generated-at "1970-01-01T00:00:00+00:00"
+          diff -r "$RUNNER_TEMP/run_a" "$RUNNER_TEMP/run_b"
+
+      - name: Vérification des empreintes & de la structure archivée
+        run: |
+          run_dir="$(dirname "$(find "$RUNNER_TEMP/run_a" -name manifest.json)")"
+          python -m measurement.cli verify --run "$run_dir"
