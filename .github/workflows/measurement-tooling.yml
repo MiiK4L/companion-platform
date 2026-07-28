@@ -74,5 +74,5 @@ jobs:
 
       - name: Vérification des empreintes & de la structure archivée
         run: |
-          run_dir="$(dirname "$(find "$RUNNER_TEMP/run_a" -name manifest.json)")"
+          run_dir="$(dirname "$(find "$RUNNER_TEMP/run_a" -name acquisition-manifest.json)")"
           python -m measurement.cli verify --run "$run_dir"
