@@ -47,6 +47,10 @@ découverte dynamique) :
   l'analyse, **ni** le reporting, **ni** la CI. Une **découverte explicite**
   (`entry_points`, répertoire de plugins) reste une évolution **future**, non
   présentée ici comme existante.
+- un driver peut fournir des **artefacts bruts d'acquisition** via `capture()`
+  (optionnel, générique — indépendant du type de mesure) : archivés sous `raw/`
+  (source de vérité), avec `capture.json` (paramètres + traçabilité brut → série).
+  Un futur driver **automatique** ne remplacera **que** cette étape d'acquisition.
 
 ## Déterminisme (règles d'implémentation)
 

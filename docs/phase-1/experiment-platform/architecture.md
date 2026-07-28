@@ -85,6 +85,13 @@ verdicts sont des **événements append-only** (`evidence-events/`), **chaînés
 `verify_run` recalcule **toutes** les empreintes, valide **tous** les schémas et
 vérifie la **chaîne d'événements** — c'est l'autorité d'intégrité.
 
+Les **artefacts bruts d'acquisition** (`raw/`, source de vérité, tout type de
+mesure) et `capture.json` (paramètres + traçabilité brut → série normalisée) sont
+**immuables** et couverts par l'intégrité. L'axe **`variant_id`** (générique, dont
+le socle ignore la sémantique) trace des variantes contrôlées d'un même
+`experiment_id` ; les identifiants stables laissent la **porte ouverte** à un
+`evidence_bundle` futur (agrégat reproductible citable par une ADR).
+
 ## Déterminisme
 
 **Mêmes entrées → mêmes artefacts**, afin que la reproductibilité logicielle soit
