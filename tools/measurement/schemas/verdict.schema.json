@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Verdict record",
+  "description": "Verdict d'un run, archive a part (mutable au stade resultat).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["experiment_id", "verdict", "verdict_reason", "evidence_status", "acquisition_nature"],
+  "properties": {
+    "experiment_id": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$" },
+    "verdict": {
+      "type": "string",
+      "enum": ["PASS", "FAIL", "INCONCLUSIVE", "INVALID", "NOT_RUN"]
+    },
+    "verdict_reason": { "type": "string" },
+    "evidence_status": { "type": "string", "enum": ["RAW", "REVIEWED", "M", "S"] },
+    "acquisition_nature": { "type": "string", "enum": ["measured", "simulated"] }
+  }
+}

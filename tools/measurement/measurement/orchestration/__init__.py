@@ -5,14 +5,22 @@
 
 from .campaign import (
     GuardrailError,
-    mark_measured,
+    mark_reviewed,
     normalize_manifest,
+    promote_to_measured,
+    record_analysis,
+    record_verdict,
     run_campaign,
+    verify_run,
 )
 
 __all__ = [
     "GuardrailError",
-    "mark_measured",
+    "mark_reviewed",
     "normalize_manifest",
+    "promote_to_measured",
+    "record_analysis",
+    "record_verdict",
     "run_campaign",
+    "verify_run",
 ]

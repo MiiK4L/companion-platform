@@ -1,22 +1,38 @@
 # SPDX-FileCopyrightText: 2026 Companion Platform contributors
 #
 # SPDX-License-Identifier: Apache-2.0
-"""Validation de schema — sous-ensemble de JSON Schema, sans dependance externe.
+"""Validation de schema — sous-ensemble DOCUMENTE de JSON Schema, sans
+dependance externe.
 
-Les CONTRATS de donnees sont les fichiers ``*.schema.json`` (standard ouvert,
-validables par tout outil JSON Schema). Ce module en valide le sous-ensemble
-utilise par le socle (type, required, properties, enum, additionalProperties,
-items) afin de rester leger et hermetique en CI. Le coeur des formats ne depend
-d'aucun framework de test.
+Les CONTRATS sont les fichiers ``*.schema.json`` (JSON Schema draft 2020-12,
+validables par tout outil standard). Ce module valide le PROFIL de mots-cles
+ci-dessous, afin de rester leger et hermetique en CI. Un validateur STANDARD
+(jsonschema) est employe en CI pour verifier les schemas eux-memes, les golden
+datasets, et la PARITE avec ce validateur (cf. tests/test_schema_parity.py).
+
+PROFIL SUPPORTE (mots-cles de validation) : ``type``, ``enum``, ``required``,
+``properties``, ``additionalProperties``, ``items``, ``pattern``. Mots-cles
+d'annotation ignores (autorises) : ``$schema``, ``title``, ``description``.
+Tout autre mot-cle est signale par :func:`unsupported_keywords`.
 """
 
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 from typing import Any
 
 SCHEMAS_DIR = Path(__file__).resolve().parents[2] / "schemas"
+
+#: Mots-cles reellement pris en charge par la validation.
+VALIDATION_KEYWORDS = frozenset(
+    {"type", "enum", "required", "properties", "additionalProperties", "items", "pattern"}
+)
+#: Mots-cles d'annotation autorises mais non validants.
+ANNOTATION_KEYWORDS = frozenset({"$schema", "title", "description"})
+#: Profil complet accepte sans avertissement.
+SUPPORTED_KEYWORDS = VALIDATION_KEYWORDS | ANNOTATION_KEYWORDS
 
 _TYPE_MAP: dict[str, type | tuple[type, ...]] = {
     "object": dict,
@@ -52,6 +68,10 @@ def validate(instance: Any, schema: dict[str, Any], path: str = "$") -> None:
     if "enum" in schema and instance not in schema["enum"]:
         raise SchemaError(f"{path}: valeur hors enum {schema['enum']}")
 
+    if "pattern" in schema and isinstance(instance, str):
+        if not re.search(schema["pattern"], instance):
+            raise SchemaError(f"{path}: chaine hors motif {schema['pattern']!r}")
+
     if isinstance(instance, dict) and (declared == "object" or "properties" in schema):
         props = schema.get("properties", {})
         for required in schema.get("required", []):
@@ -68,3 +88,35 @@ def validate(instance: Any, schema: dict[str, Any], path: str = "$") -> None:
     if isinstance(instance, list) and "items" in schema:
         for index, item in enumerate(instance):
             validate(item, schema["items"], f"{path}[{index}]")
+
+
+def unsupported_keywords(schema: Any) -> set[str]:
+    """Retourne l'ensemble des mots-cles hors profil utilises dans ``schema``.
+
+    Permet a la CI de detecter tout mot-cle qui serait IGNORE (donc non
+    applique) par ce validateur leger.
+    """
+    found: set[str] = set()
+
+    def walk(node: Any) -> None:
+        if not isinstance(node, dict):
+            return
+        # Les cles d'un noeud de schema sont des mots-cles (hors sous-schemas).
+        for key in node:
+            if key not in SUPPORTED_KEYWORDS:
+                found.add(key)
+        # Recurse UNIQUEMENT dans les positions de sous-schemas (pas les noms de
+        # proprietes, ni les valeurs d'enum, qui sont des donnees).
+        props = node.get("properties")
+        if isinstance(props, dict):
+            for sub in props.values():
+                walk(sub)
+        items = node.get("items")
+        if isinstance(items, dict):
+            walk(items)
+        additional = node.get("additionalProperties")
+        if isinstance(additional, dict):
+            walk(additional)
+
+    walk(schema)
+    return found

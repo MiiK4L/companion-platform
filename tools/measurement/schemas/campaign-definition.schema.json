@@ -1,25 +1,34 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Campaign definition",
-  "description": "Definition d'une campagne de mesure (entree, sans champ volatil).",
+  "description": "Description d'une campagne (baselinable) : question observable, verdict attendu, protocole, DUT vise, acquisition. Sans champ volatil ni metadonnee d'execution.",
   "type": "object",
   "additionalProperties": true,
-  "required": ["protocol_ref", "dec", "dut", "acquisition"],
+  "required": [
+    "experiment_id",
+    "experimental_question",
+    "expected_observation",
+    "verdict_rule",
+    "protocol_ref",
+    "dec",
+    "dut",
+    "acquisition"
+  ],
   "properties": {
+    "experiment_id": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$" },
+    "experimental_question": { "type": "string" },
+    "expected_observation": { "type": "string" },
+    "verdict_rule": { "type": "string" },
     "protocol_ref": { "type": "string" },
     "dec": { "type": "string" },
     "dut": {
       "type": "object",
       "required": ["description"],
       "properties": {
-        "description": { "type": "string" },
-        "hardware_revision": { "type": "string" }
+        "description": { "type": "string" }
       }
     },
     "parameters": { "type": "object" },
-    "firmware_under_test": { "type": "string" },
-    "instrument": { "type": "object" },
-    "conditions": { "type": "object" },
     "acquisition": {
       "type": "object",
       "required": ["driver"],

@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Build manifest",
+  "description": "Identification exacte du firmware/logiciel/config reellement utilise. Utiliser \"N/A\" (explicite) pour un champ non applicable.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "git_commit",
+    "git_dirty",
+    "toolchain",
+    "esp_idf_version",
+    "target",
+    "build_configuration_hash",
+    "artifact_sha256",
+    "tooling_version",
+    "measurement_tooling_commit"
+  ],
+  "properties": {
+    "git_commit": { "type": "string" },
+    "git_dirty": { "type": "boolean" },
+    "toolchain": { "type": "string" },
+    "esp_idf_version": { "type": "string" },
+    "target": { "type": "string" },
+    "build_configuration_hash": { "type": "string" },
+    "artifact_sha256": { "type": "string" },
+    "tooling_version": { "type": "string" },
+    "measurement_tooling_commit": { "type": "string" }
+  }
+}

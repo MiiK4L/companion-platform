@@ -1,12 +1,12 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Measurement series",
-  "description": "Serie de mesure: colonnes nommees avec unites, lignes de valeurs.",
+  "description": "Serie de mesure: nom sur (minuscule), colonnes nommees avec unites, lignes de valeurs.",
   "type": "object",
   "additionalProperties": false,
   "required": ["name", "columns", "rows"],
   "properties": {
-    "name": { "type": "string" },
+    "name": { "type": "string", "pattern": "^[a-z0-9][a-z0-9_-]*$" },
     "columns": {
       "type": "array",
       "items": {
