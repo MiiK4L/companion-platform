@@ -61,7 +61,8 @@ découverte dynamique) :
 
 - Le **validateur maison** (`analysis/schema.py`) couvre un **profil documenté**
   de mots-clés : `type`, `enum`, `required`, `properties`, `additionalProperties`,
-  `items`, `pattern` (annotations ignorées : `$schema`, `title`, `description`).
+  `items`, `pattern`, `minLength`, `minItems` (annotations ignorées : `$schema`,
+  `title`, `description`).
 - La **CI** emploie **en plus** un **validateur standard** (`jsonschema`,
   draft 2020-12) pour : (1) vérifier que les **schémas eux-mêmes** sont valides ;
   (2) vérifier les **golden datasets** ; (3) garantir la **parité** (même verdict

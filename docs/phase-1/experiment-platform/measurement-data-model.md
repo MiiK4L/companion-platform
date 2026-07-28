@@ -17,7 +17,7 @@ SPDX-License-Identifier: CC-BY-4.0
 |--------|----------|-----------|
 | **Description** | `campaign-definition.json` (question, `verdict_rule`, protocole, DUT visé, acquisition) | lisible, contrôlable, **baselinable** |
 | **Implémentation** | `execution-context.json` (dont `build_manifest`), `baseline-record.json` | peut évoluer ; **identifie exactement** le build |
-| **Résultat** | `acquisition-manifest.json`, `series/*.csv`, `analysis-result.json`, `evidence-events/*`, `evidence-state.json`, `report.md` | **immuable et traçable** |
+| **Résultat** | `acquisition-manifest.json`, `series/*.csv`, `analysis-result.json`, `evidence-events/*` (**autoritaires, immuables**) ; `evidence-state.json`, `archive-index.json`, `report.md` (**vues dérivées, régénérables**) | traçable ; l'immuable est autoritaire, les vues dérivent |
 
 Reliés par identifiants et hashes, jamais fondus en un seul objet.
 
