@@ -682,6 +682,10 @@ def verify_run(run_dir: str | Path) -> None:
 
     # Coherence des references essentielles entre artefacts autoritaires.
     definition = _load_json(run_dir / "campaign-definition.json")
+    # L'identifiant de definition est DERIVE de la definition : le recalculer
+    # (source unique de verite), ne pas se fier a la copie stockee.
+    if campaign_definition_id(definition) != manifest["campaign_definition_id"]:
+        raise GuardrailError("campaign_definition_id incoherent avec la definition")
     if definition["experiment_id"] != manifest["experiment_id"]:
         raise GuardrailError("experiment_id incoherent (definition vs manifeste)")
     if definition["protocol_ref"] != manifest["protocol_ref"]:
@@ -711,6 +715,19 @@ def verify_run(run_dir: str | Path) -> None:
             raise GuardrailError(f"evenement non conforme ({path.name}): {error}") from error
         if event["previous_event_sha256"] != previous:
             raise GuardrailError(f"chaine d'evenements rompue: {path.name}")
+        # Les empreintes citees par un evenement doivent correspondre aux fichiers
+        # (l'evenement ne devient pas une seconde source non verifiee).
+        for entry in event["inputs"]:
+            target = run_dir / entry["name"]
+            if not target.is_file() or sha256_file(target) != entry["sha256"]:
+                raise GuardrailError(
+                    f"input d'evenement incoherent ({path.name}): {entry['name']}"
+                )
+        # La nature d'acquisition (dupliquee dans le manifeste et l'evenement)
+        # doit etre unique et coherente.
+        if event["event_type"] == "acquisition":
+            if event["details"]["acquisition_nature"] != manifest["acquisition_nature"]:
+                raise GuardrailError("acquisition_nature incoherent (evenement vs manifeste)")
         previous = sha256_file(path)
 
     # Etat reconstruit depuis l'historique (valide aussi la legalite des transitions).

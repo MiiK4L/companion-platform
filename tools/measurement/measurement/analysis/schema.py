@@ -11,9 +11,10 @@ ci-dessous, afin de rester leger et hermetique en CI. Un validateur STANDARD
 datasets, et la PARITE avec ce validateur (cf. tests/test_schema_parity.py).
 
 PROFIL SUPPORTE (mots-cles de validation) : ``type``, ``enum``, ``required``,
-``properties``, ``additionalProperties``, ``items``, ``pattern``. Mots-cles
-d'annotation ignores (autorises) : ``$schema``, ``title``, ``description``.
-Tout autre mot-cle est signale par :func:`unsupported_keywords`.
+``properties``, ``additionalProperties``, ``items``, ``pattern``, ``minLength``,
+``minItems``. Mots-cles d'annotation ignores (autorises) : ``$schema``,
+``title``, ``description``. Tout autre mot-cle est signale par
+:func:`unsupported_keywords`.
 """
 
 from __future__ import annotations
