@@ -1,0 +1,15 @@
+{
+  "protocol_ref": "example://golden-campaign",
+  "dec": "DEC-EXAMPLE-000",
+  "dut": {
+    "description": "DUT factice du golden dataset (non reel, pour tests CI)",
+    "hardware_revision": "rev-golden"
+  },
+  "parameters": {
+    "note": "jeu de reference versionne pour la CI — aucune mesure reelle"
+  },
+  "acquisition": {
+    "driver": "simulation",
+    "config": { "series": "signal", "samples": 8 }
+  }
+}

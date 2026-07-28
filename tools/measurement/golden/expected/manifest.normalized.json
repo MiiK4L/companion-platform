@@ -1,0 +1,20 @@
+{
+  "artifacts": [
+    {
+      "path": "series/signal.csv",
+      "sha256": "696338ba961ee2db872c629a83b839da98a3d027c7f90212a1e9c93f2fb42ab5"
+    }
+  ],
+  "campaign_definition_id": "99e47251a60bfd9c155a4b87330e1332c6d3fc38c410ad5a55fd9cfecb8004ef",
+  "conditions": {},
+  "data_status": "S",
+  "dec": "DEC-EXAMPLE-000",
+  "dut_hardware_revision": "rev-golden",
+  "firmware_under_test": "",
+  "instrument": {
+    "configuration": {},
+    "used": {}
+  },
+  "nature": "simulated",
+  "protocol_ref": "example://golden-campaign"
+}
