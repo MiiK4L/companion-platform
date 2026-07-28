@@ -38,31 +38,42 @@ des détails d'implémentation :
 | **Analyse** | Traitement, incertitude, **validation de schéma** des données. | Ne pilote pas d'instrument. |
 | **Reporting** | Rendu du rapport à partir du manifeste + métadonnées (extension du template). | Ne mesure pas ; ne décide pas d'un statut de preuve. |
 
-## Architecture plugin (adaptateurs d'instruments)
+## Registre STATIQUE d'adaptateurs d'instruments
 
 Chaque instrument (oscilloscope, alimentation, analyseur logique…) est un
-**adaptateur** implémentant l'**interface de driver** et s'**enregistrant** auprès
-du cœur, **sans le modifier** :
+**adaptateur** implémentant l'**interface de driver** et s'enregistrant auprès du
+cœur via `@register_driver`. Le registre est **statique et assumé** (pas de
+découverte dynamique) :
 
 - le cœur ne connaît que l'**interface** (contrat), jamais un instrument concret ;
-- **ajouter** un adaptateur n'exige **aucune** modification de l'orchestration, de
-  l'analyse, du reporting **ni de la CI** ;
+- **ajouter** un adaptateur suppose de l'**importer** dans le paquet
+  `acquisition` (pour qu'il s'enregistre) — mais **ne modifie ni** l'orchestration,
+  **ni** l'analyse, **ni** le reporting, **ni** la CI ;
+- un mécanisme de **découverte explicite** (`entry_points`, répertoire de plugins)
+  pourra être ajouté **plus tard** ; il n'est **pas** présenté ici comme existant ;
 - **aucun pilote réel** n'est fourni à ce stade — seulement l'interface, des
-  **stubs** et le **driver de simulation**.
+  **stubs** et le **driver de simulation**. Chaque driver **déclare
+  explicitement** sa `nature` (`measured` / `simulated`) — aucun défaut.
 
-## Mode simulation
+## Mode simulation & cycle de vie de la preuve
 
 Un **driver de simulation** produit des **captures factices déterministes**
-(dérivées de l'identifiant de définition de campagne). Il permet d'exécuter une
-**campagne entière sans aucun matériel**, pour valider orchestration, formats,
-schémas, rapports et **reproductibilité logicielle**.
+(dérivées de `campaign_definition_id`) et permet d'exécuter une **campagne entière
+sans matériel**, pour valider orchestration, formats, schémas, rapports et
+**reproductibilité logicielle**.
 
-> **Garde-fou (règle du socle, encodée dans l'outil).** **Les campagnes simulées
-> valident uniquement l'infrastructure d'outillage. Elles ne produisent aucune
-> donnée `[M]`, n'alimentent aucune ADR et ne peuvent satisfaire aucun critère
-> expérimental.** Tout artefact porte une **nature** (`simulated` / `measured`) ;
-> un artefact `simulated` **ne peut jamais** être marqué `measured`, et le
-> manifeste l'affiche explicitement.
+Une acquisition **réelle** sort en statut **`RAW`** ; elle ne devient une **preuve
+`M`** que par une **promotion explicite et contrôlée** (revue, baseline approuvée,
+métadonnées complètes, intégrité, analyse, verdict décisif). Une acquisition
+**simulée** est terminale en **`S`**.
+
+> **Garde-fou (encodé dans l'outil).** **Les campagnes simulées valident
+> uniquement l'infrastructure d'outillage. Elles ne produisent aucune donnée
+> `[M]`, n'alimentent aucune ADR et ne peuvent satisfaire aucun critère
+> expérimental.** Un artefact `simulated` (`S`) **ne peut jamais** être promu en
+> `M` ; une donnée réelle non qualifiée reste `RAW` et **ne peut pas** être promue
+> trop tôt. Voir [modèle de données](measurement-data-model.md) et
+> [cycle d'une campagne](campaign-workflow.md).
 
 ## Déterminisme
 

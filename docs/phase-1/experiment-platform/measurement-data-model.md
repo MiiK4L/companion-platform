@@ -6,90 +6,110 @@ SPDX-License-Identifier: CC-BY-4.0
 
 # Modèle de données de mesure
 
-> **Statut : Proposé.** Décrit les **formats, schémas et métadonnées** des
-> campagnes — **indépendamment de toute implémentation**. Les schémas canoniques
-> sont des fichiers **JSON Schema** (`tools/measurement/schemas/`), **lisibles et
-> validables par n'importe quel outil**. L'outillage Python n'est **qu'un**
-> consommateur de ces schémas ; le modèle **ne dépend pas** du framework de test.
+> **Statut : Proposé.** Décrit **formats, schémas et métadonnées** — **indépendamment
+> de l'implémentation**. Les contrats sont des fichiers **JSON Schema**
+> (`tools/measurement/schemas/`), lisibles et validables par tout outil. L'outillage
+> Python n'en est qu'un consommateur ; le modèle **ne dépend d'aucun framework de test**.
 
-## Principe : formats indépendants de l'implémentation
+## Trois niveaux distincts (description / implémentation / résultat)
 
-- Les **contrats** de données sont les fichiers **`*.schema.json`** (standard
-  ouvert), pas le code Python.
-- Les **séries de mesure** sont des **CSV** (colonnes + unités documentées),
-  exploitables par tout tableur ou script.
-- `pytest`, le linter et le formateur sont des **choix d'outillage interne**
-  ([tooling](tooling.md)) et **n'entrent pas** dans le modèle de données.
+Le modèle **sépare** trois choses reliées par identifiants et hashes, jamais
+confondues dans un seul objet (voir [campaign-workflow](campaign-workflow.md)) :
 
-## Identifiants : définition (déterministe) vs exécution (unique)
+| Niveau | Objet | Contenu | Propriété |
+|--------|-------|---------|-----------|
+| **Description** | `campaign-definition.json` | question, observation attendue, `verdict_rule`, protocole, DUT visé, acquisition | lisible, contrôlable humainement, **baselinable** |
+| **Implémentation** | `execution-context.json` (dont `build_manifest`) | banc, instrument réel, build, fixture, conditions, étalonnage | peut évoluer |
+| **Résultat** | `manifest.json`, `series/*.csv`, `analysis-result.json`, `verdict.json`, `report.md` | données, analyse, verdict, rapport | **immuable et traçable** |
 
-Deux identifiants **distincts**, pour concilier « **mêmes entrées → mêmes
-artefacts** » et « **run unique** » :
+## Identifiants (déterministe / unique / humain)
 
-| Identifiant | Nature | Dérivation | Rôle |
-|-------------|--------|-----------|------|
-| **`campaign_definition_id`** | **Déterministe** | Hash (SHA-256) de la **définition canonique** : `protocol_ref`, `dec`, `dut`, `parameters`, exigences d'acquisition — **hors** champs volatils | Identifie la **définition** ; deux définitions identiques → même id ; **seed** de la simulation |
-| **`run_id`** | **Unique** | Généré à chaque **exécution** réelle (non reproductible) | Identifie un **run** précis |
+| Identifiant | Nature | Rôle |
+|-------------|--------|------|
+| **`experiment_id`** | **humain, traçable** (`^[A-Za-z0-9][A-Za-z0-9_-]*$`, ex. `EXP-L2-INRUSH-001`) | relie protocole ↔ définition ↔ script/fixture ↔ dataset ↔ rapport |
+| **`campaign_definition_id`** | **déterministe** (SHA-256 de la définition canonique) | identifie la **définition** ; seed de la simulation |
+| **`run_id`** | **unique** par exécution (volatil) | identifie un **run** |
 
-> **Champs volatils** (`run_id`, horodatages `generated_at`) : **isolés** et
-> **exclus** de toute comparaison de déterminisme. La sérialisation est
-> **canonique** (clés triées) pour un hachage stable.
+`run_id` et `experiment_id` sont validés (format sûr, sans séparateur de chemin).
+`run_id` et les horodatages sont **volatils** : isolés et exclus des comparaisons
+de déterminisme.
 
-## Objets & schémas
+## Nature d'acquisition vs statut de preuve
 
-### 1. Définition de campagne — `campaign-definition.schema.json`
+Deux axes **distincts** — une acquisition réelle **ne devient pas** automatiquement
+une preuve :
 
-Entrée d'une campagne. Champs : `protocol_ref` (renvoi au protocole du lot, **autorité**),
-`dec` (`DEC-*` alimentée), `dut` (`description`, `hardware_revision`),
-`parameters`, `acquisition` (`driver`, `config`). **Aucun** champ volatil.
+- **`acquisition_nature`** : `measured` (instrument réel) ou `simulated`. Déclarée
+  **explicitement** par chaque driver (aucun défaut).
+- **`evidence_status`** : cycle de vie de la preuve.
 
-### 2. Manifeste de run — `run-manifest.schema.json`
+| `evidence_status` | Signification | Transition |
+|-------------------|---------------|-----------|
+| `RAW` | acquisition réelle **brute** (sortie par défaut du réel) | → `REVIEWED` par revue |
+| `REVIEWED` | relu/validé par le cadre | → `M` par promotion contrôlée |
+| `M` | **preuve mesurée** qualifiée | opération explicite `promote_to_measured` |
+| `S` | **simulé** (outillage) — **terminal** | jamais promu |
 
-Sortie d'une exécution. Champs clés :
+> **Garde-fou (encodé)** : une acquisition `simulated` sort en `S` et **ne peut
+> jamais** devenir `M`. Une acquisition `measured` sort en `RAW` ; le passage à `M`
+> vérifie : campagne réelle, revue faite, **baseline approuvée**, métadonnées
+> complètes, **artefacts intègres** (SHA-256), **analyse exécutée**, **verdict
+> décisif** (`PASS`/`FAIL`).
 
-- `campaign_definition_id`, `run_id`, `generated_at` *(volatils : `run_id`, `generated_at`)* ;
-- **`nature`** : `measured` **ou** `simulated` — **garde-fou** ;
-- **`data_status`** : `M` (mesuré) **uniquement si** `nature = measured` ; sinon
-  `S` (simulé). **Un artefact `simulated` ne peut jamais porter `M`.**
-- **Traçabilité** (cf. [reference-bench §5](reference-bench.md)) : `instrument`
-  (`used` marque/modèle/firmware, `configuration`), `firmware_under_test`,
-  `dut_hardware_revision`, `conditions` ;
-- `artifacts` : liste `{path, sha256}` (empreintes des données brutes).
+## Verdict (un résultat ambigu n'est pas forcé)
 
-> **Règle encodée** : `nature = simulated` ⇒ `data_status = S` et **interdiction**
-> de marquer `M`. Une simulation **ne satisfait aucun critère expérimental** et
-> **n'alimente aucune ADR**.
+`verdict` ∈ `{PASS, FAIL, INCONCLUSIVE, INVALID, NOT_RUN}`, avec `verdict_reason` :
 
-### 3. Série de mesure — CSV (`measurement-series.schema.json` décrit les colonnes)
+- `PASS` critères satisfaits · `FAIL` non satisfaits ·
+- `INCONCLUSIVE` données insuffisantes/ambiguës ·
+- `INVALID` campagne invalide (banc/protocole/DUT/exécution) ·
+- `NOT_RUN` définie mais non exécutée (état d'un run avant analyse).
 
-CSV avec **en-tête** ; chaque colonne a un **nom** et une **unité** documentés. Le
-schéma associé décrit les **colonnes obligatoires** et leurs unités. Métadonnées
-de campagne (id, nature…) portées par le **manifeste**, pas par le CSV.
+> Une campagne **simulée** peut **tester la mécanique** de ces états, mais son
+> verdict reste un **verdict d'outillage** et **n'alimente aucune DEC**.
 
-### 4. Rapport de mesure
+## Build manifest (identification exacte)
 
-**Extension** du [modèle de rapport](../templates/measurement-report-template.md)
-(renvoi, pas copie) : le rapport ajoute l'**ID de setup**, les **versions
-d'outils**, le **manifeste + hachages** et les **métadonnées de traçabilité**. Le
-**statut de preuve** (Proposé → Accepté) reste régi par le
-[cadre de validation §3](../validation-framework.md) — **jamais** par le socle.
+`build_manifest` (dans `execution-context.json`) identifie **précisément** le
+firmware/logiciel réellement utilisé — une simple chaîne libre ne suffit pas :
 
-## Convention de stockage & nommage (instanciation)
+```text
+git_commit · git_dirty · toolchain · esp_idf_version · target
+build_configuration_hash · artifact_sha256 · tooling_version · measurement_tooling_commit
+```
 
-Instancie [validation-framework §1](../validation-framework.md) (renvoi) :
+Le rapport **pointe vers l'artefact exact** (`artifact_sha256`), pas vers un nom.
+Pour une campagne **logicielle** (parser, runtime), le même principe s'applique.
+Champs non applicables : **`N/A` explicite**, jamais objet/chaîne vide.
+
+## Contrats (JSON Schema) & profil du validateur
+
+Schémas : `campaign-definition`, `execution-context`, `build-manifest`,
+`run-manifest`, `measurement-series`, `verdict`. Le **validateur maison** ne
+couvre qu'un **profil documenté** de mots-clés (`type`, `enum`, `required`,
+`properties`, `additionalProperties`, `items`, `pattern`). La **CI** emploie en
+plus un **validateur standard** (`jsonschema`) pour vérifier les schémas
+eux-mêmes, les golden datasets, et la **parité** ; un test signale tout mot-clé
+hors profil (cf. [tooling](tooling.md), [analysis/schema.py]).
+
+## Archive autosuffisante
 
 ```text
 results/<campaign_definition_id>/<run_id>/
-  manifest.json           # manifeste de run (schéma ci-dessus)
-  series/*.csv            # séries de mesure
-  report.md              # rapport (extension du template)
+  campaign-definition.json   # copie EXACTE de la definition (SHA-256 au manifeste)
+  execution-context.json     # contexte d'execution (SHA-256 au manifeste)
+  manifest.json              # resultat : references (hashes), statut, verdict, artefacts
+  verdict.json               # verdict (miroir, stade resultat)
+  analysis-result.json       # (si analyse executee)
+  series/*.csv               # donnees (module csv standard ; nom sur)
+  report.md                  # rapport structure (extension du template)
 ```
 
-- **Nommage** : `<id-protocole>_<date>_<variante>.csv` (règle du cadre) sous
-  `series/`. Les **hachages SHA-256** de chaque fichier sont consignés au manifeste.
-- **Archivage** : l'arborescence d'un run est **auto-suffisante** (rejouable).
+La reproduction **ne dépend pas** d'un fichier externe référencé seulement par
+chemin : la définition et le contexte exacts sont **copiés** et **hashés** dans le
+run. `verify_run` recalcule les SHA-256 (définition, contexte, séries).
 
 ## Renvois
 
-- [Architecture](architecture.md) · [Outillage](tooling.md) · [Banc de référence](reference-bench.md)
+- [Architecture](architecture.md) · [Outillage](tooling.md) · [Cycle d'une campagne](campaign-workflow.md)
 - [Cadre de validation §1/§3](../validation-framework.md) · [Modèle de rapport](../templates/measurement-report-template.md)
