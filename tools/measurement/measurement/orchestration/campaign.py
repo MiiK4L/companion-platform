@@ -50,9 +50,34 @@ _IMMUTABLE_TOPLEVEL = (
     "dirty-diff.patch",
 )
 
+# Vues DERIVEES (regenerables depuis les artefacts autoritaires).
+_DERIVED_FILES = ("evidence-state.json", "archive-index.json", "report.md")
+
+# Schema de details par type d'evenement (validation semantique).
+_EVENT_DETAILS_SCHEMA = {
+    "acquisition": "event-details-acquisition.schema.json",
+    "review": "event-details-review.schema.json",
+    "verdict": "event-details-verdict.schema.json",
+    "promotion": "event-details-promotion.schema.json",
+}
+
+# Transitions de statut legales par type d'evenement (from -> to autorisees).
+_LEGAL_TRANSITIONS = {
+    "acquisition": {("NONE", "RAW"), ("NONE", "S")},
+    "verdict": {("RAW", "RAW"), ("REVIEWED", "REVIEWED"), ("S", "S")},
+    "review": {("RAW", "REVIEWED")},
+    "promotion": {("REVIEWED", "M")},
+}
+
 
 class GuardrailError(Exception):
     """Violation d'un garde-fou (promotion non qualifiee, run verrouille…)."""
+
+
+def _validate_event_details(event: dict[str, Any]) -> None:
+    """Valide les details d'un evenement selon son type (sous-schema dedie)."""
+    schema_name = _EVENT_DETAILS_SCHEMA[event["event_type"]]
+    schema_mod.validate(event["details"], schema_mod.load_schema(schema_name))
 
 
 def _now_iso() -> str:
@@ -167,6 +192,7 @@ def _append_event(
         "details": details,
     }
     schema_mod.validate(event, schema_mod.load_schema("evidence-event.schema.json"))
+    _validate_event_details(event)
     path = _events_dir(run_dir) / f"{event_id}-{event_type}.json"
     event_sha = _write_json(path, event)
     return event_id, event_sha
@@ -250,12 +276,21 @@ def run_campaign(
     schema_mod.validate(context, schema_mod.load_schema("execution-context.schema.json"))
     if nature == "measured":
         require_complete_context(context)
+        # Build reel : contrat durci (hashes 64 hex, champs non vides).
+        schema_mod.validate(
+            context["build_manifest"], schema_mod.load_schema("build-manifest.schema.json")
+        )
 
     series_list = driver.acquire(definition_id, acquisition.get("config", {}))
     run_id = ensure_safe_id(run_id, kind="run_id") if run_id else new_run_id()
     generated_at = generated_at or _now_iso()
 
     run_dir = Path(out_dir) / definition_id / run_id
+    # Un run_id identifie une execution IMMUABLE : jamais d'ecrasement.
+    if run_dir.exists():
+        raise GuardrailError(
+            f"run deja existant (run_id reutilise) : {run_dir} — creer un nouveau run"
+        )
     (run_dir / "series").mkdir(parents=True, exist_ok=True)
 
     definition_sha = _write_json(run_dir / "campaign-definition.json", definition)
@@ -478,6 +513,15 @@ def promote_to_measured(
     if baseline["status"] != "approved" or context["baseline"]["status"] != "approved":
         raise GuardrailError("promotion refusee : baseline non approuvee")
 
+    # Coherence : la baseline doit appartenir AU protocole execute.
+    definition = _load_json(run_dir / "campaign-definition.json")
+    if not (
+        baseline["protocol_ref"] == definition["protocol_ref"] == manifest["protocol_ref"]
+    ):
+        raise GuardrailError("promotion refusee : baseline d'un autre protocole")
+    if context["baseline"]["record"] != baseline["baseline_id"]:
+        raise GuardrailError("promotion refusee : baseline_id incoherent (contexte vs record)")
+
     require_complete_context(context)
 
     # Build reproductible : arbre git propre, ou diff archive + hashe + justifie.
@@ -496,6 +540,9 @@ def promote_to_measured(
 
     if not (run_dir / "analysis-result.json").is_file():
         raise GuardrailError("promotion refusee : analyse non executee")
+    analysis = _load_json(run_dir / "analysis-result.json")
+    if analysis["experiment_id"] != manifest["experiment_id"]:
+        raise GuardrailError("promotion refusee : analyse d'une autre experience")
     verdict_event = _latest_verdict_event(run_dir)
     if verdict_event is None:
         raise GuardrailError("promotion refusee : aucun verdict enregistre")
@@ -541,14 +588,85 @@ def promote_to_measured(
     return current_view(run_dir)
 
 
+def _reconstruct_state(run_dir: Path) -> dict[str, Any]:
+    """Rejoue l'historique depuis NONE et renvoie l'etat derive ATTENDU.
+
+    Verifie la legalite des transitions (acquisition unique, review depuis RAW,
+    promotion depuis REVIEWED, aucun evenement apres M, pas de retour arriere).
+    Leve ``GuardrailError`` sur toute transition illegale.
+    """
+    manifest = _load_json(run_dir / "acquisition-manifest.json")
+    files = _event_files(run_dir)
+    if not files:
+        raise GuardrailError("aucun evenement d'evidence")
+    status = "NONE"
+    verdict = "NOT_RUN"
+    verdict_reason = "analyse non executee"
+    seen_acquisition = False
+    for path in files:
+        event = _load_json(path)
+        etype = event["event_type"]
+        if status == "M":
+            raise GuardrailError("evenement posterieur au statut M")
+        if event["from_status"] != status:
+            raise GuardrailError(
+                f"transition illegale (from={event['from_status']}, attendu {status})"
+            )
+        if (event["from_status"], event["to_status"]) not in _LEGAL_TRANSITIONS[etype]:
+            raise GuardrailError(
+                f"transition illegale pour {etype}: "
+                f"{event['from_status']} -> {event['to_status']}"
+            )
+        if etype == "acquisition":
+            if seen_acquisition:
+                raise GuardrailError("acquisition multiple interdite")
+            seen_acquisition = True
+        if etype == "verdict":
+            verdict = event["details"]["verdict"]
+            verdict_reason = event["details"]["verdict_reason"]
+        status = event["to_status"]
+    if not seen_acquisition:
+        raise GuardrailError("evenement d'acquisition initial manquant")
+    return {
+        "experiment_id": manifest["experiment_id"],
+        "evidence_status": status,
+        "verdict": verdict,
+        "verdict_reason": verdict_reason,
+        "locked": status == "M",
+        "latest_event_id": _load_json(files[-1])["event_id"],
+        "latest_event_sha256": sha256_file(files[-1]),
+    }
+
+
+def rebuild_derived(run_dir: str | Path) -> None:
+    """Regenere les vues DERIVEES (etat, index, rapport) depuis l'autoritaire."""
+    run_dir = Path(run_dir)
+    expected = _reconstruct_state(run_dir)
+    _write_state(
+        run_dir,
+        experiment_id=expected["experiment_id"],
+        evidence_status=expected["evidence_status"],
+        verdict=expected["verdict"],
+        verdict_reason=expected["verdict_reason"],
+        latest_event_id=expected["latest_event_id"],
+        latest_event_sha256=expected["latest_event_sha256"],
+    )
+    _rebuild_archive_index(run_dir)
+    _render(run_dir)
+
+
 def verify_run(run_dir: str | Path) -> None:
-    """Verifie l'INTEGRALITE de l'archive : schemas, empreintes, chaine d'evenements.
+    """Verifie l'INTEGRALITE de l'archive : artefacts autoritaires (schemas +
+    empreintes + chaine + transitions + coherence des references) et, si presentes,
+    exactitude des vues DERIVEES (etat, index) vis-a-vis de leur reconstruction.
 
     Leve ``GuardrailError`` a la premiere divergence.
     """
     run_dir = Path(run_dir)
     manifest = _load_json(run_dir / "acquisition-manifest.json")
     schema_mod.validate(manifest, schema_mod.load_schema("acquisition-manifest.schema.json"))
+
+    # Empreintes des artefacts IMMUABLES enregistrees dans le manifeste.
     if sha256_file(run_dir / "campaign-definition.json") != manifest["definition_sha256"]:
         raise GuardrailError("empreinte de la definition divergente")
     if sha256_file(run_dir / "execution-context.json") != manifest["context_sha256"]:
@@ -562,38 +680,58 @@ def verify_run(run_dir: str | Path) -> None:
         if sha256_file(run_dir / artifact["path"]) != artifact["sha256"]:
             raise GuardrailError(f"empreinte divergente: {artifact['path']}")
 
+    # Coherence des references essentielles entre artefacts autoritaires.
+    definition = _load_json(run_dir / "campaign-definition.json")
+    if definition["experiment_id"] != manifest["experiment_id"]:
+        raise GuardrailError("experiment_id incoherent (definition vs manifeste)")
+    if definition["protocol_ref"] != manifest["protocol_ref"]:
+        raise GuardrailError("protocol_ref incoherent (definition vs manifeste)")
+    if definition["dec"] != manifest["dec"]:
+        raise GuardrailError("dec incoherent (definition vs manifeste)")
     if (run_dir / "analysis-result.json").is_file():
-        schema_mod.validate(
-            _load_json(run_dir / "analysis-result.json"),
-            schema_mod.load_schema("analysis-result.schema.json"),
-        )
+        analysis = _load_json(run_dir / "analysis-result.json")
+        schema_mod.validate(analysis, schema_mod.load_schema("analysis-result.schema.json"))
+        if analysis["experiment_id"] != manifest["experiment_id"]:
+            raise GuardrailError("experiment_id incoherent (analyse vs manifeste)")
+    if (run_dir / "baseline-record.json").is_file():
+        baseline = _load_json(run_dir / "baseline-record.json")
+        schema_mod.validate(baseline, schema_mod.load_schema("baseline-record.schema.json"))
+        if baseline["protocol_ref"] != manifest["protocol_ref"]:
+            raise GuardrailError("protocol_ref incoherent (baseline vs manifeste)")
 
-    # Chaine d'evenements append-only.
-    events = _event_files(run_dir)
-    if not events:
-        raise GuardrailError("aucun evenement d'evidence")
+    # Chaine d'evenements append-only + details valides selon le type. Une
+    # non-conformite de schema d'un evenement est un defaut d'INTEGRITE.
     previous = ""
-    for path in events:
+    for path in _event_files(run_dir):
         event = _load_json(path)
-        schema_mod.validate(event, schema_mod.load_schema("evidence-event.schema.json"))
+        try:
+            schema_mod.validate(event, schema_mod.load_schema("evidence-event.schema.json"))
+            _validate_event_details(event)
+        except schema_mod.SchemaError as error:
+            raise GuardrailError(f"evenement non conforme ({path.name}): {error}") from error
         if event["previous_event_sha256"] != previous:
             raise GuardrailError(f"chaine d'evenements rompue: {path.name}")
         previous = sha256_file(path)
 
-    state = _load_json(run_dir / "evidence-state.json")
-    schema_mod.validate(state, schema_mod.load_schema("evidence-state.schema.json"))
-    if state["latest_event_sha256"] != previous:
-        raise GuardrailError("etat courant desynchronise de l'historique")
+    # Etat reconstruit depuis l'historique (valide aussi la legalite des transitions).
+    expected_state = _reconstruct_state(run_dir)
 
-    # Index d'integrite : couvre exactement les artefacts immuables presents.
-    index = _load_json(run_dir / "archive-index.json")
-    schema_mod.validate(index, schema_mod.load_schema("archive-index.schema.json"))
-    indexed = {entry["path"]: entry["sha256"] for entry in index["entries"]}
-    if set(indexed) != set(_immutable_paths(run_dir)):
-        raise GuardrailError("index d'integrite incomplet ou en trop")
-    for rel, sha in indexed.items():
-        if sha256_file(run_dir / rel) != sha:
-            raise GuardrailError(f"empreinte indexee divergente: {rel}")
+    # Vues DERIVEES : tolerees absentes (regenerables) ; si presentes, EXACTES.
+    state_path = run_dir / "evidence-state.json"
+    if state_path.is_file():
+        state = _load_json(state_path)
+        schema_mod.validate(state, schema_mod.load_schema("evidence-state.schema.json"))
+        if state != expected_state:
+            raise GuardrailError("evidence-state incoherent avec l'historique reconstruit")
+
+    expected_index = {rel: sha256_file(run_dir / rel) for rel in _immutable_paths(run_dir)}
+    index_path = run_dir / "archive-index.json"
+    if index_path.is_file():
+        index = _load_json(index_path)
+        schema_mod.validate(index, schema_mod.load_schema("archive-index.schema.json"))
+        indexed = {entry["path"]: entry["sha256"] for entry in index["entries"]}
+        if indexed != expected_index:
+            raise GuardrailError("archive-index incoherent avec les artefacts immuables")
 
 
 def normalize_manifest(manifest: dict[str, Any]) -> dict[str, Any]:

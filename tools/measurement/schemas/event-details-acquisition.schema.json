@@ -1,0 +1,10 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Event details — acquisition",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["acquisition_nature"],
+  "properties": {
+    "acquisition_nature": { "type": "string", "enum": ["measured", "simulated"] }
+  }
+}

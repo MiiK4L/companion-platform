@@ -43,8 +43,11 @@ python3 -m measurement.cli drivers
 python3 -m measurement.cli run \
   --definition golden/campaign-definition.json --out /tmp/run
 
-# Revalider les empreintes d'un run archive
+# Revalider l'integrite complete d'un run (schemas, empreintes, chaine, coherence)
 python3 -m measurement.cli verify --run /tmp/run/<def_id>/<run_id>
+
+# Regenerer les vues derivees (etat, index, rapport) depuis l'autoritaire
+python3 -m measurement.cli rebuild-derived --run /tmp/run/<def_id>/<run_id>
 
 # Tests (sans dependance externe)
 python3 -m unittest discover -s tests -t .
@@ -63,3 +66,8 @@ ruff format --check .
   sont **volatils** et **isolés** des comparaisons.
 - **Plugin** : ajouter un instrument = un adaptateur enregistré via
   `@register_driver`, **sans modifier le cœur ni la CI**.
+- **Autoritaire vs dérivé** : artefacts **immuables/autoritaires** (définition,
+  contexte, baseline, séries, analyse, dirty-diff, **événements append-only**) vs
+  **vues dérivées régénérables** (`evidence-state.json`, `archive-index.json`,
+  `report.md`) reconstruites par `rebuild-derived`. Une fois `M` atteint, le run
+  est **verrouillé** (correction = nouveau run).

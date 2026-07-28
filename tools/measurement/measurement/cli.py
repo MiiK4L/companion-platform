@@ -18,7 +18,12 @@ import sys
 from pathlib import Path
 
 from .acquisition import available_drivers
-from .orchestration import GuardrailError, run_campaign, verify_run
+from .orchestration import (
+    GuardrailError,
+    rebuild_derived,
+    run_campaign,
+    verify_run,
+)
 
 
 def _cmd_drivers(_args: argparse.Namespace) -> int:
@@ -58,6 +63,12 @@ def _cmd_verify(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_rebuild_derived(args: argparse.Namespace) -> int:
+    rebuild_derived(args.run)
+    print("OK: vues derivees regenerees (etat, index, rapport)")
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="measurement")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -77,6 +88,12 @@ def build_parser() -> argparse.ArgumentParser:
     verify = sub.add_parser("verify", help="verifie l'integrite d'un run")
     verify.add_argument("--run", required=True)
     verify.set_defaults(func=_cmd_verify)
+
+    rebuild = sub.add_parser(
+        "rebuild-derived", help="regenere etat/index/rapport depuis l'autoritaire"
+    )
+    rebuild.add_argument("--run", required=True)
+    rebuild.set_defaults(func=_cmd_rebuild_derived)
 
     return parser
 
