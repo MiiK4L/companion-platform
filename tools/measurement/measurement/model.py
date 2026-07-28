@@ -32,10 +32,34 @@ VERDICTS = ("PASS", "FAIL", "INCONCLUSIVE", "INVALID", "NOT_RUN")
 #: Verdicts decisifs autorisant (sous conditions) une promotion en preuve mesuree.
 DECISIVE_VERDICTS = ("PASS", "FAIL")
 
+#: Types d'evenements de l'historique append-only.
+EVENT_TYPES = ("acquisition", "review", "verdict", "promotion")
+
+#: Statut de baseline (enum).
+BASELINE_STATUSES = ("approved", "draft", "not_applicable")
+
+#: Motifs partages avec les schemas (source unique).
+SHA256_PATTERN = r"^[a-f0-9]{64}$"
+ISO8601_PATTERN = r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})$"
+DEC_PATTERN = r"^DEC-[A-Z0-9]+-[0-9]{3}$"
+SAFE_ID_PATTERN = r"^[A-Za-z0-9][A-Za-z0-9_-]*$"
+
+#: Champs de tracabilite obligatoires (details d'evenement) pour un run REEL.
+REVIEW_REQUIRED_FIELDS = ("reviewer", "reviewed_at", "review_reason", "review_checklist")
+PROMOTION_REQUIRED_FIELDS = ("promoted_by", "promoted_at", "promotion_reason")
+VERDICT_LINK_FIELDS = (
+    "verdict_rule_ref",
+    "analysis_result_sha256",
+    "analysis_tool",
+    "analysis_tool_version",
+    "decided_by",
+    "decided_at",
+)
+
 #: Nom de serie : minuscule, sans separateur de chemin (empeche toute evasion).
 SERIES_NAME_RE = re.compile(r"^[a-z0-9][a-z0-9_-]*$")
 #: Identifiant injectable (run_id, experiment_id) : sans point ni separateur de chemin.
-SAFE_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]*$")
+SAFE_ID_RE = re.compile(SAFE_ID_PATTERN)
 
 
 class UnsafeNameError(ValueError):

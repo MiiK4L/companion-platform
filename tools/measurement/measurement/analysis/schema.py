@@ -27,7 +27,17 @@ SCHEMAS_DIR = Path(__file__).resolve().parents[2] / "schemas"
 
 #: Mots-cles reellement pris en charge par la validation.
 VALIDATION_KEYWORDS = frozenset(
-    {"type", "enum", "required", "properties", "additionalProperties", "items", "pattern"}
+    {
+        "type",
+        "enum",
+        "required",
+        "properties",
+        "additionalProperties",
+        "items",
+        "pattern",
+        "minLength",
+        "minItems",
+    }
 )
 #: Mots-cles d'annotation autorises mais non validants.
 ANNOTATION_KEYWORDS = frozenset({"$schema", "title", "description"})
@@ -71,6 +81,14 @@ def validate(instance: Any, schema: dict[str, Any], path: str = "$") -> None:
     if "pattern" in schema and isinstance(instance, str):
         if not re.search(schema["pattern"], instance):
             raise SchemaError(f"{path}: chaine hors motif {schema['pattern']!r}")
+
+    if "minLength" in schema and isinstance(instance, str):
+        if len(instance) < schema["minLength"]:
+            raise SchemaError(f"{path}: chaine trop courte (< {schema['minLength']})")
+
+    if "minItems" in schema and isinstance(instance, list):
+        if len(instance) < schema["minItems"]:
+            raise SchemaError(f"{path}: liste trop courte (< {schema['minItems']})")
 
     if isinstance(instance, dict) and (declared == "object" or "properties" in schema):
         props = schema.get("properties", {})

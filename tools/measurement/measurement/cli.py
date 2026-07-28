@@ -54,7 +54,7 @@ def _cmd_verify(args: argparse.Namespace) -> int:
     except GuardrailError as error:
         print(f"ECHEC: {error}")
         return 1
-    print("OK: empreintes conformes (definition, contexte, series)")
+    print("OK: archive integre (schemas, empreintes, chaine d'evenements)")
     return 0
 
 

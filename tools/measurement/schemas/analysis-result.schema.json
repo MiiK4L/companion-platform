@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Analysis result (immutable)",
+  "description": "Resultat d'analyse archive, hashe et lie au verdict. 'values' porte les grandeurs numeriques exploitees.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["experiment_id", "analysis_tool", "analysis_tool_version", "summary", "values"],
+  "properties": {
+    "experiment_id": { "type": "string", "minLength": 3, "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$" },
+    "analysis_tool": { "type": "string", "minLength": 1 },
+    "analysis_tool_version": { "type": "string", "minLength": 1 },
+    "summary": { "type": "string", "minLength": 1 },
+    "values": { "type": "object" }
+  }
+}

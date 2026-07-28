@@ -1,25 +1,25 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Execution context",
-  "description": "Metadonnees d'execution (implementation/resultat) : banc, instrument reel, DUT, fixture, build, conditions, etalonnage, baseline. Utiliser \"N/A\" (explicite) pour un champ non applicable ; jamais objet ou chaine vide pour une campagne reelle.",
+  "description": "Metadonnees d'execution (implementation). \"N/A\" explicite pour un champ non applicable ; jamais vide pour une campagne reelle.",
   "type": "object",
   "additionalProperties": false,
   "required": ["setup", "instrument", "dut", "fixture", "build_manifest", "conditions", "calibration", "baseline"],
   "properties": {
-    "setup": { "type": "string" },
-    "fixture": { "type": "string" },
+    "setup": { "type": "string", "minLength": 1 },
+    "fixture": { "type": "string", "minLength": 1 },
     "instrument": {
       "type": "object",
       "additionalProperties": false,
       "required": ["brand", "model", "firmware", "probe", "calibre", "bandwidth", "parameters"],
       "properties": {
-        "brand": { "type": "string" },
-        "model": { "type": "string" },
-        "firmware": { "type": "string" },
-        "probe": { "type": "string" },
-        "calibre": { "type": "string" },
-        "bandwidth": { "type": "string" },
-        "parameters": { "type": "string" }
+        "brand": { "type": "string", "minLength": 1 },
+        "model": { "type": "string", "minLength": 1 },
+        "firmware": { "type": "string", "minLength": 1 },
+        "probe": { "type": "string", "minLength": 1 },
+        "calibre": { "type": "string", "minLength": 1 },
+        "bandwidth": { "type": "string", "minLength": 1 },
+        "parameters": { "type": "string", "minLength": 1 }
       }
     },
     "dut": {
@@ -27,8 +27,8 @@
       "additionalProperties": false,
       "required": ["description", "hardware_revision"],
       "properties": {
-        "description": { "type": "string" },
-        "hardware_revision": { "type": "string" }
+        "description": { "type": "string", "minLength": 1 },
+        "hardware_revision": { "type": "string", "minLength": 1 }
       }
     },
     "build_manifest": {
@@ -36,15 +36,16 @@
       "additionalProperties": false,
       "required": ["git_commit", "git_dirty", "toolchain", "esp_idf_version", "target", "build_configuration_hash", "artifact_sha256", "tooling_version", "measurement_tooling_commit"],
       "properties": {
-        "git_commit": { "type": "string" },
+        "git_commit": { "type": "string", "minLength": 1 },
         "git_dirty": { "type": "boolean" },
-        "toolchain": { "type": "string" },
-        "esp_idf_version": { "type": "string" },
-        "target": { "type": "string" },
-        "build_configuration_hash": { "type": "string" },
-        "artifact_sha256": { "type": "string" },
-        "tooling_version": { "type": "string" },
-        "measurement_tooling_commit": { "type": "string" }
+        "toolchain": { "type": "string", "minLength": 1 },
+        "esp_idf_version": { "type": "string", "minLength": 1 },
+        "target": { "type": "string", "minLength": 1 },
+        "build_configuration_hash": { "type": "string", "minLength": 1 },
+        "artifact_sha256": { "type": "string", "minLength": 1 },
+        "tooling_version": { "type": "string", "minLength": 1 },
+        "measurement_tooling_commit": { "type": "string", "minLength": 1 },
+        "dirty_diff_sha256": { "type": "string", "minLength": 1 }
       }
     },
     "conditions": {
@@ -52,9 +53,9 @@
       "additionalProperties": false,
       "required": ["temperature", "supply", "environment"],
       "properties": {
-        "temperature": { "type": "string" },
-        "supply": { "type": "string" },
-        "environment": { "type": "string" }
+        "temperature": { "type": "string", "minLength": 1 },
+        "supply": { "type": "string", "minLength": 1 },
+        "environment": { "type": "string", "minLength": 1 }
       }
     },
     "calibration": {
@@ -62,8 +63,8 @@
       "additionalProperties": false,
       "required": ["reference", "verified_at"],
       "properties": {
-        "reference": { "type": "string" },
-        "verified_at": { "type": "string" }
+        "reference": { "type": "string", "minLength": 1 },
+        "verified_at": { "type": "string", "minLength": 1 }
       }
     },
     "baseline": {
@@ -71,8 +72,8 @@
       "additionalProperties": false,
       "required": ["status", "record"],
       "properties": {
-        "status": { "type": "string" },
-        "record": { "type": "string" }
+        "status": { "type": "string", "enum": ["approved", "draft", "not_applicable"] },
+        "record": { "type": "string", "minLength": 1 }
       }
     }
   }
