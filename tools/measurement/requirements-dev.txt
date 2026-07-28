@@ -7,4 +7,10 @@
 # paquets : les tests utilisent la bibliotheque standard (unittest).
 #
 # Version epinglee (reproductible) ; montees gerees par Dependabot.
+#
+# - ruff : lint + format (choix interne).
+# - jsonschema : validateur JSON Schema STANDARD, utilise en CI pour verifier les
+#   schemas eux-memes et la PARITE avec le validateur maison. Le coeur (paquet
+#   measurement/) ne l'importe pas : la validation maison reste sans dependance.
 ruff==0.16.0
+jsonschema==4.26.0
