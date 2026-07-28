@@ -7,6 +7,8 @@ import unittest
 
 from measurement.analysis import schema as schema_mod
 
+_HEX = "a" * 64
+
 
 def _valid_definition():
     return {
@@ -24,15 +26,13 @@ def _valid_definition():
 def _minimal_manifest():
     return {
         "experiment_id": "EXP-X-001",
-        "campaign_definition_id": "id",
-        "definition_sha256": "d",
-        "context_sha256": "c",
+        "campaign_definition_id": _HEX,
+        "definition_sha256": _HEX,
+        "context_sha256": _HEX,
+        "baseline_sha256": "N/A",
         "run_id": "r",
-        "generated_at": "t",
+        "generated_at": "1970-01-01T00:00:00+00:00",
         "acquisition_nature": "simulated",
-        "evidence_status": "S",
-        "verdict": "NOT_RUN",
-        "verdict_reason": "x",
         "protocol_ref": "p",
         "dec": "DEC-X-000",
         "tooling_version": "0.1.0",
@@ -44,10 +44,16 @@ _ALL_SCHEMAS = (
     "campaign-definition.schema.json",
     "execution-context.schema.json",
     "build-manifest.schema.json",
-    "run-manifest.schema.json",
+    "acquisition-manifest.schema.json",
+    "evidence-state.schema.json",
+    "evidence-event.schema.json",
+    "archive-index.schema.json",
+    "baseline-record.schema.json",
+    "analysis-result.schema.json",
     "measurement-series.schema.json",
-    "verdict.schema.json",
 )
+
+_MANIFEST_SCHEMA = "acquisition-manifest.schema.json"
 
 
 class TestSchema(unittest.TestCase):
@@ -56,6 +62,9 @@ class TestSchema(unittest.TestCase):
             _valid_definition(),
             schema_mod.load_schema("campaign-definition.schema.json"),
         )
+
+    def test_valid_manifest_passes(self):
+        schema_mod.validate(_minimal_manifest(), schema_mod.load_schema(_MANIFEST_SCHEMA))
 
     def test_missing_required_field_fails(self):
         bad = _valid_definition()
@@ -67,19 +76,31 @@ class TestSchema(unittest.TestCase):
         manifest = _minimal_manifest()
         manifest["acquisition_nature"] = "invalid"
         with self.assertRaises(schema_mod.SchemaError):
-            schema_mod.validate(manifest, schema_mod.load_schema("run-manifest.schema.json"))
+            schema_mod.validate(manifest, schema_mod.load_schema(_MANIFEST_SCHEMA))
 
     def test_additional_property_rejected(self):
         manifest = _minimal_manifest()
         manifest["surprise"] = 1
         with self.assertRaises(schema_mod.SchemaError):
-            schema_mod.validate(manifest, schema_mod.load_schema("run-manifest.schema.json"))
+            schema_mod.validate(manifest, schema_mod.load_schema(_MANIFEST_SCHEMA))
 
     def test_pattern_is_enforced(self):
         manifest = _minimal_manifest()
-        manifest["experiment_id"] = "EXP/BAD"  # slash interdit par le motif
+        manifest["experiment_id"] = "EXP/BAD"
         with self.assertRaises(schema_mod.SchemaError):
-            schema_mod.validate(manifest, schema_mod.load_schema("run-manifest.schema.json"))
+            schema_mod.validate(manifest, schema_mod.load_schema(_MANIFEST_SCHEMA))
+
+    def test_sha256_pattern_is_enforced(self):
+        manifest = _minimal_manifest()
+        manifest["definition_sha256"] = "not-a-hash"
+        with self.assertRaises(schema_mod.SchemaError):
+            schema_mod.validate(manifest, schema_mod.load_schema(_MANIFEST_SCHEMA))
+
+    def test_minlength_is_enforced(self):
+        manifest = _minimal_manifest()
+        manifest["protocol_ref"] = ""
+        with self.assertRaises(schema_mod.SchemaError):
+            schema_mod.validate(manifest, schema_mod.load_schema(_MANIFEST_SCHEMA))
 
     def test_bool_is_not_integer(self):
         with self.assertRaises(schema_mod.SchemaError):
