@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Campaign definition",
+  "description": "Description baselinable d'une campagne. Objets contractuels stricts ; zone 'extensions' explicite pour les ajouts.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "experiment_id",
+    "experimental_question",
+    "expected_observation",
+    "verdict_rule",
+    "protocol_ref",
+    "dec",
+    "dut",
+    "acquisition"
+  ],
+  "properties": {
+    "experiment_id": { "type": "string", "minLength": 3, "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$" },
+    "experimental_question": { "type": "string", "minLength": 1 },
+    "expected_observation": { "type": "string", "minLength": 1 },
+    "verdict_rule": { "type": "string", "minLength": 1 },
+    "protocol_ref": { "type": "string", "minLength": 1 },
+    "dec": { "type": "string", "pattern": "^DEC-[A-Z0-9]+-[0-9]{3}$" },
+    "dut": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["description"],
+      "properties": { "description": { "type": "string", "minLength": 1 } }
+    },
+    "parameters": { "type": "object" },
+    "extensions": { "type": "object" },
+    "acquisition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["driver"],
+      "properties": {
+        "driver": { "type": "string", "minLength": 1 },
+        "config": { "type": "object" }
+      }
+    }
+  }
+}

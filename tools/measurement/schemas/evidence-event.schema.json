@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Evidence event (append-only)",
+  "description": "Evenement IMMUABLE de l'historique des transitions. Chaine par previous_event_sha256. 'details' est la zone d'extension typee par event_type.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "event_id",
+    "event_type",
+    "from_status",
+    "to_status",
+    "actor",
+    "timestamp",
+    "reason",
+    "inputs",
+    "previous_event_sha256",
+    "details"
+  ],
+  "properties": {
+    "event_id": { "type": "string", "pattern": "^[0-9]{4}$" },
+    "event_type": { "type": "string", "enum": ["acquisition", "review", "verdict", "promotion"] },
+    "from_status": { "type": "string", "enum": ["NONE", "RAW", "REVIEWED", "M", "S"] },
+    "to_status": { "type": "string", "enum": ["NONE", "RAW", "REVIEWED", "M", "S"] },
+    "actor": { "type": "string", "minLength": 1 },
+    "timestamp": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})$" },
+    "reason": { "type": "string", "minLength": 1 },
+    "inputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "sha256"],
+        "properties": {
+          "name": { "type": "string", "minLength": 1 },
+          "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+        }
+      }
+    },
+    "previous_event_sha256": { "type": "string", "pattern": "^([a-f0-9]{64})?$" },
+    "details": { "type": "object" }
+  }
+}

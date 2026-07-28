@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Build manifest (durci)",
+  "description": "Identification exacte du firmware/logiciel/config. Applique aux builds REELS ; les hashes sont contraints a 64 hex. git_commit accepte \"N/A\" uniquement si reellement non applicable.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "git_commit",
+    "git_dirty",
+    "toolchain",
+    "esp_idf_version",
+    "target",
+    "build_configuration_hash",
+    "artifact_sha256",
+    "tooling_version",
+    "measurement_tooling_commit"
+  ],
+  "properties": {
+    "git_commit": { "type": "string", "minLength": 1 },
+    "git_dirty": { "type": "boolean" },
+    "toolchain": { "type": "string", "minLength": 1 },
+    "esp_idf_version": { "type": "string", "minLength": 1 },
+    "target": { "type": "string", "minLength": 1 },
+    "build_configuration_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "artifact_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "tooling_version": { "type": "string", "minLength": 1 },
+    "measurement_tooling_commit": { "type": "string", "minLength": 1 },
+    "dirty_diff_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+  }
+}

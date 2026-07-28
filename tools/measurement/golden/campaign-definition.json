@@ -1,0 +1,18 @@
+{
+  "experiment_id": "EXP-EXAMPLE-000",
+  "experimental_question": "Le socle produit-il un run simule reproductible et bien forme ?",
+  "expected_observation": "Un run archive, un manifeste valide et des artefacts a empreinte stable.",
+  "verdict_rule": "PASS si les artefacts sont conformes au golden ; sinon FAIL (verdict d'outillage).",
+  "protocol_ref": "example://golden-campaign",
+  "dec": "DEC-EXAMPLE-000",
+  "dut": {
+    "description": "DUT factice du golden dataset (non reel, pour tests CI)"
+  },
+  "parameters": {
+    "note": "jeu de reference versionne pour la CI — aucune mesure reelle"
+  },
+  "acquisition": {
+    "driver": "simulation",
+    "config": { "series": "signal", "samples": 8 }
+  }
+}

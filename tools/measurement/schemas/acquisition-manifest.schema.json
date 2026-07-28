@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Acquisition manifest (immutable)",
+  "description": "Enregistrement IMMUABLE de l'acquisition : identite + empreintes des entrees immuables. Ne contient ni statut de preuve ni verdict (voir evidence-state / evidence-events).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "experiment_id",
+    "campaign_definition_id",
+    "definition_sha256",
+    "context_sha256",
+    "baseline_sha256",
+    "run_id",
+    "generated_at",
+    "acquisition_nature",
+    "protocol_ref",
+    "dec",
+    "tooling_version",
+    "artifacts"
+  ],
+  "properties": {
+    "experiment_id": { "type": "string", "minLength": 3, "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$" },
+    "campaign_definition_id": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "definition_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "context_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "baseline_sha256": { "type": "string", "minLength": 1 },
+    "run_id": { "type": "string", "minLength": 1, "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$" },
+    "generated_at": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})$" },
+    "acquisition_nature": { "type": "string", "enum": ["measured", "simulated"] },
+    "protocol_ref": { "type": "string", "minLength": 1 },
+    "dec": { "type": "string", "pattern": "^DEC-[A-Z0-9]+-[0-9]{3}$" },
+    "tooling_version": { "type": "string", "minLength": 1 },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "sha256"],
+        "properties": {
+          "path": { "type": "string", "minLength": 1 },
+          "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "acquisition_nature": "simulated",
+  "artifacts": [
+    {
+      "path": "series/signal.csv",
+      "sha256": "bfae4f26655d279ba985f8cbcaf630364d6a74cff50e2c7875e19e6d82356d04"
+    }
+  ],
+  "baseline_sha256": "N/A",
+  "campaign_definition_id": "4b8a1dbd9256ffe7d90dc83eb306886ef7ef2ca5d27d647f044dec121f851d2f",
+  "context_sha256": "c201acbfd1d1f3cde6d75dfdb654aad8eba85e7540d96641f9cf420cbbc9b6bb",
+  "dec": "DEC-EXAMPLE-000",
+  "definition_sha256": "790fb8b5c19e77cfd30c859c5f03ae6cc8de3867d6eb4a2e2630c8cd3c882c81",
+  "experiment_id": "EXP-EXAMPLE-000",
+  "protocol_ref": "example://golden-campaign",
+  "tooling_version": "0.1.0"
+}

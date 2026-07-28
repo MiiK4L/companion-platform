@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Evidence state (derived view)",
+  "description": "Vue COURANTE derivee de l'historique append-only : statut de preuve et verdict.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "experiment_id",
+    "evidence_status",
+    "verdict",
+    "verdict_reason",
+    "locked",
+    "latest_event_id",
+    "latest_event_sha256"
+  ],
+  "properties": {
+    "experiment_id": { "type": "string", "minLength": 3, "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$" },
+    "evidence_status": { "type": "string", "enum": ["RAW", "REVIEWED", "M", "S"] },
+    "verdict": { "type": "string", "enum": ["PASS", "FAIL", "INCONCLUSIVE", "INVALID", "NOT_RUN"] },
+    "verdict_reason": { "type": "string", "minLength": 1 },
+    "locked": { "type": "boolean" },
+    "latest_event_id": { "type": "string", "pattern": "^[0-9]{4}$" },
+    "latest_event_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+  }
+}

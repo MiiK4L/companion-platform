@@ -36,6 +36,7 @@ venv/
 site/
 .mypy_cache/
 .pytest_cache/
+.ruff_cache/
 *.egg-info/
 
 # --- Node ---
