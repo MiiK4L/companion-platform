@@ -43,7 +43,7 @@ de protocoles, de résultats de mesure, ni de choix d'instruments/composants.
 | Modèle de rapport de mesure | [measurement-report-template](../templates/measurement-report-template.md) | **Étend** ce modèle (champs de setup/traçabilité), sans le remplacer. |
 | Protocoles de chaque lot | `docs/phase-1/lot-*/protocols/` | **Exécutés** par le socle ; jamais dupliqués ici. |
 | Questions de décision & ADR | [decisions-register](../decisions-register.md), [adr-plan](../adr-plan.md) | Le socle **alimente** les mesures ; il ne **crée** ni DEC ni ADR. |
-| Convention de valeurs `[DS]/[C]/[H]/[P]/[BL]/[M]` | lots documentaires (ex. [lot-2](../lot-2/README.md)) | Une donnée n'atteint `[M]` **qu'en mode réel, après une promotion contrôlée** (jamais en simulation). |
+| Convention de valeurs `[DS]/[C]/[H]/[P]/[BL]/[M]` | lots documentaires (ex. [lot-2](../lot-2/README.md)) | `[M]` = **run réel individuellement qualifié** (promotion contrôlée), **pas** une preuve reproductible ; l'agrégat citable par une ADR est un `evidence_bundle` **futur**. Jamais `[M]` en simulation. |
 | Sourcing & maturité | [sourcing-and-bom](../sourcing-and-bom.md) | Le socle ne **retient** aucun composant/instrument. |
 
 ## Garde-fou central — la simulation n'est pas une preuve

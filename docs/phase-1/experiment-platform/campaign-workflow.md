@@ -6,72 +6,71 @@ SPDX-License-Identifier: CC-BY-4.0
 
 # Cycle d'une campagne expérimentale
 
-> **Statut : Proposé.** Décrit le **flux** d'une campagne et le **cycle de vie de
-> la preuve**. **Renvoie** aux protocoles des lots (**autorité**) sans les
-> dupliquer ; **ne décrit aucune mesure ni résultat**.
+> **Statut : Proposé.** Décrit le **flux**, le **cycle de vie de la preuve** et
+> l'**historique append-only**. Renvoie aux protocoles (**autorité**) sans les
+> dupliquer.
 
 ## Description / implémentation / résultat
 
-Séparation explicite (inspirée des bonnes pratiques d'ingénierie de test),
-reliée par identifiants et hashes — **jamais** fondue dans un seul manifeste :
-
 ```text
-Description du test        -> protocole baseliné : question, setup, seuils, verdict_rule
-  (campaign-definition)        lisible et contrôlable humainement
-
-Implémentation du test     -> firmware, script, fixture, adaptateurs, versions
-  (execution-context +           peut évoluer (build_manifest = identification exacte)
-   build_manifest)
-
-Résultat du test           -> données, analyse, verdict, rapport
-  (manifest, series,             immuable et traçable
-   analysis, verdict, report)
+Description   -> campaign-definition.json (question, verdict_rule, protocole, DUT vise)
+Implementation-> execution-context.json + build_manifest + baseline-record.json
+Resultat      -> acquisition-manifest + series + analysis + evidence-events + report
 ```
+
+Reliés par identifiants et hashes ; le **résultat est immuable**.
 
 ## Étapes
 
 ```text
-1. Definition ─▶ 2. campaign_definition_id ─▶ 3. Acquisition ─▶ 4. Analyse
-   (question,        (deterministe)              (reel: RAW        (schema,
-    verdict_rule)                                 / simule: S)      incertitude)
-                                                       │
-6. Archivage ◀── 5. Rapport + manifeste + verdict ◀────┘
-   (results/…,       + SHA-256 (definition, contexte, series)
-    autosuffisant)
-        │
-        ▼
-7. Revue ─▶ 8. Promotion contrôlée ─▶ [M]   (uniquement pour une acquisition RÉELLE)
-   (REVIEWED)   (verifie baseline, metadonnees, integrite, analyse, verdict decisif)
+1. Definition ─▶ 2. Acquisition ─▶ 3. Analyse ─▶ 4. Verdict ─▶ 5. Revue ─▶ 6. Promotion
+   (baselinee)     (RAW reel /       (immuable)    (lie regle    (REVIEWED)   (-> M, controlee)
+                    S simule)                       + analyse)
+        └────────────────── historique append-only (evidence-events/) ──────────────────┘
 ```
+
+Chaque étape ajoute un **événement immuable** chaîné (`previous_event_sha256`).
+L'`acquisition-manifest` est immuable ; `evidence-state` / `archive-index` sont
+dérivés.
 
 ## Cycle de vie de la preuve
 
-| État | Origine | Passage suivant |
-|------|---------|-----------------|
-| `RAW` | acquisition **réelle** | `mark_reviewed` → `REVIEWED` |
-| `REVIEWED` | revue faite | `promote_to_measured` → `M` (si conditions réunies) |
-| `M` | promotion contrôlée | preuve mesurée qualifiée |
-| `S` | acquisition **simulée** | **terminal** (jamais `M`) |
+| État | Origine | Passage |
+|------|---------|---------|
+| `RAW` | acquisition **réelle** | `mark_reviewed` (identité de revue) → `REVIEWED` |
+| `REVIEWED` | revue tracée | `promote_to_measured` (contrôlée) → `M` |
+| `M` | promotion | **run VERROUILLÉ** (toute correction = nouveau run) |
+| `S` | acquisition **simulée** | terminal (jamais `M`) |
 
-**`promote_to_measured` vérifie, au minimum :** acquisition réelle · statut
-`REVIEWED` · **baseline approuvée** · métadonnées obligatoires complètes ·
-**artefacts intègres** (SHA-256) · **analyse exécutée** · **verdict décisif**
-(`PASS`/`FAIL`). À défaut, la promotion est **refusée** (garde-fou).
+**Revue** (obligatoire, run réel) : `reviewer`, `reviewed_at`, `review_reason`,
+`review_checklist`. **Promotion** : `promoted_by`, `promoted_at`,
+`promotion_reason`. Ces identités sont **consignées dans l'événement**.
 
-## Verdict (états et sémantique)
+**`promote_to_measured` vérifie** : acquisition réelle · statut `REVIEWED` ·
+**baseline-record archivée et approuvée** · métadonnées complètes · **build
+reproductible** (git propre, ou diff archivé+hashé+justifié) · **intégrité totale**
+de l'archive (`verify_run`) · **analyse archivée** et **liée au verdict**
+(`analysis_result_sha256`) · **verdict décisif** (`PASS`/`FAIL`).
 
-`PASS` critères satisfaits · `FAIL` non satisfaits · `INCONCLUSIVE` données
-insuffisantes/ambiguës · `INVALID` campagne invalide (banc/protocole/DUT/exécution)
-· `NOT_RUN` définie mais non exécutée. **Un résultat ambigu n'est pas converti
-artificiellement en succès ou échec.**
+## Verdict (états et liaison)
+
+`PASS` / `FAIL` / `INCONCLUSIVE` (ambigu) / `INVALID` (banc/protocole/DUT/exécution)
+/ `NOT_RUN`. Un résultat ambigu **n'est pas** converti en succès/échec. Le verdict
+est **relié** à `verdict_rule`, à l'analyse (`analysis_result_sha256`) et à l'outil
+d'analyse (`analysis_tool`/version), avec `decided_by`/`decided_at`.
+
+## Portée de `[M]`
+
+> `M` = **run réel individuellement qualifié**, **pas** une preuve reproductible
+> suffisante pour arbitrer une DEC.
+
+L'agrégat reproductible (`n_campaigns` indépendantes, DUT, répétitions,
+statistiques, comparaison des alternatives) est un niveau **supérieur futur**
+(`evidence_bundle`), **seul** citable par une ADR. Voir
+[modèle de données](measurement-data-model.md) et
+[cadre §4](../validation-framework.md).
 
 ## Réel vs simulé
-
-- **Réel** : `acquisition_nature = measured` → `RAW`. Éligible à `[M]` **après
-  promotion contrôlée** et sous les conditions du
-  [cadre §3](../validation-framework.md) (reproductible, `n_campaigns ≥ 2`,
-  alternatives comparées…).
-- **Simulé** : `acquisition_nature = simulated` → `S`.
 
 > **Garde-fou.** **Une campagne simulée valide uniquement l'infrastructure
 > d'outillage. Elle ne produit aucune donnée `[M]`, n'alimente aucune ADR et ne
@@ -80,19 +79,17 @@ artificiellement en succès ou échec.**
 
 ## Traçabilité obligatoire (campagne réelle)
 
-Chaque run réel consigne, via `execution-context.json`, les métadonnées de
-[reference-bench §5](reference-bench.md) : instrument réel (marque/modèle/firmware),
-configuration (sonde/calibre/bande passante/paramètres), **build_manifest**, DUT +
-révision, fixture, conditions, étalonnage. L'exécution **refuse de finaliser** un
-run réel si un champ applicable manque (`N/A` explicite sinon).
+Via `execution-context.json` (cf. [reference-bench §5](reference-bench.md)) :
+instrument réel, configuration, **build_manifest**, DUT + révision, fixture,
+conditions, étalonnage. L'exécution **refuse** un run réel incomplet
+(`N/A` explicite sinon).
 
 ## Reproductibilité
 
-Un résultat **reproductible** (au sens du [cadre §4](../validation-framework.md))
-exige `n_campaigns ≥ 2` **indépendantes** — notion **méthodologique** distincte de
-la reproductibilité **logicielle** vérifiée par l'outil (mêmes entrées → mêmes
-artefacts, hors volatils). Le socle **outille** la seconde, ne **remplace pas** la
-première.
+Reproductibilité **logicielle** (mêmes entrées → mêmes artefacts, hors volatils)
+outillée et vérifiée en CI ; reproductibilité **méthodologique**
+(`n_campaigns ≥ 2` indépendantes) relève du [cadre §4](../validation-framework.md)
+et de l'`evidence_bundle` futur.
 
 ## Renvois
 

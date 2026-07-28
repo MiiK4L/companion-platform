@@ -75,6 +75,16 @@ métadonnées complètes, intégrité, analyse, verdict décisif). Une acquisiti
 > trop tôt. Voir [modèle de données](measurement-data-model.md) et
 > [cycle d'une campagne](campaign-workflow.md).
 
+## Historique append-only & intégrité
+
+Le **résultat est immuable**. Les transitions (`RAW → REVIEWED → M`) et les
+verdicts sont des **événements append-only** (`evidence-events/`), **chaînés** par
+`previous_event_sha256`. L'`acquisition-manifest.json` est immuable ;
+`evidence-state.json` et `archive-index.json` sont des **vues dérivées**. Une fois
+`M` atteint, le run est **verrouillé** (toute correction = nouveau run).
+`verify_run` recalcule **toutes** les empreintes, valide **tous** les schémas et
+vérifie la **chaîne d'événements** — c'est l'autorité d'intégrité.
+
 ## Déterminisme
 
 **Mêmes entrées → mêmes artefacts**, afin que la reproductibilité logicielle soit
