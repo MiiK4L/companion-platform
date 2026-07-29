@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Import descriptor (driver manuel de reference)",
+  "description": "Descripteur d'un repertoire d'import prepare par l'operateur (ENTREE du driver manual-import, jamais archive tel quel). Decrit les bruts, la capture et les series normalisees a importer. Aucune logique metier.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["capture_id", "capture_type", "parameters", "raw_artifacts", "normalized", "series"],
+  "properties": {
+    "capture_id": { "type": "string", "pattern": "^CAP-[0-9]{3,}$" },
+    "capture_type": { "type": "string", "minLength": 1 },
+    "parameters": { "type": "object" },
+    "raw_artifacts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["group", "name", "format"],
+        "properties": {
+          "group": { "type": "string", "minLength": 1, "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$" },
+          "name": { "type": "string", "minLength": 1, "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$" },
+          "format": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "normalized": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["series", "from_raw"],
+        "properties": {
+          "series": { "type": "string", "minLength": 1 },
+          "from_raw": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "series": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "csv", "columns"],
+        "properties": {
+          "name": { "type": "string", "pattern": "^[a-z0-9][a-z0-9_-]*$" },
+          "csv": { "type": "string", "minLength": 1, "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$" },
+          "columns": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["name", "unit"],
+              "properties": {
+                "name": { "type": "string", "minLength": 1 },
+                "unit": { "type": "string", "minLength": 1 }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

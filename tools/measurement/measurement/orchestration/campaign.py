@@ -24,7 +24,7 @@ from typing import Any
 from ..acquisition import get_driver
 from ..analysis import schema as schema_mod
 from ..common.canonical import canonical_json
-from ..common.hashing import sha256_file, sha256_text
+from ..common.hashing import sha256_bytes, sha256_file, sha256_text
 from ..common.ids import campaign_definition_id, new_run_id
 from ..model import (
     DECISIVE_VERDICTS,
@@ -260,16 +260,25 @@ def run_campaign(
     context: dict[str, Any] | None = None,
     baseline_record: dict[str, Any] | None = None,
     dirty_diff: str | None = None,
+    acquisition_overrides: dict[str, Any] | None = None,
     run_id: str | None = None,
     generated_at: str | None = None,
     actor: str = "tooling",
 ) -> tuple[Path, dict[str, Any]]:
-    """Execute une campagne et ecrit un run avec historique append-only."""
+    """Execute une campagne et ecrit un run avec historique append-only.
+
+    ``acquisition_overrides`` : options d'acquisition purement RUNTIME (ex.
+    chemin d'import du driver manuel). Elles sont fournies au driver mais **jamais
+    archivees** ni incluses dans ``campaign_definition_id`` (ephemeres).
+    """
     schema_mod.validate(definition, schema_mod.load_schema("campaign-definition.schema.json"))
     experiment_id = ensure_safe_id(definition["experiment_id"], kind="experiment_id")
     definition_id = campaign_definition_id(definition)
 
     acquisition = definition["acquisition"]
+    # Config RUNTIME (definition archivee inchangee) : les overrides ephemeres
+    # (ex. import_dir) ne polluent ni la definition ni son identifiant.
+    runtime_config = {**acquisition.get("config", {}), **(acquisition_overrides or {})}
     driver = get_driver(acquisition["driver"])()
     nature = driver.nature
 
@@ -290,7 +299,7 @@ def run_campaign(
             context["build_manifest"], schema_mod.load_schema("build-manifest.schema.json")
         )
 
-    series_list = driver.acquire(definition_id, acquisition.get("config", {}))
+    series_list = driver.acquire(definition_id, runtime_config)
     run_id = ensure_safe_id(run_id, kind="run_id") if run_id else new_run_id()
     generated_at = generated_at or _now_iso()
 
@@ -341,16 +350,26 @@ def run_campaign(
 
     # Artefacts BRUTS d'acquisition (source de verite) + capture.json (params +
     # tracabilite brut -> CSV normalise). Optionnel selon le driver.
-    capture = driver.capture(definition_id, acquisition.get("config", {}))
+    capture = driver.capture(definition_id, runtime_config)
     capture_sha = None
     if capture is not None:
         raw_refs: list[dict[str, str]] = []
         for raw in capture["raw"]:
             group = ensure_filename(raw["group"])
             raw_name = ensure_filename(raw["name"])
+            # Bruts copies OCTET PAR OCTET (tout format) : aucune hypothese sur le
+            # contenu. Source par chemin (fichier) ou contenu inline (texte/octets).
+            if "path" in raw:
+                data = Path(raw["path"]).read_bytes()
+            elif isinstance(raw.get("content"), bytes):
+                data = raw["content"]
+            elif "content" in raw:
+                data = raw["content"].encode("utf-8")
+            else:
+                raise GuardrailError(f"brut sans 'path' ni 'content': {raw_name}")
             (run_dir / "raw" / group).mkdir(parents=True, exist_ok=True)
-            (run_dir / "raw" / group / raw_name).write_text(raw["content"], encoding="utf-8")
-            raw_sha = sha256_text(raw["content"])
+            (run_dir / "raw" / group / raw_name).write_bytes(data)
+            raw_sha = sha256_bytes(data)
             rel = f"raw/{group}/{raw_name}"
             raw_refs.append(
                 {"group": group, "name": raw_name, "format": raw["format"], "sha256": raw_sha}

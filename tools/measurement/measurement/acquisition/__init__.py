@@ -7,7 +7,10 @@ L'import de ce paquet enregistre les drivers fournis (ici : la simulation).
 Aucun pilote d'instrument reel n'est fourni a ce stade.
 """
 
-from . import simulation  # noqa: F401  (effet de bord : enregistre le driver)
+from . import (
+    manual_import,  # noqa: F401  (effet de bord : enregistre le driver)
+    simulation,  # noqa: F401  (effet de bord : enregistre le driver)
+)
 from .driver import (
     InstrumentDriver,
     available_drivers,
