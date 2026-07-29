@@ -77,6 +77,15 @@ class InstrumentDriver(ABC):
         """
         raise NotImplementedError
 
+    def prepare(self, definition_id: str, config: dict[str, Any]) -> None:
+        """Hook optionnel appele UNE fois avant ``acquire()``/``capture()``.
+
+        Permet a un driver de figer un SNAPSHOT immuable de son entree (lecture,
+        validation, inventaire, hachage uniques) afin qu'``acquire()`` et
+        ``capture()`` ne relisent pas l'entree independamment. No-op par defaut.
+        """
+        return None
+
     def capture(self, definition_id: str, config: dict[str, Any]) -> dict[str, Any] | None:
         """Artefacts BRUTS d'acquisition + parametres de capture (optionnel).
 
