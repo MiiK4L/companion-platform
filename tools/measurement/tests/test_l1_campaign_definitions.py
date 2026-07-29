@@ -25,8 +25,18 @@ _SCHEMA = _ROOT / "schemas" / "campaign-definition.schema.json"
 _DEGRADATION_BL = {"BL-104", "BL-105"}
 # Invariants de validite du banc : applicables a TOUS les cas.
 _BENCH_INVARIANTS = {
-    "BL-001", "BL-002", "BL-003", "BL-004", "BL-005", "BL-006",
-    "BL-007", "BL-008", "BL-009", "BL-010", "BL-011", "BL-012",
+    "BL-001",
+    "BL-002",
+    "BL-003",
+    "BL-004",
+    "BL-005",
+    "BL-006",
+    "BL-007",
+    "BL-008",
+    "BL-009",
+    "BL-010",
+    "BL-011",
+    "BL-012",
 }
 _EXPECTED_CASES = {
     ("spi-shared", "screen-only"),
@@ -39,8 +49,9 @@ _EXPECTED_CASES = {
 
 
 def _load():
-    return {f.name: json.loads(f.read_text(encoding="utf-8"))
-            for f in sorted(_DEFS.glob("*.json"))}
+    return {
+        f.name: json.loads(f.read_text(encoding="utf-8")) for f in sorted(_DEFS.glob("*.json"))
+    }
 
 
 class L1CampaignDefinitionsTest(unittest.TestCase):
@@ -56,8 +67,7 @@ class L1CampaignDefinitionsTest(unittest.TestCase):
                 home.validate(doc, schema)
 
     def test_couverture_des_cas(self):
-        cases = {(d["variant_id"], d["parameters"]["load_mode"])
-                 for d in self.docs.values()}
+        cases = {(d["variant_id"], d["parameters"]["load_mode"]) for d in self.docs.values()}
         self.assertEqual(cases, _EXPECTED_CASES, "2 topologies x 3 modes")
 
     def test_identifiants_deterministes_et_distincts(self):
@@ -73,16 +83,21 @@ class L1CampaignDefinitionsTest(unittest.TestCase):
             not_applicable = set(params["not_applicable_bl"])
             with self.subTest(definition=name):
                 self.assertTrue(applicable, "au moins un critere applicable")
-                self.assertFalse(applicable & not_applicable,
-                                 "un critere ne peut etre a la fois applicable et N/A")
-                self.assertTrue(_BENCH_INVARIANTS <= applicable,
-                                "les invariants de banc s'appliquent a tous les cas")
+                self.assertFalse(
+                    applicable & not_applicable,
+                    "un critere ne peut etre a la fois applicable et N/A",
+                )
+                self.assertTrue(
+                    _BENCH_INVARIANTS <= applicable,
+                    "les invariants de banc s'appliquent a tous les cas",
+                )
                 # Les metriques suivent la meme discipline.
                 required = set(params["required_metrics"])
                 na_metrics = set(params["not_applicable_metrics"])
                 self.assertTrue(required, "au moins une metrique obligatoire")
-                self.assertFalse(required & na_metrics,
-                                 "une metrique ne peut etre a la fois requise et N/A")
+                self.assertFalse(
+                    required & na_metrics, "une metrique ne peut etre a la fois requise et N/A"
+                )
 
     def test_modes_isoles_non_juges_sur_la_degradation(self):
         """Un mode isole n'a pas de concurrence : BL-104/BL-105 doivent etre N/A."""
@@ -93,13 +108,18 @@ class L1CampaignDefinitionsTest(unittest.TestCase):
             not_applicable = set(params["not_applicable_bl"])
             with self.subTest(definition=name, mode=mode):
                 if mode == "concurrent":
-                    self.assertTrue(_DEGRADATION_BL <= applicable,
-                                    "concurrent : criteres de degradation applicables")
+                    self.assertTrue(
+                        _DEGRADATION_BL <= applicable,
+                        "concurrent : criteres de degradation applicables",
+                    )
                 else:
-                    self.assertFalse(_DEGRADATION_BL & applicable,
-                                     "mode isole : degradation NON applicable")
-                    self.assertTrue(_DEGRADATION_BL <= not_applicable,
-                                    "mode isole : degradation explicitement N/A")
+                    self.assertFalse(
+                        _DEGRADATION_BL & applicable, "mode isole : degradation NON applicable"
+                    )
+                    self.assertTrue(
+                        _DEGRADATION_BL <= not_applicable,
+                        "mode isole : degradation explicitement N/A",
+                    )
 
     def test_metriques_absentes_du_mode(self):
         """screen-only n'a pas d'IRQ module ; module-only n'a pas de trafic ecran."""
@@ -110,11 +130,15 @@ class L1CampaignDefinitionsTest(unittest.TestCase):
             with self.subTest(definition=name, mode=mode):
                 if mode == "screen-only":
                     self.assertNotIn("M-IRQL", required, "pas d'IRQ module exploitable")
-                    self.assertFalse({m for m in required if "(module)" in m},
-                                     "aucune metrique module en screen-only")
+                    self.assertFalse(
+                        {m for m in required if "(module)" in m},
+                        "aucune metrique module en screen-only",
+                    )
                 elif mode == "module-only":
-                    self.assertFalse({m for m in required if "(screen)" in m},
-                                     "aucune metrique ecran en module-only")
+                    self.assertFalse(
+                        {m for m in required if "(screen)" in m},
+                        "aucune metrique ecran en module-only",
+                    )
                     self.assertIn("M-IRQL", required, "IRQ module mesurable")
 
     def test_criteres_crc_distincts(self):
@@ -130,16 +154,22 @@ class L1CampaignDefinitionsTest(unittest.TestCase):
             params = doc["parameters"]
             with self.subTest(definition=name):
                 self.assertEqual(params["baseline_id"], "BL-EXP-L1-BRINGUP-001")
-                self.assertEqual(params["baseline_draft_version"], 0,
-                                 "brouillon : version 0 (l'approuvee sera la 1 en B4)")
+                self.assertEqual(
+                    params["baseline_draft_version"],
+                    0,
+                    "brouillon : version 0 (l'approuvee sera la 1 en B4)",
+                )
                 self.assertTrue(params["baseline_draft_ref"].endswith("baseline-draft.md"))
                 self.assertIn("draft", params["baseline_status"])
 
     def test_base_de_temps_autoritaire_declaree(self):
         for name, doc in self.docs.items():
             with self.subTest(definition=name):
-                self.assertEqual(doc["parameters"]["time_authority"], "logic-analyzer",
-                                 "les latences inter-cartes ne sont pas datees par les MCU")
+                self.assertEqual(
+                    doc["parameters"]["time_authority"],
+                    "logic-analyzer",
+                    "les latences inter-cartes ne sont pas datees par les MCU",
+                )
 
     def test_definition_seule_aucune_acquisition(self):
         for name, doc in self.docs.items():
