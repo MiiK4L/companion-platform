@@ -69,3 +69,35 @@ if [ "$dir" -ne 0 ]; then
   exit 1
 fi
 echo "OK: dépendances internes orientées vers les ports (ports/models <- services <- composition/adaptateurs)"
+
+# ---------------------------------------------------------------------------
+# 3) Cœur PORTABLE du firmware de banc (firmware/experiment-bench/portable/).
+#    Il doit rester 100% indépendant de la plateforme : ni include, ni SYMBOLE
+#    de plateforme (Pico SDK / PIO, ESP-IDF, FreeRTOS, Arduino, pilote). Le temps
+#    réel, le GPIO, le SPI concret vivent dans hal/<cible>/ et boards/<carte>/.
+# ---------------------------------------------------------------------------
+PORTABLE="firmware/experiment-bench/portable"
+port=0
+
+if [ -d "$PORTABLE" ]; then
+  # 3a) Includes de plateforme/SDK interdits (insensible à la casse).
+  INC_PATTERN='#include[[:space:]]*[<"](pico/|hardware/|pio|tusb|bsp/|esp_|esp-idf|sdkconfig|freertos|driver/|nvs|arduino|freertos/)'
+  if grep -rniE "$INC_PATTERN" "$PORTABLE"; then
+    echo "  ^ include de plateforme/SDK dans le cœur portable (interdit)"
+    port=1
+  fi
+
+  # 3b) Symboles de plateforme interdits (SENSIBLE à la casse pour éviter les
+  #     faux positifs : BENCH_TRANSPORT_SPI, BENCH_EV_IRQ, irq_count restent OK).
+  SYM_PATTERN='(gpio_[a-z]|pio_|pio0|pio1|sio_hw|spi_init|spi_write|spi_read|spi_device|sleep_ms|sleep_us|busy_wait|time_us_|stdio_init_all|pico_|esp_[a-z]|ESP_LOG|ESP_ERROR|esp_timer|esp_rom|gpio_num_t|xTaskCreate|vTaskDelay|pdMS_TO_TICKS|TickType_t|portTICK|ledc_|rmt_)'
+  if grep -rnE "$SYM_PATTERN" "$PORTABLE"; then
+    echo "  ^ symbole de plateforme dans le cœur portable (interdit)"
+    port=1
+  fi
+
+  if [ "$port" -ne 0 ]; then
+    echo "FAIL: le cœur portable du banc contient une dépendance plateforme (include ou symbole)"
+    exit 1
+  fi
+  echo "OK: cœur portable du banc sans dépendance plateforme (ni include, ni symbole)"
+fi
