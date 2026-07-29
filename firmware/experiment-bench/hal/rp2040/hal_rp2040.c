@@ -66,6 +66,7 @@ bench_hal_slave_t bench_hal_rp2040(void) {
   bench_hal_slave_t hal;
   hal.clock.ctx = &g_ctx;
   hal.clock.now = rp2040_now;
+  hal.clock.delay = NULL;  // TODO(local): sleep_us via l'horloge materielle.
   hal.spi_ctx = &g_ctx;
   hal.recv = rp2040_recv;
   hal.send = rp2040_send;

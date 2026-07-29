@@ -53,22 +53,34 @@ static size_t slave_on_transaction(void *ctx, const uint8_t *rx, size_t len) {
   const bench_frame_result_t r = bench_frame_decode_prefix(rx, len, &f, &consumed);
   const bench_ticks_t at = clock_now_or_zero(&e->clock);
 
+  int is_error;
   if (r == BENCH_FRAME_OK) {
     bench_counters_record_tx(&e->counters, 1, (uint32_t)f.payload_len, 0);
     slave_set_ack(e, f.seq, BENCH_ACK_OK);
+    is_error = 0;
   } else {
-    // Corruption REELLE detectee (CRC/format) : erreur comptee ET tx echouee.
+    // Corruption REELLE detectee (CRC/format ou CS relache tot) : erreur comptee.
     bench_counters_record_crc_error(&e->counters);
     bench_counters_record_tx(&e->counters, 0, 0, 0);
     slave_set_ack(e, 0, BENCH_ACK_CRC_ERROR);
+    is_error = 1;
   }
 
-  // Signale la completion : leve l'IRQ vers l'hote + evenement.
-  if (e->irq.raise != NULL) {
-    e->irq.raise(e->irq.ctx);
+  // Emission de l'IRQ selon la POLITIQUE DECLAREE par le profil (pas de decision
+  // codee en dur dans le moteur).
+  int raise = 0;
+  switch (e->irq_policy) {
+    case BENCH_IRQ_PER_TRANSACTION: raise = 1; break;
+    case BENCH_IRQ_ON_ERROR: raise = is_error; break;
+    case BENCH_IRQ_NEVER: default: raise = 0; break;
   }
-  bench_counters_record_irq(&e->counters);
-  emit(e->sink, e->sink_ctx, &e->event_seq, BENCH_EV_IRQ, at);
+  if (raise) {
+    if (e->irq.raise != NULL) {
+      e->irq.raise(e->irq.ctx);
+    }
+    bench_counters_record_irq(&e->counters);
+    emit(e->sink, e->sink_ctx, &e->event_seq, BENCH_EV_IRQ, at);
+  }
   e->status = BENCH_SLAVE_COMPLETE;
   return len;
 }
@@ -87,11 +99,12 @@ static bench_slave_txn_status_t slave_txn_status(void *ctx) {
 
 void bench_slave_engine_init(bench_slave_engine_t *engine, bench_clock_t clock,
                              bench_irq_out_t irq, bench_event_sink_t sink,
-                             void *sink_ctx) {
+                             void *sink_ctx, bench_irq_policy_t irq_policy) {
   memset(engine, 0, sizeof(*engine));
   bench_counters_reset(&engine->counters);
   engine->clock = clock;
   engine->irq = irq;
+  engine->irq_policy = irq_policy;
   engine->sink = sink;
   engine->sink_ctx = sink_ctx;
   engine->status = BENCH_SLAVE_IDLE;
@@ -139,32 +152,38 @@ int bench_host_engine_step(bench_host_engine_t *e, uint32_t index) {
   bench_txn_begin(&txn, BENCH_TRANSPORT_SPI, psize, now0, prof->timeout_ticks);
   emit(e->sink, e->sink_ctx, &e->event_seq, BENCH_EV_TX_BEGIN, now0);
 
-  // Injection de TIMEOUT reelle, via l'ordonnanceur wrap-safe.
+  // Timeout DECLARE par le profil : le peripherique ne repond pas dans le budget.
+  // On "attend" exactement le budget declare (aucune constante codee en dur),
+  // l'ordonnanceur wrap-safe detecte alors l'expiration.
   if (bench_profile_fault_timeout(prof, index)) {
-    const bench_ticks_t late = now0 + prof->timeout_ticks + 1;
-    (void)bench_txn_advance(&txn, 0, late);  // -> BENCH_TXN_TIMEOUT
+    bench_clock_delay(&e->clock, prof->timeout_ticks);
+    const bench_ticks_t now_t = clock_now_or_zero(&e->clock);
+    (void)bench_txn_advance(&txn, 0, now_t);  // -> BENCH_TXN_TIMEOUT
     bench_counters_record_timeout(&e->counters);
-    bench_counters_record_tx(&e->counters, 0, 0, bench_txn_latency(&txn, late));
-    emit(e->sink, e->sink_ctx, &e->event_seq, BENCH_EV_TIMEOUT, late);
-    emit(e->sink, e->sink_ctx, &e->event_seq, BENCH_EV_TX_END, late);
+    bench_counters_record_tx(&e->counters, 0, 0, bench_txn_latency(&txn, now_t));
+    emit(e->sink, e->sink_ctx, &e->event_seq, BENCH_EV_TIMEOUT, now_t);
+    emit(e->sink, e->sink_ctx, &e->event_seq, BENCH_EV_TX_END, now_t);
+    bench_clock_delay(&e->clock, prof->inter_delay_ticks);
     return 0;
   }
 
-  // Trame de donnees deterministe (contenu derive du generateur seede).
+  // Payload selon le MOTIF DECLARE (le moteur execute, il ne choisit rien).
   uint8_t payload[BENCH_FRAME_MAX_PAYLOAD];
-  for (uint32_t i = 0; i < psize; i++) {
-    payload[i] = (uint8_t)(bench_profile_next(&e->rng) & 0xFFu);
-  }
+  bench_profile_fill_payload(prof, payload, psize, &e->rng);
   uint8_t tx[BENCH_FRAME_MAX_SIZE];
   const int enc = bench_frame_encode(tx, sizeof(tx), index, payload, psize);
   if (enc <= 0) {
     return -1;  // ne devrait pas arriver : psize est borne a MAX_PAYLOAD
   }
 
-  // Injection de CRC reelle : corrompt un octet AVANT l'envoi.
+  // Injection de CRC reelle a l'octet DECLARE par le profil (corruption reelle).
   if (bench_profile_fault_crc(prof, index)) {
     if (psize > 0) {
-      (void)bench_frame_corrupt_payload(tx, (size_t)enc, 0);
+      size_t byte = prof->fault_crc_byte;
+      if (byte >= psize) {
+        byte = psize - 1;
+      }
+      (void)bench_frame_corrupt_payload(tx, (size_t)enc, byte);
     } else {
       (void)bench_frame_corrupt_crc(tx, (size_t)enc);
     }
@@ -174,14 +193,39 @@ int bench_host_engine_step(bench_host_engine_t *e, uint32_t index) {
   memset(rx, 0, sizeof(rx));
   const bench_spi_status_t st = e->spi->transfer(e->spi->ctx, tx, rx, (size_t)enc);
   const bench_ticks_t now1 = clock_now_or_zero(&e->clock);
-  if (st != BENCH_SPI_OK) {
-    (void)bench_txn_advance(&txn, 0, now1);
-    bench_counters_record_tx(&e->counters, 0, 0, bench_txn_latency(&txn, now1));
+
+  // IRQ post-transfert (esclave et/ou concurrente) : lecture-et-comptage commun
+  // a tous les cas de transfert reel.
+  if (e->irq.get != NULL && e->irq.get(e->irq.ctx)) {
+    bench_counters_record_irq(&e->counters);
+    emit(e->sink, e->sink_ctx, &e->event_seq, BENCH_EV_IRQ, now1);
+  }
+
+  const bench_txn_state_t state = bench_txn_advance(&txn, psize, now1);
+  const bench_ticks_t lat = bench_txn_latency(&txn, now1);
+
+  // Timeout ENVIRONNEMENTAL : latence injectee >= budget (detecte par l'ordonnanceur).
+  if (state == BENCH_TXN_TIMEOUT) {
+    bench_counters_record_timeout(&e->counters);
+    bench_counters_record_tx(&e->counters, 0, 0, lat);
+    emit(e->sink, e->sink_ctx, &e->event_seq, BENCH_EV_TIMEOUT, now1);
     emit(e->sink, e->sink_ctx, &e->event_seq, BENCH_EV_TX_END, now1);
+    bench_clock_delay(&e->clock, prof->inter_delay_ticks);
+    return 0;
+  }
+
+  // Statut de transport force (ex. TIMEOUT/ERROR injecte par le lien).
+  if (st != BENCH_SPI_OK) {
+    if (st == BENCH_SPI_TIMEOUT) {
+      bench_counters_record_timeout(&e->counters);
+    }
+    bench_counters_record_tx(&e->counters, 0, 0, lat);
+    emit(e->sink, e->sink_ctx, &e->event_seq, BENCH_EV_TX_END, now1);
+    bench_clock_delay(&e->clock, prof->inter_delay_ticks);
     return -1;
   }
 
-  // Decode la reponse (ACK) et verifie son integrite.
+  // Decode la reponse (ACK) et verifie son integrite (rejette reponse tronquee).
   bench_frame_t resp;
   size_t consumed = 0;
   const bench_frame_result_t rr =
@@ -191,18 +235,12 @@ int bench_host_engine_step(bench_host_engine_t *e, uint32_t index) {
       resp.payload[0] == (uint8_t)BENCH_ACK_OK) {
     ok = 1;
   } else {
-    bench_counters_record_crc_error(&e->counters);  // rejet cote esclave ou reponse corrompue
+    bench_counters_record_crc_error(&e->counters);  // rejet esclave / reponse corrompue ou tronquee
   }
-
-  (void)bench_txn_advance(&txn, psize, now1);
-  const bench_ticks_t lat = bench_txn_latency(&txn, now1);
   bench_counters_record_tx(&e->counters, ok, psize, lat);
 
-  if (e->irq.get != NULL && e->irq.get(e->irq.ctx)) {
-    bench_counters_record_irq(&e->counters);
-    emit(e->sink, e->sink_ctx, &e->event_seq, BENCH_EV_IRQ, now1);
-  }
   emit(e->sink, e->sink_ctx, &e->event_seq, BENCH_EV_TX_END, now1);
+  bench_clock_delay(&e->clock, prof->inter_delay_ticks);
   return 0;
 }
 

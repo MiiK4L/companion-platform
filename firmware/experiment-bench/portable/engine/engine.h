@@ -38,6 +38,7 @@ typedef enum {
 typedef struct {
   bench_counters_t counters;
   bench_irq_out_t irq;      // ligne IRQ sortante (raise/clear ; champs NULL = ignores)
+  bench_irq_policy_t irq_policy;  // politique IRQ DECLAREE par le profil
   bench_event_sink_t sink;  // puits d'evenements (peut etre NULL)
   void *sink_ctx;
   bench_clock_t clock;      // horloge (now NULL -> 0)
@@ -47,9 +48,10 @@ typedef struct {
   size_t response_len;
 } bench_slave_engine_t;
 
+// La politique IRQ vient du PROFIL (scenario partage) : le moteur ne decide rien.
 void bench_slave_engine_init(bench_slave_engine_t *engine, bench_clock_t clock,
                              bench_irq_out_t irq, bench_event_sink_t sink,
-                             void *sink_ctx);
+                             void *sink_ctx, bench_irq_policy_t irq_policy);
 
 // Port ISpiSlave lie a ce moteur (a fournir au bus / lien simule).
 bench_spi_slave_t bench_slave_engine_port(bench_slave_engine_t *engine);

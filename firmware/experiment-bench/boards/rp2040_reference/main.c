@@ -17,14 +17,16 @@
 #include "frame/frame.h"
 #include "hal/rp2040/hal_rp2040.h"
 #include "ports/spi.h"
+#include "scenarios/demo/demo_scenario.h"
 
 int main(void) {
   bench_hal_slave_t hal = bench_hal_rp2040();
 
-  // Le MOTEUR portable fournit la logique esclave (port ISpiSlave).
+  // Le MOTEUR portable fournit la logique esclave (port ISpiSlave). La politique
+  // IRQ vient du PROFIL du scenario partage (aucune logique dans ce main).
   bench_slave_engine_t engine;
   bench_slave_engine_init(&engine, hal.clock, hal.irq, hal.event_sink,
-                          hal.event_ctx);
+                          hal.event_ctx, bench_demo_scenario.profile->irq_policy);
   bench_spi_slave_t slave = bench_slave_engine_port(&engine);
 
   uint8_t rx[BENCH_FRAME_MAX_SIZE];

@@ -18,6 +18,29 @@ uint32_t bench_profile_next(uint64_t *state) {
   return (uint32_t)(x >> 32);
 }
 
+void bench_profile_fill_payload(const bench_profile_t *profile, uint8_t *buf,
+                                uint32_t len, uint64_t *state) {
+  // Execute le motif DECLARE ; aucune politique n'est decidee par le moteur.
+  switch (profile->payload_pattern) {
+    case BENCH_PAYLOAD_CONSTANT:
+      for (uint32_t i = 0; i < len; i++) {
+        buf[i] = profile->payload_fill;
+      }
+      break;
+    case BENCH_PAYLOAD_INCREMENT:
+      for (uint32_t i = 0; i < len; i++) {
+        buf[i] = (uint8_t)((profile->payload_fill + i) & 0xFFu);
+      }
+      break;
+    case BENCH_PAYLOAD_SEEDED:
+    default:
+      for (uint32_t i = 0; i < len; i++) {
+        buf[i] = (uint8_t)(bench_profile_next(state) & 0xFFu);
+      }
+      break;
+  }
+}
+
 int bench_profile_fault_crc(const bench_profile_t *profile, uint32_t index) {
   return profile->fault_crc_every != 0 &&
          ((index + 1) % profile->fault_crc_every) == 0;

@@ -61,6 +61,7 @@ bench_hal_host_t bench_hal_esp32(void) {
   bench_hal_host_t hal;
   hal.clock.ctx = &g_ctx;
   hal.clock.now = esp32_now;
+  hal.clock.delay = NULL;  // TODO(local): esp_rom_delay_us / vTaskDelay.
   hal.spi.ctx = &g_ctx;
   hal.spi.transfer = esp32_transfer;
   hal.spi.cancel = esp32_cancel;
