@@ -48,9 +48,19 @@ découverte dynamique) :
   (`entry_points`, répertoire de plugins) reste une évolution **future**, non
   présentée ici comme existante.
 - un driver peut fournir des **artefacts bruts d'acquisition** via `capture()`
-  (optionnel, générique — indépendant du type de mesure) : archivés sous `raw/`
-  (source de vérité), avec `capture.json` (paramètres + traçabilité brut → série).
-  Un futur driver **automatique** ne remplacera **que** cette étape d'acquisition.
+  (optionnel, générique — indépendant du type de mesure) : archivés sous
+  `raw/<group>/…` (source de vérité), avec `capture.json` (paramètres +
+  traçabilité brut → série). Les bruts sont fournis **par chemin** (copiés
+  **octet par octet**, tout format — texte, VCD, binaire, image) ou en contenu
+  inline ; le socle **ne présume rien** de leur contenu.
+- **`manual-import`** est le **driver manuel de référence** : il importe une
+  acquisition faite à la main depuis un **répertoire d'import éphémère** (fourni
+  au **run** via `--import-dir` / `acquisition_overrides`, **jamais archivé** ni
+  inclus dans `campaign_definition_id`). Il découvre bruts + descripteur de
+  capture (`import-descriptor.schema.json`) + séries normalisées, **sans aucune
+  logique métier** (ni verdict, ni `[BL]`, ni SPI/CX-Bus). Son API **définit
+  l'interface d'acquisition** : un futur driver **automatique** produira les
+  **mêmes artefacts** sans toucher schémas, `verify_run`, rapports ni analyse.
 
 ## Déterminisme (règles d'implémentation)
 

@@ -21,7 +21,7 @@ au-delà). Documentation de référence :
 measurement/
   common/         serialisation canonique, hachage SHA-256, identifiants
   orchestration/  cycle de vie d'une campagne (id, run, archivage, reproduction)
-  acquisition/    interface driver + registre plugin + driver de simulation
+  acquisition/    interface driver + registre statique + simulation + manual-import
   analysis/       validation de schema
   reporting/      rendu du rapport (extension du template)
   cli.py          point d'entree
