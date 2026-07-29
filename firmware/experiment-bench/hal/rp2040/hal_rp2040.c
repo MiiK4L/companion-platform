@@ -2,45 +2,57 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-// Adaptateur HAL RP2040 (cible ESCLAVE de reference : simulateur CX-Bus).
+// Adaptateur HAL RP2040 (role ESCLAVE : simulateur de module CX-Bus).
 //
-// SQUELETTE — NON compile ni flashe ici, NON couvert par la CI. Les corps
+// SQUELETTE — implementation materielle NON realisee et NON validee. Les corps
 // ci-dessous sont des points d'accroche : l'integration locale (Pico SDK / PIO)
-// remplacera chaque TODO par l'appel materiel correspondant. Ecrit SANS include
-// Pico SDK pour rester honnete (aucune signature SDK devinee) ; il compile donc
-// tel quel mais ne fait rien de reel tant que l'integration locale n'est pas
-// faite. Le coeur portable reste inchange quel que soit le contenu de ce fichier.
+// remplacera chaque TODO par l'appel materiel. Ecrit SANS include Pico SDK
+// (aucune signature devinee) ; compile tel quel mais ne fait rien de reel tant
+// que l'implementation locale n'est pas faite. Le coeur portable reste inchange.
+//
+// Prerequis AVANT toute mesure (voir docs/target-comparison.md) : compilation
+// Pico SDK reussie, PIO SPI-esclave implemente, boucle locale/Host testee, IRQ
+// sortante verifiee, trames CRC reellement echangees.
 
 #include "hal/rp2040/hal_rp2040.h"
 
 #include <stddef.h>
 
-// Contexte materiel de la carte (handles PIO/SPI/GPIO/timer). Rempli localement.
 typedef struct {
-  int placeholder;  // TODO(local): handles Pico SDK (pio, sm, spi, gpio, timer).
+  int placeholder;  // TODO(local): handles Pico SDK (pio, sm, dma, gpio, timer).
 } bench_rp2040_ctx_t;
 
-static bench_rp2040_ctx_t g_rp2040_ctx;
+static bench_rp2040_ctx_t g_ctx;
 
 static bench_ticks_t rp2040_now(void *ctx) {
   (void)ctx;
-  // TODO(local): retourner time_us_64() (ou compteur PIO) en ticks abstraits.
+  // TODO(local): time_us_64() (ou compteur PIO) converti en ticks abstraits.
   return 0;
 }
 
-static uint32_t rp2040_spi_xfer(void *ctx, const uint8_t *tx, uint8_t *rx,
-                                size_t len) {
+static size_t rp2040_recv(void *ctx, uint8_t *rx, size_t cap) {
+  (void)ctx;
+  (void)rx;
+  (void)cap;
+  // TODO(local): attendre CS + cadencer les octets MOSI depuis la FIFO PIO.
+  return 0;
+}
+
+static void rp2040_send(void *ctx, const uint8_t *tx, size_t len) {
   (void)ctx;
   (void)tx;
-  (void)rx;
-  // TODO(local): servir l'echange SPI cote ESCLAVE via le programme PIO.
-  return (uint32_t)len;
+  (void)len;
+  // TODO(local): charger la FIFO d'emission PIO (octets MISO) pour la reponse.
 }
 
-static int rp2040_irq_get(void *ctx) {
+static void rp2040_irq_raise(void *ctx) {
   (void)ctx;
-  // TODO(local): lire l'etat de la ligne IRQ (GPIO).
-  return 0;
+  // TODO(local): asserter la ligne IRQ vers l'hote (GPIO).
+}
+
+static void rp2040_irq_clear(void *ctx) {
+  (void)ctx;
+  // TODO(local): relacher la ligne IRQ.
 }
 
 static void rp2040_serial_write(void *ctx, const char *line) {
@@ -49,21 +61,20 @@ static void rp2040_serial_write(void *ctx, const char *line) {
   // TODO(local): ecrire la ligne sur l'UART/USB-CDC.
 }
 
-static void rp2040_event_sink(void *ctx, const bench_event_t *event) {
-  (void)ctx;
-  (void)event;
-  // TODO(local): traduire l'evenement (toggle GPIO pour analyseur, trace).
-}
-
-bench_hal_t bench_hal_rp2040(void) {
-  // TODO(local): initialiser PIO/SPI/GPIO/timer dans g_rp2040_ctx.
-  bench_hal_t hal;
-  hal.ctx = &g_rp2040_ctx;
-  hal.now = rp2040_now;
-  hal.spi_xfer = rp2040_spi_xfer;
-  hal.irq_get = rp2040_irq_get;
+bench_hal_slave_t bench_hal_rp2040(void) {
+  // TODO(local): initialiser PIO/SPI/GPIO/timer dans g_ctx.
+  bench_hal_slave_t hal;
+  hal.clock.ctx = &g_ctx;
+  hal.clock.now = rp2040_now;
+  hal.spi_ctx = &g_ctx;
+  hal.recv = rp2040_recv;
+  hal.send = rp2040_send;
+  hal.irq.ctx = &g_ctx;
+  hal.irq.raise = rp2040_irq_raise;
+  hal.irq.clear = rp2040_irq_clear;
   hal.serial_write = rp2040_serial_write;
-  hal.event_sink = rp2040_event_sink;
-  hal.event_ctx = &g_rp2040_ctx;
+  hal.serial_ctx = &g_ctx;
+  hal.event_sink = NULL;  // TODO(local): backend GPIO pour analyseur logique.
+  hal.event_ctx = &g_ctx;
   return hal;
 }
