@@ -53,14 +53,43 @@ broches réellement disponibles (le budget est tendu — cf.
 | `IRQ_module` | D1 | module → hôte | inchangé |
 | `GND` / `3V3` | — | les deux | inchangé |
 
-> **Point ouvert honnête** : la variante `spi-separated` peut ne pas être
-> câblable directement sur le véhicule de référence si le budget de broches est
-> insuffisant. Le cas échéant, B4 devra documenter le contournement retenu
-> (réaffectation UART, expander, autre carte) **comme condition de validité du
-> run**, et non le dissimuler.
+### Contrainte : `spi-separated` doit tenir sur le **même** DUT
+
+La comparaison n'est **contrôlée** que si les deux variantes s'exécutent sur le
+**même véhicule de référence**. La variante `spi-separated` exige donc qu'un
+**second contrôleur SPI matériel** de l'ESP32-S3 soit affecté à des **broches
+réellement exposées** de la XIAO (BL-012). Cette faisabilité doit être
+**prouvée**, pas supposée : la carte n'expose que ~11 E/S et sa documentation
+publique ne présente qu'une interface SPI standard.
+
+**Contournements admis** — uniquement ceux qui préservent le DUT :
+
+- **réaffectation de broches** (p. ex. libérer UART D6/D7) vers le second
+  contrôleur SPI, si le mapping est possible et sans conflit.
+
+**Contournements refusés** — ils invalideraient la campagne :
+
+| Refusé | Raison |
+|--------|--------|
+| **GPIO expander** | ne peut pas porter les lignes d'un SPI à plusieurs MHz ; un expander I²C est hors de question pour `SCK`/`MOSI`/`MISO` |
+| **Autre carte hôte** | changerait le **DUT** et détruirait le caractère **contrôlé** de la comparaison entre variantes |
+
+> **Si le mapping s'avère impossible sur la même XIAO, la campagne doit être
+> redéfinie** (p. ex. réduction du périmètre, autre question expérimentale) —
+> **jamais contournée** avec un autre véhicule. Cette vérification est un
+> prérequis **bloquant** du [gate matériel](hardware-gate.md).
 
 ## Points de mesure
 
-Prévoir l'accès sonde sur : `SCK`, `CS_module`, `CS_screen`, `IRQ_module`, `GND`.
-Ces points servent à corréler les horodatages logiciels aux transitions réelles
-(invariant BL-005).
+| Signal | Niveau requis | Rôle |
+|--------|---------------|------|
+| `SCK`, `CS_module`, `CS_screen`, `IRQ_module` | capture temporelle **minimale** | latences, occupation du bus, appariement CS/IRQ |
+| `MOSI`, `MISO` | capture **protocolaire** | décodage des trames, numéros de séquence, vérification de contenu |
+| `SYNC` (marqueur GPIO) | les deux | **alignement** des traces logicielles et de la trace bus |
+| `GND` | — | référence de sonde |
+
+Le signal **`SYNC`** est une broche de l'hôte, réservée au **marqueur de
+synchronisation** émis en début de run et périodiquement. Il matérialise la
+**base de temps autoritaire** (BL-011) et permet l'alignement exigé par BL-005 ;
+il ne participe à aucun protocole. Sa broche exacte est à arrêter avec le mapping
+final (contrainte de budget d'E/S).
