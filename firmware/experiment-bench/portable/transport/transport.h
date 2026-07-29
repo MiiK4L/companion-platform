@@ -34,12 +34,15 @@ typedef struct {
   bench_ticks_t started_at;
 } bench_txn_t;
 
-// Demarre une transaction de "bytes" octets, avec timeout (ticks) a partir de "now".
+// Demarre une transaction de "bytes" octets, avec timeout (ticks) a partir de
+// "now". Cas defini : bytes == 0 => transaction vide, etat DONE immediat.
 void bench_txn_begin(bench_txn_t *txn, bench_transport_kind_t kind, uint32_t bytes,
                      bench_ticks_t now, bench_ticks_t timeout);
 
 // Fait progresser la transaction de "bytes" octets a l'instant "now" ; applique
-// le timeout via l'echeance. Retourne l'etat courant.
+// le timeout (wrap-safe) via l'echeance. Retourne l'etat courant. Progression
+// SATURANTE puis plafonnee a la cible : une avance excessive ne deborde jamais
+// et termine la transaction (DONE). Idempotent une fois en etat terminal.
 bench_txn_state_t bench_txn_advance(bench_txn_t *txn, uint32_t bytes,
                                     bench_ticks_t now);
 
