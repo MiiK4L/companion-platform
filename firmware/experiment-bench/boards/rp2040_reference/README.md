@@ -4,26 +4,29 @@ SPDX-FileCopyrightText: 2026 Companion Platform contributors
 SPDX-License-Identifier: Apache-2.0
 -->
 
-# Board `rp2040_reference` — simulateur de module CX-Bus (cible retenue)
+# Board `rp2040_reference` — rôle ESCLAVE (simulateur de module CX-Bus)
 
-Rôle : **esclave SPI déterministe** émulant un module CX-Bus (cible de référence
-du banc, cf. [comparaison de cible](../../docs/target-comparison.md)). Réutilise
-**tel quel** le cœur portable (`portable/`) ; seule la HAL/BSP RP2040 est
-spécifique (`hal/rp2040/`).
+Rôle : **esclave** du banc — un simulateur de module CX-Bus **contrôlé** (propre
+CS, trafic répétable, fréquence/tailles configurables, IRQ vers l'hôte, contrôle
+d'intégrité par CRC). La board application (`main.c`) ne contient **aucune
+logique** : elle câble les primitives de la HAL (`hal/rp2040/`) au **port
+ISpiSlave** fourni par le **moteur portable** (`portable/engine/`), lequel décode
+les trames, vérifie le CRC, met à jour les compteurs et lève l'IRQ.
 
-> **Statut : squelette d'intégration authored — NON compilé ni flashé ici.** Le
-> cœur portable est testé en CI ; cette couche board (Pico SDK, PIO SPI-esclave)
-> est **validée au premier build/essai local** (voir [BUILD](../../docs/BUILD.md)).
-> Aucune mesure, aucun contenu de campagne L1.
+## Statut réel
 
-## Intégration
-- `main.c` câble le cœur portable (`profiles`, `counters`, `transport`,
-  `protocol`, `events`) à la HAL RP2040 (`bench_hal_rp2040()`), exécute le
-  protocole de contrôle sur la liaison série et émet les événements
-  (`TX_BEGIN`/`TX_END`/`IRQ`/`TIMEOUT`/`CRC_ERROR`) vers le backend GPIO/série.
-- Le **SPI esclave** est implémenté via **PIO** (déterministe) dans
-  `hal/rp2040/` — partie spécifique à finaliser/valider localement.
+**RP2040 = cible candidate de référence.** **Contrat et squelette d'intégration
+fournis** ; **implémentation matérielle NON réalisée et NON validée** ici :
+
+- `hal/rp2040/` ne contient que des **stubs** (`TODO`), sans Pico SDK ni PIO ;
+- le câblage `main.c` est **compilé** contre l'API portable en CI (anti-dérive),
+  mais **non compilé avec le Pico SDK, ni flashé, ni exécuté sur matériel**.
+
+Les prérequis avant toute mesure (compilation Pico SDK, PIO SPI-esclave, boucle
+locale/hôte, IRQ sortante vérifiée, trames CRC réellement échangées) sont listés
+dans [`docs/target-comparison.md`](../../docs/target-comparison.md).
 
 ## Portabilité
-Changer de cible = réimplémenter uniquement `hal/<cible>/` + `boards/<carte>/` ;
-le cœur (`portable/`) reste **inchangé**.
+
+Changer de cible ne touche que `hal/<cible>/` + `boards/<carte>/` ; le cœur
+portable (`portable/`) est inchangé. Aucun contenu de campagne L1 ici.

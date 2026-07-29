@@ -7,38 +7,59 @@ SPDX-License-Identifier: Apache-2.0
 # Architecture du firmware de banc
 
 Séparation stricte (esprit ports/adaptateurs, ADR-0007) : **cœur portable** ↔
-**HAL** ↔ **boards**.
+**HAL** ↔ **board application**.
 
 ```text
-[ boards/<carte> : main + wiring ]
-            │  injecte
+[ boards/<carte> : main = PUR CABLAGE HAL <-> moteur, aucune logique ]
+            │  injecte (ports)
             ▼
-[ hal/<cible> : SPI, GPIO, IRQ, timer, serie ]  (fin, non teste en CI)
-            │  interface bench_hal_t
+[ hal/<cible> : horloge, SPI, IRQ, serie ]  (adaptateurs ; stubs hors CI materiel)
+            │  implemente / cable les PORTS
             ▼
-[ portable/ : protocole, profils, CRC, machines d'etat, compteurs, evenements ]
+[ portable/ : ports, trame CRC, protocole, profils, scenario, MOTEUR, compteurs ]
    (C standard, ZERO dependance plateforme, TESTE en CI)
 ```
 
-## Cœur portable (indépendant de la cible)
-- **Temps abstrait** : `scheduler/` ne connaît qu'échéances/timeouts ; `now` est
-  fourni par la HAL (`bench_hal_now_fn`). Aucun scheduler réel dans le cœur.
-- **Profils déclaratifs** : `bench_profile_t` = **données** (`profile_id`,
-  `profile_version`, `seed`, paramètres) ; générateur pseudo-aléatoire
-  **déterministe** seedé → scénarios **rejouables**.
-- **Compteurs** : `bench_counters_t` (**bruts**, vérité mesurée) vs `bench_stats_t`
-  (**dérivés**, fonction pure).
-- **Instrumentation par événements** : `events/` définit les événements et le
-  puits (`bench_event_sink_t`) ; le cœur émet, les backends traduisent.
-- **Transport** : `transport/` = interface générique (SPI aujourd'hui) + machine
-  d'état de transaction **pure** (progression et temps fournis par l'appelant).
+## Contrats de rôle (ports)
+Maître et esclave n'ont pas le même cycle de vie ; ils ne partagent donc pas une
+primitive synchrone unique.
+
+- **`bench_spi_master_t`** (Host) : `transfer` / `cancel` / `status`.
+- **`bench_spi_slave_t`** (module) : `prepare_response` / `on_select` /
+  `on_transaction` / `peek_response` / `transaction_status`. Passif, piloté par CS.
+- **IRQ directionnelle** : `bench_irq_in_t` (l'hôte **lit**) vs `bench_irq_out_t`
+  (le module **émet** : `raise` / `clear`).
+- **Horloge** (`bench_clock_t`) : le cœur n'a aucune horloge propre.
+
+## Cœur portable
+- **Trame** (`frame/`) : versionnée, protégée par **CRC-32/IEEE**, décodeur
+  **borné** (rejette tronqué / magic / version / longueur / CRC). Injection de
+  faute = corruption **réelle** d'octets.
+- **Protocole** (`protocol/`) : binaire, borné ; s'appuie sur la trame pour le
+  framing/version/CRC. Arguments trop longs **rejetés**.
+- **Scheduler** (`scheduler/`) : échéances **wrap-safe** (soustraction modulaire,
+  ticks 64 bits) ; `timeout=0` défini comme déjà expiré.
+- **Profils** (`profiles/`) : POD déclaratif, générateur déterministe seedé.
+- **Compteurs** (`counters/`) : **bruts** (vérité) vs **dérivés** (fonction pure) ;
+  toutes les mises à jour **saturent**.
+- **Transport** (`transport/`) : machine d'état de transaction, saturante,
+  `bytes_target=0` et progression excessive **définis**.
+- **Scénario** (`scenario/`) : compose un profil avec rôles/version/durée.
+- **Moteur** (`engine/`) : logique Host **et** Slave (encodage de trames,
+  injection de fautes réelles, comptage, événements). Les board applications ne
+  font que câbler la HAL au moteur.
+- **Lien simulé** (`sim/`) : relie un port maître à un port esclave en mémoire ;
+  permet de dérouler le **flux complet** (trames CRC, fautes, IRQ) en CI.
 
 ## HAL & boards
-`hal/common/hal.h` = interfaces fines injectées (`bench_hal_t`). `hal/rp2040`
-(esclave, PIO), `hal/esp32` (hôte) = implémentations locales. Changer de cible ne
-touche que HAL + board ; le cœur est inchangé.
+`hal/common/hal.h` définit deux agrégats **par rôle** : `bench_hal_host_t`
+(implémente le port maître, lit l'IRQ) et `bench_hal_slave_t` (primitives
+recv/send bas niveau + IRQ sortante ; le port ISpiSlave est fourni par le
+moteur). Les `main.c` câblent puis lancent — rien d'autre.
 
-## Ce qui est testé où
-- **CI (host natif)** : tout `portable/` (déterminisme des profils, CRC, codec,
-  machines d'état, compteurs, transitions d'erreur, timeouts simulés).
-- **Local / matériel** : SPI/GPIO/IRQ/timing réels, flash (hors CI).
+## Ce qui est vérifié, et où
+- **CI (host natif)** : tout `portable/` (trame, protocole, scheduler, transport,
+  compteurs, profils, **moteur de bout en bout** sur le lien simulé) ; plus la
+  **compilation du câblage** des board applications contre l'API portable.
+- **Local / matériel** : build Pico SDK / ESP-IDF, SPI/PIO/IRQ/timing réels,
+  flash. **Hors CI.**

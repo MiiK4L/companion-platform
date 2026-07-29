@@ -12,7 +12,7 @@ SPDX-License-Identifier: CC-BY-4.0
 > profil L1, pas d'observable, pas de `[BL]`), **aucune mesure**, **aucun flash**.
 
 Le firmware de banc est une **bibliothèque réutilisable**, indépendante de toute
-campagne : une campagne (à partir de B3) n'ajoute qu'un **scénario** (profil
+campagne : une campagne (à partir de **B3**) n'ajoute qu'un **scénario** (profil
 déclaratif) et n'altère ni le cœur, ni les compteurs, ni le protocole.
 
 ## Organisation (séparation stricte)
@@ -20,67 +20,69 @@ déclaratif) et n'altère ni le cœur, ni les compteurs, ni le protocole.
 ```text
 firmware/experiment-bench/
   portable/    # C standard, ZERO dependance plateforme (~80-90% de la logique)
-    events/     # types d'evenements + puits (le coeur EMET, ne pilote pas le GPIO)
-    crc/        # CRC-32/IEEE portable
-    scheduler/  # echeances / timeouts ABSTRAITS (aucune horloge reelle)
-    profiles/   # profil DECLARATIF (POD) + generateur deterministe seede
-    counters/   # compteurs BRUTS vs statistiques DERIVEES (fonction pure)
-    protocol/   # codec texte du protocole de controle (aucune E/S)
-    transport/  # transport generique (SPI d'abord) + machine d'etat pure
+    ports/      # contrats de ROLE : SPI maitre vs esclave, IRQ in/out, horloge
+    util/       # (in)serialisation gros-boutiste, arithmetique saturante
+    crc/ frame/ # CRC-32/IEEE + trame versionnee protegee par CRC
+    scheduler/  # echeances / timeouts ABSTRAITS et WRAP-SAFE
+    profiles/ scenario/  # profil DECLARATIF ; scenario = profil + roles + duree
+    protocol/   # protocole de controle BINAIRE (framed/versionne/borne)
+    counters/ transport/ # compteurs bruts/derives + machine d'etat (saturants)
+    engine/     # moteur Host + Slave (logique partagee)
+    sim/        # lien SPI simule (transport de test) pour derouler le flux en CI
     tests/      # tests host (CMake/ctest) — executes en CI
-  hal/         # interfaces FINES injectees + adaptateurs par cible (hors CI)
-    common/ rp2040/ esp32/
-  boards/      # integration par carte (main + cablage) — hors CI
-    rp2040_reference/  # ESCLAVE = simulateur CX-Bus (cible retenue)
-    xiao_esp32s3/      # HOTE (squelette)
-  scenarios/   # profils declaratifs  (demo/ ; l1_spi_bringup/ = B3 uniquement)
+  hal/         # interfaces FINES par ROLE + adaptateurs (stubs, hors CI materiel)
+  boards/      # board applications : PUR CABLAGE HAL <-> moteur
+  scenarios/   # profils + scenarios  (demo/ ; l1_spi_bringup/ = B3 uniquement)
   docs/        # architecture, build local, comparaison de cible
 ```
 
 ## Principes de conception
 
-- **Cœur portable indépendant de la cible.** Protocole, profils, CRC, machines
-  d'état, compteurs : C standard, **aucune** dépendance ESP-IDF / Pico SDK /
-  FreeRTOS / Arduino / registre matériel. Garanti mécaniquement par
-  `tools/check_arch_deps.sh` (interdit les `#include` **et** les symboles de
-  plateforme dans `portable/`) et **testé en CI** (`portable/CMakeLists.txt`,
-  build natif + `ctest`).
-- **Temps abstrait.** Le cœur ne connaît que des échéances et des timeouts en
-  *ticks* ; l'horloge réelle (`now`) est fournie par la HAL. Aucun ordonnanceur
-  réel dans le cœur.
-- **Profils déclaratifs et rejouables.** Un profil est une **donnée** POD
-  (`profile_id`, `profile_version`, `seed`, paramètres). Le générateur
-  pseudo-aléatoire est **déterministe** (seedé) : un scénario est exactement
-  **rejouable**.
-- **Compteurs bruts ≠ statistiques dérivées.** Les compteurs bruts sont la
-  **vérité mesurée**, jamais recalculée ; les statistiques (moyenne, débit, taux
-  de succès) sont recalculées par une **fonction pure**. Cette séparation reflète
-  la distinction `raw`/`normalized` du modèle de données de mesure.
-- **Instrumentation par événements.** Le cœur **émet** des événements
-  (`TX_BEGIN`, `TX_END`, `IRQ`, `TIMEOUT`, `CRC_ERROR`, `RESET`) ; les backends
-  (dans les boards) les **traduisent** (toggle GPIO pour analyseur logique, ligne
-  série…). Le cœur ne pilote **jamais** directement GPIO/UART.
-- **Transports extensibles.** Le SPI est le premier transport ; l'interface
-  générique et le champ `kind` permettent d'en ajouter sans réécrire le cœur.
+- **Contrats de rôle explicites (maître ≠ esclave).** Un simulateur CX-Bus
+  esclave n'a pas le cycle de vie d'un maître : deux ports distincts
+  (`bench_spi_master_t` = `transfer`/`cancel`/`status` ; `bench_spi_slave_t` =
+  `prepare_response`/`on_select`/`on_transaction`/`peek_response`/
+  `transaction_status`). L'**IRQ** est directionnelle : l'hôte la **lit**
+  (`bench_irq_in_t`), le module l'**émet** (`bench_irq_out_t`).
+- **Intégrité CRC réelle dans le flux.** La trame (`frame/`) est versionnée et
+  protégée par **CRC-32/IEEE** ; le décodeur est **borné** (rejette tronqué /
+  magic / version / longueur / CRC). L'injection de faute corrompt de **vrais
+  octets** : la détection est démontrée de bout en bout (moteur Host↔Slave sur le
+  lien simulé), pas seulement par un compteur.
+- **Protocole de contrôle binaire**, framed/versionné/borné, indépendant de
+  `printf` : `SELECT_PROFILE`, `START`, `STOP`, `READ_COUNTERS`,
+  `RESET_COUNTERS`, `GET_CAPABILITIES` + codes de statut ; argument trop long
+  **rejeté**, jamais tronqué. Une console humaine serait un **adaptateur** texte→
+  binaire, jamais le contrat autoritaire.
+- **Temps abstrait et wrap-safe** (soustraction modulaire, ticks 64 bits,
+  `timeout=0` défini) ; **compteurs et transport saturants** (`bytes_target=0` et
+  progression excessive définis ; aucun débordement silencieux).
+- **Profile ≠ Scenario ≠ Board application.** Le profil = paramètres déclaratifs
+  rejouables ; le scénario = composition profil + rôles Host/Slave + durée ; la
+  board application = câblage des ports aux adaptateurs. Toute la logique vit dans
+  le **moteur** ; les `main.c` ne font que câbler.
+- **Instrumentation par événements** ; **transports extensibles**.
 
-## HAL & boards (hors CI, honnêtement étiquetés)
+## HAL & boards — statut honnête
 
-`hal/common/hal.h` définit des **interfaces fines** (pointeurs de fonctions +
-contexte opaque) injectées dans le cœur. Les adaptateurs `hal/rp2040` et
-`hal/esp32` et les `boards/` sont **écrits mais NON compilés ni flashés ici** :
-ils seront validés au premier build/essai **local**. Changer de cible ne touche
-que `hal/<cible>` + `boards/<carte>` ; le cœur reste inchangé.
+`hal/common/hal.h` définit deux agrégats **par rôle**. Les adaptateurs
+(`hal/rp2040`, `hal/esp32`) et les board applications sont **écrits** ; leur
+**câblage est compilé** contre l'API portable en CI (garde d'anti-dérive), mais
+l'**implémentation matérielle n'est ni réalisée ni validée ici** : les primitives
+HAL sont des **stubs**, sans Pico SDK / ESP-IDF, non flashées.
 
-La cible esclave retenue est le **RP2040** (PIO → esclave SPI déterministe, cœur
-dédié distinct du DUT). C'est un **choix de banc réversible**, justifié sur
-critères techniques, **sans ADR** — voir `firmware/experiment-bench/docs/target-comparison.md`.
+Le **RP2040** est la **cible candidate de référence** (esclave) — choix de banc
+**réversible**, sans ADR. Les prérequis avant toute mesure (compilation Pico SDK,
+PIO SPI-esclave, boucle locale/hôte, IRQ sortante vérifiée, trames CRC réellement
+échangées) sont dans `firmware/experiment-bench/docs/target-comparison.md`.
 
 ## Ce qui est vérifié, et où
 
 | Couche | Vérification |
 |--------|--------------|
-| `portable/` | **CI** : build natif `-Wall -Wextra -Werror` + `ctest` ; `check_arch_deps.sh` |
-| `hal/`, `boards/` | **Local** : premier build embarqué (Pico SDK / ESP-IDF), essais matériels |
+| `portable/` | **CI** : build natif `-Wall -Wextra -Werror` + `ctest` (trame, protocole, scheduler, transport, compteurs, profils, **moteur de bout en bout**) ; `check_arch_deps.sh` (includes **et** symboles) |
+| câblage `boards/` + `hal/` | **CI** : compilation du câblage contre l'API portable (non exécuté) |
+| matériel (Pico SDK / ESP-IDF, SPI/PIO/IRQ réels, flash) | **Local**, hors CI |
 
 ## Périmètre (rappel)
 

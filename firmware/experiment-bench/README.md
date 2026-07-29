@@ -12,27 +12,50 @@ compteurs, ni le protocole.
 
 ```text
 portable/   # C standard, ZERO dependance plateforme (~80-90% de la logique) — TESTE en CI
-  crc/ scheduler/ profiles/ counters/ protocol/ transport/ events/ tests/
-hal/        # interfaces FINES + implementations par cible (non testees en CI)
-  common/ rp2040/ esp32/
-boards/     # integration par carte
-  rp2040_reference/ (esclave = simulateur CX-Bus, cible retenue)  xiao_esp32s3/ (hote, squelette)
-scenarios/  # profils de trafic declaratifs  (demo/ ; l1_spi_bringup/ = B3 uniquement)
-docs/       # architecture, build local, comparaison de cible
+  ports/      # contrats : SPI MAITRE vs ESCLAVE, IRQ entree/sortie, horloge
+  util/       # (in)serialisation gros-boutiste, arithmetique saturante
+  crc/ frame/ # CRC-32/IEEE + format de trame versionne protege par CRC
+  scheduler/  # echeances / timeouts ABSTRAITS et WRAP-SAFE
+  profiles/   # profil DECLARATIF + generateur deterministe seede
+  protocol/   # protocole de controle BINAIRE (framed/versionne/borne)
+  counters/   # compteurs BRUTS vs statistiques DERIVEES (saturants)
+  transport/  # machine d'etat de transaction (saturante, wrap-safe)
+  scenario/   # composition profil + roles Host/Slave (distinct du profil)
+  engine/     # moteur Host + Slave (logique partagee ; pas de logique en board)
+  sim/        # lien SPI SIMULE (transport de test) pour derouler le flux en CI
+  tests/      # tests host (CMake/ctest) — executes en CI
+hal/         # interfaces FINES par ROLE + adaptateurs par cible (stubs, hors CI materiel)
+  common/ rp2040/ (esclave) esp32/ (hote)
+boards/      # board applications : PUR CABLAGE HAL <-> moteur (aucune logique)
+  rp2040_reference/  xiao_esp32s3/
+scenarios/   # profils + scenarios declaratifs  (demo/ ; l1_spi_bringup/ = B3)
+docs/        # architecture, build local, comparaison de cible
 ```
 
 ## Principes
-- **Cœur portable** : protocole, profils **déclaratifs** (`profile_id`/`version`/
-  `seed`), CRC, machines d'état, compteurs **bruts** vs statistiques **dérivées**,
-  échéances/timeouts **abstraits** (le temps réel est dans la HAL). **Aucune**
-  dépendance ESP-IDF / Pico SDK / FreeRTOS / Arduino / registre — vérifié
-  mécaniquement (`tools/check_arch_deps.sh`) et **testé en CI** (CMake/ctest).
-- **Instrumentation par événements** : le cœur **émet** des événements
-  (`TX_BEGIN`, `TX_END`, `IRQ`, `TIMEOUT`, `CRC_ERROR`, `RESET`) ; les backends
-  (GPIO/série) les traduisent. Le cœur ne pilote **jamais** GPIO/UART.
-- **Transports extensibles** : SPI aujourd'hui ; la structure permet d'en ajouter.
-- **Cible esclave retenue : RP2040** (choix de banc **réversible**, justifié, sans
-  ADR — cf. [comparaison](docs/target-comparison.md)) ; portabilité préservée.
+- **Contrats de rôle explicites.** Le SPI **maître** (Host) et le SPI **esclave**
+  (module CX-Bus) ont des cycles de vie distincts, donc des ports distincts
+  (`ports/spi.h`) ; l'**IRQ** est directionnelle (`ports/irq.h`) : l'hôte la
+  **lit**, le module l'**émet**. Le cœur ne fusionne pas les deux rôles.
+- **Trame CRC réelle dans le flux.** `frame/` définit une trame versionnée
+  (magic/version/seq/len/payload/**crc32**) ; l'injection de faute corrompt de
+  **vrais octets**, et la détection est démontrée de bout en bout par les tests.
+- **Protocole de contrôle binaire**, framed/versionné/borné (`protocol/`),
+  indépendant de `printf` : `SELECT_PROFILE`, `START`, `STOP`, `READ_COUNTERS`,
+  `RESET_COUNTERS`, `GET_CAPABILITIES` + codes de statut ; arguments trop longs
+  **rejetés** (jamais tronqués).
+- **Temps abstrait et wrap-safe** ; compteurs et transport **saturants** (aucun
+  débordement silencieux ; `timeout=0` et progression excessive définis).
+- **Profile ≠ Scenario ≠ Board application.** Le profil décrit un trafic ; le
+  scénario compose profil + rôles ; la board application ne fait que **câbler**
+  la HAL au **moteur** partagé (`engine/`). Aucune logique dans les `main.c`.
+- **Instrumentation par événements** ; **transports extensibles** (SPI d'abord).
 
-> Le build embarqué (ESP-IDF / Pico SDK) est **hors CI** pour l'instant (voir
-> [BUILD](docs/BUILD.md)). Aucune mesure, aucun flash, aucun contenu de campagne L1.
+## Statut des cibles
+- **RP2040** : cible **candidate de référence** (esclave). **Contrat et squelette
+  d'intégration fournis** ; **implémentation matérielle NON réalisée et NON
+  validée** ici. Voir [comparaison](docs/target-comparison.md) pour les
+  prérequis avant toute mesure (B3).
+- CI : tout `portable/` est **compilé et testé**, et le **câblage** des board
+  applications est **compilé** contre l'API portable (garde d'anti-dérive).
+  **Aucun build matériel (Pico SDK / ESP-IDF), aucun flash, aucune mesure.**
