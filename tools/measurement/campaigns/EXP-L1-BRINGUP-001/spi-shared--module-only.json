@@ -1,0 +1,26 @@
+{
+  "experiment_id": "EXP-L1-BRINGUP-001",
+  "variant_id": "spi-shared",
+  "experimental_question": "Le partage du bus SPI entre l'afficheur et le CX-Bus degrade-t-il le service au point de le rendre inacceptable, compare a deux bus SPI separes ?",
+  "expected_observation": "Reference de performance du module seul, sans concurrence.",
+  "verdict_rule": "PASS si tous les criteres de verdict [BL] categorie B sont satisfaits sur le run ; FAIL si l'un est viole ; INCONCLUSIVE si la dispersion ne permet pas de trancher ; INVALID si un invariant de validite du banc (categorie A) n'est pas respecte.",
+  "protocol_ref": "docs/phase-1/experiment-platform/campaigns/EXP-L1-BRINGUP-001.md",
+  "dec": "DEC-L1-001",
+  "dut": {
+    "description": "Vehicule de reference XIAO ESP32-S3 (hote) face a un simulateur de module CX-Bus sur RP2040 (cible candidate) ; topologie : afficheur et CX-Bus sur le meme bus SPI, chip-selects distincts. Aucun composant ni MPN retenu."
+  },
+  "parameters": {
+    "load_mode": "module-only",
+    "load_description": "simulateur CX-Bus actif, afficheur sans trafic",
+    "topology": "spi-shared",
+    "scenario_ref": "firmware/experiment-bench/scenarios/l1_spi_bringup/",
+    "baseline_status": "draft — n'autorise aucun run (voir baseline-draft.md)",
+    "execution_gate": "docs/phase-1/experiment-platform/campaigns/hardware-gate.md"
+  },
+  "acquisition": {
+    "driver": "manual-import",
+    "config": {
+      "note": "Definition seule (lot B3) : aucun run, aucune acquisition. L'import des artefacts bruts est prevu en B4, apres franchissement du gate materiel."
+    }
+  }
+}
