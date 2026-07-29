@@ -17,6 +17,7 @@ from __future__ import annotations
 import csv
 import io
 import json
+import shutil
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -24,7 +25,7 @@ from typing import Any
 from ..acquisition import get_driver
 from ..analysis import schema as schema_mod
 from ..common.canonical import canonical_json
-from ..common.hashing import sha256_file, sha256_text
+from ..common.hashing import sha256_bytes, sha256_file, sha256_text
 from ..common.ids import campaign_definition_id, new_run_id
 from ..model import (
     DECISIVE_VERDICTS,
@@ -260,16 +261,25 @@ def run_campaign(
     context: dict[str, Any] | None = None,
     baseline_record: dict[str, Any] | None = None,
     dirty_diff: str | None = None,
+    acquisition_overrides: dict[str, Any] | None = None,
     run_id: str | None = None,
     generated_at: str | None = None,
     actor: str = "tooling",
 ) -> tuple[Path, dict[str, Any]]:
-    """Execute une campagne et ecrit un run avec historique append-only."""
+    """Execute une campagne et ecrit un run avec historique append-only.
+
+    ``acquisition_overrides`` : options d'acquisition purement RUNTIME (ex.
+    chemin d'import du driver manuel). Elles sont fournies au driver mais **jamais
+    archivees** ni incluses dans ``campaign_definition_id`` (ephemeres).
+    """
     schema_mod.validate(definition, schema_mod.load_schema("campaign-definition.schema.json"))
     experiment_id = ensure_safe_id(definition["experiment_id"], kind="experiment_id")
     definition_id = campaign_definition_id(definition)
 
     acquisition = definition["acquisition"]
+    # Config RUNTIME (definition archivee inchangee) : les overrides ephemeres
+    # (ex. import_dir) ne polluent ni la definition ni son identifiant.
+    runtime_config = {**acquisition.get("config", {}), **(acquisition_overrides or {})}
     driver = get_driver(acquisition["driver"])()
     nature = driver.nature
 
@@ -290,7 +300,12 @@ def run_campaign(
             context["build_manifest"], schema_mod.load_schema("build-manifest.schema.json")
         )
 
-    series_list = driver.acquire(definition_id, acquisition.get("config", {}))
+    # SNAPSHOT unique de l'entree (le driver fige lecture/validation/hachage) ;
+    # acquire()/capture() lisent le meme etat fige, jamais l'entree deux fois.
+    driver.prepare(definition_id, runtime_config)
+    series_list = driver.acquire(definition_id, runtime_config)
+    capture = driver.capture(definition_id, runtime_config)
+
     run_id = ensure_safe_id(run_id, kind="run_id") if run_id else new_run_id()
     generated_at = generated_at or _now_iso()
 
@@ -300,120 +315,144 @@ def run_campaign(
         raise GuardrailError(
             f"run deja existant (run_id reutilise) : {run_dir} — creer un nouveau run"
         )
-    (run_dir / "series").mkdir(parents=True, exist_ok=True)
+    # Ecriture TRANSACTIONNELLE : on construit dans un staging, puis rename
+    # atomique. Un echec ne laisse AUCUN run officiel ; le run_id reste rejouable.
+    staging = Path(out_dir) / definition_id / f"{run_id}.staging"
+    if staging.exists():
+        shutil.rmtree(staging)
+    try:
+        (staging / "series").mkdir(parents=True)
 
-    definition_sha = _write_json(run_dir / "campaign-definition.json", definition)
-    context_sha = _write_json(run_dir / "execution-context.json", context)
+        definition_sha = _write_json(staging / "campaign-definition.json", definition)
+        context_sha = _write_json(staging / "execution-context.json", context)
 
-    baseline_sha = "N/A"
-    if baseline_record is not None:
-        schema_mod.validate(
-            baseline_record, schema_mod.load_schema("baseline-record.schema.json")
-        )
-        baseline_sha = _write_json(run_dir / "baseline-record.json", baseline_record)
-
-    artifacts: list[dict[str, str]] = []
-    inputs = [
-        {"name": "campaign-definition.json", "sha256": definition_sha},
-        {"name": "execution-context.json", "sha256": context_sha},
-    ]
-    for series in series_list:
-        name = ensure_series_name(series["name"])
-        schema_mod.validate(series, schema_mod.load_schema("measurement-series.schema.json"))
-        csv_text = _series_csv_text(series)
-        (run_dir / "series" / f"{name}.csv").write_text(csv_text, encoding="utf-8")
-        sha = sha256_text(csv_text)
-        artifacts.append({"path": f"series/{name}.csv", "sha256": sha})
-        inputs.append({"name": f"series/{name}.csv", "sha256": sha})
-    artifacts.sort(key=lambda entry: entry["path"])
-    if baseline_sha != "N/A":
-        inputs.append({"name": "baseline-record.json", "sha256": baseline_sha})
-
-    if dirty_diff is not None:
-        (run_dir / "dirty-diff.patch").write_text(dirty_diff, encoding="utf-8")
-        diff_sha = sha256_text(dirty_diff)
-        declared = context["build_manifest"].get("dirty_diff_sha256")
-        if declared != diff_sha:
-            raise GuardrailError(
-                "dirty_diff_sha256 du contexte ne correspond pas au diff archive"
+        baseline_sha = "N/A"
+        if baseline_record is not None:
+            schema_mod.validate(
+                baseline_record, schema_mod.load_schema("baseline-record.schema.json")
             )
-        inputs.append({"name": "dirty-diff.patch", "sha256": diff_sha})
+            baseline_sha = _write_json(staging / "baseline-record.json", baseline_record)
 
-    # Artefacts BRUTS d'acquisition (source de verite) + capture.json (params +
-    # tracabilite brut -> CSV normalise). Optionnel selon le driver.
-    capture = driver.capture(definition_id, acquisition.get("config", {}))
-    capture_sha = None
-    if capture is not None:
-        raw_refs: list[dict[str, str]] = []
-        for raw in capture["raw"]:
-            group = ensure_filename(raw["group"])
-            raw_name = ensure_filename(raw["name"])
-            (run_dir / "raw" / group).mkdir(parents=True, exist_ok=True)
-            (run_dir / "raw" / group / raw_name).write_text(raw["content"], encoding="utf-8")
-            raw_sha = sha256_text(raw["content"])
-            rel = f"raw/{group}/{raw_name}"
-            raw_refs.append(
-                {"group": group, "name": raw_name, "format": raw["format"], "sha256": raw_sha}
+        artifacts: list[dict[str, str]] = []
+        inputs = [
+            {"name": "campaign-definition.json", "sha256": definition_sha},
+            {"name": "execution-context.json", "sha256": context_sha},
+        ]
+        for series in series_list:
+            name = ensure_series_name(series["name"])
+            schema_mod.validate(
+                series, schema_mod.load_schema("measurement-series.schema.json")
             )
-            artifacts.append({"path": rel, "sha256": raw_sha})
-            inputs.append({"name": rel, "sha256": raw_sha})
-        capture_doc: dict[str, Any] = {
-            "capture_id": capture["capture_id"],
-            "capture_type": capture["capture_type"],
-            "parameters": capture["parameters"],
-            "raw_artifacts": raw_refs,
-            "normalized": capture.get("normalized", []),
+            csv_text = _series_csv_text(series)
+            (staging / "series" / f"{name}.csv").write_text(csv_text, encoding="utf-8")
+            sha = sha256_text(csv_text)
+            artifacts.append({"path": f"series/{name}.csv", "sha256": sha})
+            inputs.append({"name": f"series/{name}.csv", "sha256": sha})
+        if baseline_sha != "N/A":
+            inputs.append({"name": "baseline-record.json", "sha256": baseline_sha})
+
+        if dirty_diff is not None:
+            (staging / "dirty-diff.patch").write_text(dirty_diff, encoding="utf-8")
+            diff_sha = sha256_text(dirty_diff)
+            if context["build_manifest"].get("dirty_diff_sha256") != diff_sha:
+                raise GuardrailError(
+                    "dirty_diff_sha256 du contexte ne correspond pas au diff archive"
+                )
+            inputs.append({"name": "dirty-diff.patch", "sha256": diff_sha})
+
+        # Bruts (source de verite) + capture.json. Contenu deja fige au snapshot.
+        capture_sha = None
+        if capture is not None:
+            raw_refs: list[dict[str, str]] = []
+            for raw in capture["raw"]:
+                group = ensure_filename(raw["group"])
+                raw_name = ensure_filename(raw["name"])
+                if "path" in raw:
+                    data = Path(raw["path"]).read_bytes()
+                elif isinstance(raw.get("content"), bytes):
+                    data = raw["content"]
+                elif "content" in raw:
+                    data = raw["content"].encode("utf-8")
+                else:
+                    raise GuardrailError(f"brut sans 'path' ni 'content': {raw_name}")
+                (staging / "raw" / group).mkdir(parents=True, exist_ok=True)
+                (staging / "raw" / group / raw_name).write_bytes(data)
+                raw_sha = sha256_bytes(data)
+                rel = f"raw/{group}/{raw_name}"
+                raw_refs.append(
+                    {
+                        "group": group,
+                        "name": raw_name,
+                        "format": raw["format"],
+                        "sha256": raw_sha,
+                    }
+                )
+                artifacts.append({"path": rel, "sha256": raw_sha})
+                inputs.append({"name": rel, "sha256": raw_sha})
+            capture_doc: dict[str, Any] = {
+                "capture_id": capture["capture_id"],
+                "capture_type": capture["capture_type"],
+                "parameters": capture["parameters"],
+                "raw_artifacts": raw_refs,
+                "normalized": capture.get("normalized", []),
+            }
+            if "variant_id" in definition:
+                capture_doc["variant_id"] = definition["variant_id"]
+            schema_mod.validate(capture_doc, schema_mod.load_schema("capture.schema.json"))
+            capture_sha = _write_json(staging / "capture.json", capture_doc)
+            inputs.append({"name": "capture.json", "sha256": capture_sha})
+        artifacts.sort(key=lambda entry: entry["path"])
+
+        manifest = {
+            "experiment_id": experiment_id,
+            "campaign_definition_id": definition_id,
+            "definition_sha256": definition_sha,
+            "context_sha256": context_sha,
+            "baseline_sha256": baseline_sha,
+            "run_id": run_id,
+            "generated_at": generated_at,
+            "acquisition_nature": nature,
+            "protocol_ref": definition["protocol_ref"],
+            "dec": definition["dec"],
+            "tooling_version": TOOLING_VERSION,
+            "artifacts": artifacts,
         }
         if "variant_id" in definition:
-            capture_doc["variant_id"] = definition["variant_id"]
-        schema_mod.validate(capture_doc, schema_mod.load_schema("capture.schema.json"))
-        capture_sha = _write_json(run_dir / "capture.json", capture_doc)
-        inputs.append({"name": "capture.json", "sha256": capture_sha})
-    artifacts.sort(key=lambda entry: entry["path"])
+            manifest["variant_id"] = definition["variant_id"]
+        if capture_sha is not None:
+            manifest["capture_sha256"] = capture_sha
+        schema_mod.validate(
+            manifest, schema_mod.load_schema("acquisition-manifest.schema.json")
+        )
+        _write_json(staging / "acquisition-manifest.json", manifest)
 
-    manifest = {
-        "experiment_id": experiment_id,
-        "campaign_definition_id": definition_id,
-        "definition_sha256": definition_sha,
-        "context_sha256": context_sha,
-        "baseline_sha256": baseline_sha,
-        "run_id": run_id,
-        "generated_at": generated_at,
-        "acquisition_nature": nature,
-        "protocol_ref": definition["protocol_ref"],
-        "dec": definition["dec"],
-        "tooling_version": TOOLING_VERSION,
-        "artifacts": artifacts,
-    }
-    if "variant_id" in definition:
-        manifest["variant_id"] = definition["variant_id"]
-    if capture_sha is not None:
-        manifest["capture_sha256"] = capture_sha
-    schema_mod.validate(manifest, schema_mod.load_schema("acquisition-manifest.schema.json"))
-    _write_json(run_dir / "acquisition-manifest.json", manifest)
+        event_id, event_sha = _append_event(
+            staging,
+            event_type="acquisition",
+            from_status="NONE",
+            to_status=evidence_status,
+            actor=actor,
+            timestamp=generated_at,
+            reason="acquisition",
+            inputs=sorted(inputs, key=lambda entry: entry["name"]),
+            details={"acquisition_nature": nature},
+        )
+        _write_state(
+            staging,
+            experiment_id=experiment_id,
+            evidence_status=evidence_status,
+            verdict="NOT_RUN",
+            verdict_reason="analyse non executee",
+            latest_event_id=event_id,
+            latest_event_sha256=event_sha,
+        )
+        _rebuild_archive_index(staging)
+        _render(staging)
+    except BaseException:
+        shutil.rmtree(staging, ignore_errors=True)
+        raise
 
-    event_id, event_sha = _append_event(
-        run_dir,
-        event_type="acquisition",
-        from_status="NONE",
-        to_status=evidence_status,
-        actor=actor,
-        timestamp=generated_at,
-        reason="acquisition",
-        inputs=sorted(inputs, key=lambda entry: entry["name"]),
-        details={"acquisition_nature": nature},
-    )
-    _write_state(
-        run_dir,
-        experiment_id=experiment_id,
-        evidence_status=evidence_status,
-        verdict="NOT_RUN",
-        verdict_reason="analyse non executee",
-        latest_event_id=event_id,
-        latest_event_sha256=event_sha,
-    )
-    _rebuild_archive_index(run_dir)
-    _render(run_dir)
+    staging.rename(run_dir)  # publication atomique du run officiel
     return run_dir, current_view(run_dir)
 
 

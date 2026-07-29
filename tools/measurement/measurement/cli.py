@@ -37,10 +37,12 @@ def _cmd_run(args: argparse.Namespace) -> int:
     context = None
     if args.context:
         context = json.loads(Path(args.context).read_text(encoding="utf-8"))
+    overrides = {"import_dir": args.import_dir} if args.import_dir else None
     run_dir, manifest = run_campaign(
         definition,
         args.out,
         context=context,
+        acquisition_overrides=overrides,
         run_id=args.run_id,
         generated_at=args.generated_at,
     )
@@ -81,6 +83,11 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("--definition", required=True)
     run.add_argument("--out", required=True)
     run.add_argument("--context", default=None)
+    run.add_argument(
+        "--import-dir",
+        default=None,
+        help="repertoire d'import du driver manuel (ephemere, jamais archive)",
+    )
     run.add_argument("--run-id", default=None)
     run.add_argument("--generated-at", default=None)
     run.set_defaults(func=_cmd_run)
