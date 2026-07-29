@@ -96,15 +96,18 @@ Ce sont les données **conservées** ; toute métrique dérivée doit pouvoir ê
 Chaque métrique dérivée déclare sa **formule** et les **bruts** dont elle
 provient. Aucune n'est autoritaire.
 
-| Dérivé | Formule | Provenance (bruts) |
-|--------|---------|--------------------|
-| Débit | `bytes_transferred / durée_écoulée` | compteurs + horodatages |
-| Taux de succès | `tx_ok / (tx_ok + tx_failed)` | compteurs |
-| Latence (par transaction) | `t(TX_END) − t(TX_BEGIN)` | horodatages |
-| Latence min/max/médiane/P95/P99 | quantiles de la série de latences | série de latences |
-| Gigue | écart-type (et écart inter-quartile) des latences | série de latences |
-| Taux d'erreur CRC | `crc_errors / transactions_émises` | compteurs |
-| Latence d'IRQ | `t(IRQ_reçue) − t(IRQ_émise)` | horodatages appariés |
+| id | Dérivé | Formule | Provenance (bruts) |
+|----|--------|---------|--------------------|
+| `M-THR` | Débit | `bytes_transferred / durée_écoulée` | compteurs + horodatages |
+| `M-SUC` | Taux de succès | `tx_ok / (tx_ok + tx_failed)` | compteurs |
+| `M-LAT` | Latence par transaction | `t(TX_END) − t(TX_BEGIN)` | horodatages |
+| `M-DIST` | Distribution : min, max, médiane, P95, P99, n | quantiles de la série `M-LAT` | série de latences |
+| `M-JIT` | Gigue | écart-type et écart inter-quartile | série de latences |
+| `M-CRCR` | Taux de rejet CRC | `crc_errors / transactions_émises` | compteurs |
+| `M-INTG` | Intégrité de contenu | trames acceptées dont séquence **et** payload recalculé correspondent | séquences + payload attendu |
+| `M-IRQL` | Latence d'IRQ | `t(IRQ_reçue) − t(IRQ_émise)`, **sur la base de temps autoritaire** | transitions de CS/IRQ (§6) |
+
+Le suffixe `(screen)` / `(module)` désigne la source de charge concernée.
 
 ## 4. Protocole d'exécution
 
@@ -131,29 +134,81 @@ a perturbé la mesure de façon détectable.
 
 ### 4.3 Règle de verdict
 
-Le verdict porte sur **un run** et se rattache aux `[BL]` de la catégorie
-« critères de verdict » :
+Le verdict porte sur **un run** et ne se rattache **qu'aux `[BL]` applicables à
+son cas** (§5) :
 
-- **PASS** — tous les critères de verdict sont satisfaits sur le run.
-- **FAIL** — au moins un critère de verdict est violé.
+- **PASS** — tous les critères de verdict **applicables au cas** sont satisfaits.
+- **FAIL** — au moins un critère **applicable** est violé.
 - **INCONCLUSIVE** — dispersion ou données insuffisantes pour trancher ; **jamais**
-  converti en PASS/FAIL.
+  converti en PASS/FAIL. C'est notamment le cas d'un critère applicable dont le
+  seuil n'est **pas encore instancié** (BL-104, BL-105).
 - **INVALID** — cf. §4.2.
 - **NOT_RUN** — non exécuté.
 
+> Un critère **non applicable** (`N/A`) n'est **ni satisfait ni violé** : il est
+> exclu du calcul du verdict. Le considérer implicitement comme « à satisfaire »
+> rendrait le verdict ambigu.
+
 > Un run `PASS` **n'arbitre pas** `DEC-L1-001` : voir §1.
 
-## 5. Actions physiques et matériel
+## 5. Matrice d'applicabilité par cas
+
+Les modes de contrôle ne produisent pas les mêmes observables : `screen-only`
+n'a ni trafic module ni IRQ module exploitable, `module-only` n'a pas de trafic
+afficheur, et **seul `concurrent` permet d'évaluer la contention**. Chaque
+définition de campagne ne référence donc **que ses critères applicables**.
+
+| Cas (les deux topologies) | `[BL]` applicables | Métriques obligatoires | `N/A` |
+|---------------------------|--------------------|------------------------|-------|
+| `screen-only` | **A** : tous · **B** : BL-101, BL-107, BL-103, BL-106 | `M-LAT(screen)`, `M-DIST(screen)`, `M-THR(screen)`, `M-JIT(screen)`, `M-CRCR(screen)`, `M-INTG(screen)` | BL-102, **BL-104**, **BL-105** · `M-IRQL`, métriques `(module)` |
+| `module-only` | **A** : tous · **B** : BL-101, BL-107, BL-102, BL-103, BL-106 | `M-LAT(module)`, `M-DIST(module)`, `M-THR(module)`, `M-JIT(module)`, `M-SUC(module)`, `M-CRCR(module)`, `M-INTG(module)`, `M-IRQL` | **BL-104**, **BL-105** · métriques `(screen)` |
+| `concurrent` | **A** : tous · **B** : **tous**, y compris BL-104 et BL-105 | toutes les métriques des deux sources, dont `M-IRQL` et la comparaison de dégradation | — |
+
+**Lecture.** Les modes isolés sont jugés sur leur **intégrité propre** (rejets
+CRC, contenu, timeouts, blocages, et succès module là où il existe) ; ils ne sont
+**jamais** jugés sur les **critères de dégradation concurrente** (BL-104,
+BL-105), qui n'ont pas de sens sans concurrence. Leur rôle premier est de fournir
+les **références quantitatives** (P99 isolés) qui permettront d'**instancier**
+ces deux critères en B4.
+
+**Conséquence d'ordonnancement** : les modes isolés doivent être exécutés **et
+analysés avant** que les cas `concurrent` puissent recevoir un verdict sur la
+dégradation.
+
+## 6. Base de temps et appariement
+
+Deux horloges MCU non corrélées ne permettent pas de soustraire des instants :
+`t(IRQ_reçue) − t(IRQ_émise)` calculé entre l'hôte et le module serait
+ininterprétable. La campagne définit donc une **autorité temporelle** explicite.
+
+| Rôle | Source | Statut |
+|------|--------|--------|
+| **Autoritaire** — latences **inter-cartes** (IRQ, corrélation CS/transaction) | **analyseur logique** | fait foi (BL-011) |
+| Secondaire — ordre et latences **intra-carte**, compteurs | horodatages logiciels | **non autoritaires** pour toute grandeur croisée |
+
+**Alignement des traces.** Un **signal GPIO de synchronisation** (marqueur) est
+émis en début de run, et périodiquement, sur une voie capturée par l'analyseur ;
+il sert de repère commun aux traces logicielles et à la trace bus. La dérive
+résiduelle est bornée et consignée (BL-005).
+
+**Règle d'appariement.** Chaque trame porte un **numéro de séquence** ; la trame
+d'acquittement reprend ce numéro. Une IRQ est appariée à la transaction de **même
+séquence**. Si l'appariement échoue (séquence manquante, dupliquée ou ambiguë),
+l'échantillon est **écarté et compté** — jamais rattaché arbitrairement. Un taux
+d'échantillons écartés au-delà de ce que la revue juge acceptable rend le run
+`INCONCLUSIVE`.
+
+## 7. Actions physiques et matériel
 
 Voir [matériel et actions physiques](materials-and-physical-actions.md) et le
 [brochage candidat](pinout-candidate.md) (candidat, **non figé**).
 
-## 6. Baseline
+## 8. Baseline
 
 Voir [baseline brouillon](baseline-draft.md) — statut **`draft`**, **n'autorise
 aucun run**. Instanciation, revue et approbation en **B4**.
 
-## 7. Ce que cette campagne ne fait pas
+## 9. Ce que cette campagne ne fait pas
 
 - N'exécute rien, ne mesure rien, ne flashe rien : **aucun run**, aucun `RAW`.
 - Ne crée **aucune ADR** (ni ADR-0013) ; `DEC-L1-001` reste **Ouvert**.
