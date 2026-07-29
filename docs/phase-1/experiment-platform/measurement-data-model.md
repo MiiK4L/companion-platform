@@ -26,8 +26,20 @@ Reliés par identifiants et hashes, jamais fondus en un seul objet.
 | Identifiant | Nature | Rôle |
 |-------------|--------|------|
 | **`experiment_id`** | humain (`EXP-…`) | relie protocole ↔ définition ↔ script/fixture ↔ dataset ↔ rapport |
+| **`variant_id`** | générique (optionnel) | **axe expérimental contrôlé** ; plusieurs variantes partagent l'`experiment_id` |
 | **`campaign_definition_id`** | déterministe (SHA-256 de la définition) | identité de la définition ; seed de la simulation |
 | **`run_id`** | unique (volatil) | identité d'un run |
+
+> **`variant_id` est générique** : le socle **ignore sa signification** et ne
+> garantit que la **traçabilité**. Il représente **n'importe quelle** variable
+> expérimentale contrôlée — ex. `spi-shared` / `spi-separated`,
+> `expander-enabled` / `expander-disabled`, `10MHz` / `40MHz`, `firmware-a` /
+> `firmware-b`. Des variantes d'un même `experiment_id` ne diffèrent que par cet axe.
+>
+> **Rôles distincts — aucun ne remplace les autres** : `experiment_id` identifie
+> l'**expérience** ; `variant_id` identifie une **configuration** ; `run_id`
+> identifie une **exécution**. `variant_id` **n'est jamais un identifiant** de run
+> ni d'expérience.
 
 ## Nature d'acquisition vs statut de preuve
 
@@ -78,13 +90,51 @@ pointe vers `artifact_sha256`. **Promotion** : `git_dirty = false` requis ; si
 `true`, le **diff exact** est archivé (`dirty-diff.patch`), **hashé**
 (`dirty_diff_sha256`) et **justifié** — sinon le build n'est pas reproductible.
 
-## Baseline archivée
+## Artefacts bruts d'acquisition & capture
+
+Le socle est **indépendant du type de mesure** : les **artefacts bruts
+d'acquisition** sont archivés sous **`raw/<group>/…`**, **groupés par famille**
+(`logic-analyzer/`, `oscilloscope/`, `serial/`, `photos/`…), **immuables** et
+**source de vérité du signal**. Une même acquisition peut produire **plusieurs
+familles** de bruts sans ambiguïté ; chaque brut est **hashé**. Le **CSV de
+série** est une **vue normalisée** — jamais la source de vérité.
+
+`capture.json` (`capture.schema.json`, immuable) possède une **identité propre**
+(`capture_id` `CAP-NNN`, `capture_type`, `variant_id` optionnel) et porte les
+**paramètres de capture** (`parameters`, zone libre par type de mesure) + les
+**empreintes des bruts** (`raw_artifacts` avec `group`/`name`) + la **traçabilité
+brut → série** (`normalized.from_raw = "group/name"`). Un **futur driver
+automatique** ne remplacera **que l'étape d'acquisition** ; modèle de données,
+schémas, rapports et analyse **inchangés**.
+
+> **Provenance (lisibilité de la chaîne).** Au-delà des hashes (intégrité), la
+> chaîne complète se relit : `raw/` → `capture.json` (`normalized`) → CSV série →
+> `analysis-result.json` (`source_capture` / `generated_from`) → verdict
+> (`analysis_result_sha256`, `bl_refs`).
+
+> **Évolution prévue (aucun code).** Le modèle est conçu pour accueillir plus tard
+> **plusieurs captures**, **plusieurs instruments** et **plusieurs variantes** dans
+> une même campagne — via des `capture_id`/`variant_id` distincts — **sans casser**
+> les archives existantes.
+
+## Baseline archivée & versionnée
 
 La baseline **réellement appliquée** est copiée (`baseline-record.json`,
-`baseline-record.schema.json`) et hashée : `baseline_id`, `protocol_ref`,
-`protocol_commit`, `status` (`approved`/`draft`), `approved_by`, `approved_at`,
-`resolved_bl_fields` (champs `[BL]` levés). Le statut `approved` **seul** ne
-suffit pas : le record doit être présent, valide et intègre pour promouvoir.
+`baseline-record.schema.json`) et hashée : `baseline_id`, **`baseline_version`**,
+`protocol_ref`, `protocol_commit`, `status` (`approved`/`draft`), `approved_by`,
+`approved_at`, et **`bl_fields`** — chaque `[BL]` avec **identifiant stable**
+(`BL-NNN`), `name`, `value`, **`confidence`** ∈ `{normative, measured,
+hypothesis}` et `justification`. Une révision **crée une nouvelle version**
+(jamais de modification rétroactive). Le statut `approved` **seul** ne suffit
+pas : le record doit être présent, valide, **cohérent avec le protocole** et
+intègre pour promouvoir. Le **verdict** référence les `[BL]` **par leur `id`**
+(`bl_refs`), vérifiés ⊆ `[BL]` de la baseline.
+
+> **Immutabilité sémantique des `[BL]`.** Un `id` (ex. `BL-001`) **ne change
+> jamais de signification**. Si une valeur évolue : **soit** une nouvelle
+> `baseline_version`, **soit** un nouveau `BL-xxx` — **jamais** de modification
+> silencieuse d'un `BL-*` existant. Les `bl_refs` d'un verdict pointent ainsi vers
+> une sémantique **stable** et traçable.
 
 ## Portée de `[M]` (run qualifié ≠ preuve reproductible)
 
@@ -93,10 +143,26 @@ suffit pas : le record doit être présent, valide et intègre pour promouvoir.
 
 La [reproductibilité](../validation-framework.md) exige plusieurs **campagnes
 indépendantes** (`n_dut`, `n_runs`, `n_campaigns` justifiés) et la **comparaison
-des alternatives**. Un niveau supérieur **futur** (non implémenté ici) —
-`evidence_bundle` / `campaign_set` / `comparison_report` — agrégera plusieurs runs
-`M` et vérifiera `n_campaigns`, indépendance, DUT, répétitions, statistiques et
-comparaison. **Seul ce bundle reproductible pourra être cité par une ADR.**
+des alternatives**. Un niveau supérieur **futur** (non implémenté ici) agrégera
+plusieurs runs `M` et vérifiera `n_campaigns`, indépendance, DUT, répétitions,
+statistiques et comparaison. **Seul ce bundle reproductible pourra être cité par
+une ADR.**
+
+> **Évolution prévue — `evidence_bundle`** (aucun code dans cette PR). Les
+> identifiants **stables** déjà en place (`experiment_id`, `variant_id`,
+> `campaign_definition_id`, `run_id`) **n'interdisent pas** un agrégat futur du type :
+>
+> ```text
+> Evidence Bundle
+>  ├── Campaign A (variant_id = ...)
+>  ├── Campaign B (variant_id = ...)
+>  ├── Campaign C (...)
+>  └── Conclusion
+> ```
+>
+> Il référencera des runs `M` existants **sans casser** les archives : un
+> `evidence-bundle.json` (schéma futur) pointera vers `(experiment_id, variant_id,
+> campaign_definition_id, run_id)`. Documenté ici comme **porte ouverte**, pas implémenté.
 
 ## Contrats (JSON Schema) & profil du validateur
 
@@ -118,7 +184,9 @@ results/<campaign_definition_id>/<run_id>/
   baseline-record.json        # IMMUABLE (si reel)
   analysis-result.json        # IMMUABLE (si analyse)
   dirty-diff.patch            # IMMUABLE (si build sale)
-  series/*.csv                # IMMUABLE (module csv ; nom sur)
+  capture.json                # IMMUABLE (si bruts : params + tracabilite)
+  raw/*                       # IMMUABLE (artefacts bruts, source de verite)
+  series/*.csv                # IMMUABLE — vue normalisee (module csv ; nom sur)
   evidence-events/*.json      # IMMUABLE, append-only, chaine
   archive-index.json          # vue derivee (empreintes de tout l'immuable)
   evidence-state.json         # vue derivee (statut, verdict, locked)

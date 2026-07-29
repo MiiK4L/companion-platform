@@ -16,6 +16,7 @@
   ],
   "properties": {
     "experiment_id": { "type": "string", "minLength": 3, "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$" },
+    "variant_id": { "type": "string", "minLength": 1, "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$" },
     "experimental_question": { "type": "string", "minLength": 1 },
     "expected_observation": { "type": "string", "minLength": 1 },
     "verdict_rule": { "type": "string", "minLength": 1 },

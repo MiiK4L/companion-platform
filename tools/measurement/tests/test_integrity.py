@@ -93,12 +93,21 @@ def _context(protocol="example://int", record="bl-1"):
 def _baseline(protocol="example://int", bid="bl-1"):
     return {
         "baseline_id": bid,
+        "baseline_version": 1,
         "protocol_ref": protocol,
         "protocol_commit": "commit",
         "status": "approved",
         "approved_by": "rev",
         "approved_at": _TS,
-        "resolved_bl_fields": ["s"],
+        "bl_fields": [
+            {
+                "id": "BL-001",
+                "name": "s",
+                "value": "v",
+                "confidence": "hypothesis",
+                "justification": "j",
+            },
+        ],
     }
 
 
@@ -277,6 +286,49 @@ class TestIntegrity(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             with self.assertRaises(SchemaError):
                 run_campaign(_real_definition(), tmp, context=ctx, baseline_record=_baseline())
+
+    def test_capture_raw_tampering(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            run_dir, _ = run_campaign(_sim_definition(), tmp)
+            raw = run_dir / "raw" / "simulation" / "capture.raw.csv"
+            raw.write_text(raw.read_text() + "x", encoding="utf-8")
+            with self.assertRaises(GuardrailError):
+                verify_run(run_dir)
+
+    def test_verdict_bl_ref_unknown(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            run_dir, _ = run_campaign(
+                _real_definition(), tmp, context=_context(), baseline_record=_baseline()
+            )
+            record_analysis(run_dir, _analysis())
+            link = {
+                "verdict_rule_ref": "r",
+                "analysis_result_sha256": sha256_file(run_dir / "analysis-result.json"),
+                "analysis_tool": "t",
+                "analysis_tool_version": "1",
+                "decided_by": "i",
+                "decided_at": _TS,
+                "bl_refs": ["BL-999"],  # inexistant dans la baseline (BL-001)
+            }
+            record_verdict(run_dir, "PASS", "m", link=link, timestamp=_TS)
+            with self.assertRaises(GuardrailError):
+                verify_run(run_dir)
+
+    def test_analysis_provenance(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            run_dir, _ = run_campaign(_sim_definition(), tmp)  # capture CAP-001
+            # Provenance coherente -> verify OK.
+            record_analysis(
+                run_dir, dict(_analysis(exp="EXP-INT-000"), source_capture="CAP-001")
+            )
+            verify_run(run_dir)
+        with tempfile.TemporaryDirectory() as tmp:
+            run_dir, _ = run_campaign(_sim_definition(), tmp)
+            record_analysis(
+                run_dir, dict(_analysis(exp="EXP-INT-000"), source_capture="CAP-999")
+            )
+            with self.assertRaises(GuardrailError):
+                verify_run(run_dir)
 
     def test_delete_derived_then_rebuild(self):
         with tempfile.TemporaryDirectory() as tmp:

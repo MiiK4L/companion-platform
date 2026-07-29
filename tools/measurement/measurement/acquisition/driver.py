@@ -76,3 +76,14 @@ class InstrumentDriver(ABC):
         Chaque serie : ``{"name": str, "columns": [{"name","unit"}], "rows": [...]}``.
         """
         raise NotImplementedError
+
+    def capture(self, definition_id: str, config: dict[str, Any]) -> dict[str, Any] | None:
+        """Artefacts BRUTS d'acquisition + parametres de capture (optionnel).
+
+        Independant du type de mesure (analyseur, oscilloscope, alim, dump serie,
+        log firmware, SWO/JTAG, image...). Le brut est la SOURCE DE VERITE ; le CSV
+        de serie en est une vue normalisee. Retourne ``None`` (aucun brut) ou :
+        ``{"parameters": {...}, "raw": [{"name","format","content"}],
+           "normalized": [{"series","from_raw"}]}``.
+        """
+        return None

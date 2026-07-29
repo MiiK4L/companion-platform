@@ -27,6 +27,8 @@ _ARCHIVE_FILES = (
     "archive-index.json",
     "campaign-definition.json",
     "execution-context.json",
+    "capture.json",
+    "raw/simulation/capture.raw.csv",
     "evidence-events/0001-acquisition.json",
     "series/signal.csv",
     "report.md",
@@ -156,6 +158,20 @@ class TestCampaignSimulation(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             run_dir, view = run_campaign(_definition(), tmp)
             self.assertEqual(view, current_view(run_dir))
+
+    def test_variant_id_round_trips(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            defn = dict(_definition(), variant_id="spi-shared")
+            run_dir, view = run_campaign(defn, tmp)
+            self.assertEqual(view["variant_id"], "spi-shared")
+            verify_run(run_dir)  # coherence definition <-> manifeste
+
+    def test_capture_traceability_present(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            run_dir, _ = run_campaign(_definition(), tmp)
+            capture = json.loads((run_dir / "capture.json").read_text())
+            self.assertTrue(capture["raw_artifacts"])
+            self.assertEqual(capture["normalized"][0]["series"], "signal")
 
 
 if __name__ == "__main__":

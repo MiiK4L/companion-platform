@@ -34,6 +34,7 @@ from ..model import (
     VERDICT_LINK_FIELDS,
     VERDICTS,
     IncompleteMetadataError,
+    ensure_filename,
     ensure_safe_id,
     ensure_series_name,
     require_complete_context,
@@ -47,6 +48,7 @@ _IMMUTABLE_TOPLEVEL = (
     "execution-context.json",
     "baseline-record.json",
     "analysis-result.json",
+    "capture.json",
     "dirty-diff.patch",
 )
 
@@ -150,6 +152,13 @@ def _event_files(run_dir: Path) -> list[Path]:
 def _immutable_paths(run_dir: Path) -> list[str]:
     paths = [p for p in _IMMUTABLE_TOPLEVEL if (run_dir / p).is_file()]
     paths += [f"series/{p.name}" for p in sorted((run_dir / "series").glob("*.csv"))]
+    raw_dir = run_dir / "raw"
+    if raw_dir.is_dir():
+        paths += [
+            p.relative_to(run_dir).as_posix()
+            for p in sorted(raw_dir.rglob("*"))
+            if p.is_file()
+        ]
     paths += [f"evidence-events/{p.name}" for p in _event_files(run_dir)]
     return sorted(paths)
 
@@ -330,6 +339,38 @@ def run_campaign(
             )
         inputs.append({"name": "dirty-diff.patch", "sha256": diff_sha})
 
+    # Artefacts BRUTS d'acquisition (source de verite) + capture.json (params +
+    # tracabilite brut -> CSV normalise). Optionnel selon le driver.
+    capture = driver.capture(definition_id, acquisition.get("config", {}))
+    capture_sha = None
+    if capture is not None:
+        raw_refs: list[dict[str, str]] = []
+        for raw in capture["raw"]:
+            group = ensure_filename(raw["group"])
+            raw_name = ensure_filename(raw["name"])
+            (run_dir / "raw" / group).mkdir(parents=True, exist_ok=True)
+            (run_dir / "raw" / group / raw_name).write_text(raw["content"], encoding="utf-8")
+            raw_sha = sha256_text(raw["content"])
+            rel = f"raw/{group}/{raw_name}"
+            raw_refs.append(
+                {"group": group, "name": raw_name, "format": raw["format"], "sha256": raw_sha}
+            )
+            artifacts.append({"path": rel, "sha256": raw_sha})
+            inputs.append({"name": rel, "sha256": raw_sha})
+        capture_doc: dict[str, Any] = {
+            "capture_id": capture["capture_id"],
+            "capture_type": capture["capture_type"],
+            "parameters": capture["parameters"],
+            "raw_artifacts": raw_refs,
+            "normalized": capture.get("normalized", []),
+        }
+        if "variant_id" in definition:
+            capture_doc["variant_id"] = definition["variant_id"]
+        schema_mod.validate(capture_doc, schema_mod.load_schema("capture.schema.json"))
+        capture_sha = _write_json(run_dir / "capture.json", capture_doc)
+        inputs.append({"name": "capture.json", "sha256": capture_sha})
+    artifacts.sort(key=lambda entry: entry["path"])
+
     manifest = {
         "experiment_id": experiment_id,
         "campaign_definition_id": definition_id,
@@ -344,6 +385,10 @@ def run_campaign(
         "tooling_version": TOOLING_VERSION,
         "artifacts": artifacts,
     }
+    if "variant_id" in definition:
+        manifest["variant_id"] = definition["variant_id"]
+    if capture_sha is not None:
+        manifest["capture_sha256"] = capture_sha
     schema_mod.validate(manifest, schema_mod.load_schema("acquisition-manifest.schema.json"))
     _write_json(run_dir / "acquisition-manifest.json", manifest)
 
@@ -697,11 +742,48 @@ def verify_run(run_dir: str | Path) -> None:
         schema_mod.validate(analysis, schema_mod.load_schema("analysis-result.schema.json"))
         if analysis["experiment_id"] != manifest["experiment_id"]:
             raise GuardrailError("experiment_id incoherent (analyse vs manifeste)")
+    baseline_bl_ids: set[str] = set()
     if (run_dir / "baseline-record.json").is_file():
         baseline = _load_json(run_dir / "baseline-record.json")
         schema_mod.validate(baseline, schema_mod.load_schema("baseline-record.schema.json"))
         if baseline["protocol_ref"] != manifest["protocol_ref"]:
             raise GuardrailError("protocol_ref incoherent (baseline vs manifeste)")
+        baseline_bl_ids = {field["id"] for field in baseline["bl_fields"]}
+
+    # Coherence de la variante (le socle ignore sa semantique ; il en garantit la trace).
+    if definition.get("variant_id") != manifest.get("variant_id"):
+        raise GuardrailError("variant_id incoherent (definition vs manifeste)")
+
+    # Capture (artefacts BRUTS) : schema + empreintes + tracabilite brut -> serie.
+    capture_id = None
+    if (run_dir / "capture.json").is_file():
+        capture = _load_json(run_dir / "capture.json")
+        schema_mod.validate(capture, schema_mod.load_schema("capture.schema.json"))
+        capture_id = capture["capture_id"]
+        if manifest.get("capture_sha256") != sha256_file(run_dir / "capture.json"):
+            raise GuardrailError("empreinte de capture.json divergente (manifeste)")
+        if capture.get("variant_id") != manifest.get("variant_id"):
+            raise GuardrailError("variant_id incoherent (capture vs manifeste)")
+        raw_refs = set()
+        for raw in capture["raw_artifacts"]:
+            raw_path = run_dir / "raw" / raw["group"] / raw["name"]
+            rel = f"{raw['group']}/{raw['name']}"
+            if not raw_path.is_file() or sha256_file(raw_path) != raw["sha256"]:
+                raise GuardrailError(f"artefact brut incoherent: {rel}")
+            raw_refs.add(rel)
+        for norm in capture["normalized"]:
+            if not (run_dir / "series" / f"{norm['series']}.csv").is_file():
+                raise GuardrailError(f"serie normalisee absente: {norm['series']}")
+            if norm["from_raw"] not in raw_refs:
+                raise GuardrailError(f"tracabilite brute inconnue: {norm['from_raw']}")
+    elif manifest.get("capture_sha256") is not None:
+        raise GuardrailError("capture_sha256 declare mais capture.json absent")
+
+    # Provenance : si l'analyse declare une capture source, elle doit exister.
+    if (run_dir / "analysis-result.json").is_file():
+        source = _load_json(run_dir / "analysis-result.json").get("source_capture")
+        if source is not None and source != capture_id:
+            raise GuardrailError("source_capture de l'analyse incoherent avec la capture")
 
     # Chaine d'evenements append-only + details valides selon le type. Une
     # non-conformite de schema d'un evenement est un defaut d'INTEGRITE.
@@ -728,6 +810,11 @@ def verify_run(run_dir: str | Path) -> None:
         if event["event_type"] == "acquisition":
             if event["details"]["acquisition_nature"] != manifest["acquisition_nature"]:
                 raise GuardrailError("acquisition_nature incoherent (evenement vs manifeste)")
+        # Les [BL] references par un verdict doivent exister dans la baseline.
+        if event["event_type"] == "verdict":
+            for ref in event["details"].get("bl_refs", []):
+                if ref not in baseline_bl_ids:
+                    raise GuardrailError(f"bl_ref inconnu dans la baseline: {ref}")
         previous = sha256_file(path)
 
     # Etat reconstruit depuis l'historique (valide aussi la legalite des transitions).

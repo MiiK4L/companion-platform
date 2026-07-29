@@ -58,6 +58,8 @@ VERDICT_LINK_FIELDS = (
 
 #: Nom de serie : minuscule, sans separateur de chemin (empeche toute evasion).
 SERIES_NAME_RE = re.compile(r"^[a-z0-9][a-z0-9_-]*$")
+#: Nom de fichier (composant unique) : points autorises, aucun separateur de chemin.
+FILENAME_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
 #: Identifiant injectable (run_id, experiment_id) : sans point ni separateur de chemin.
 SAFE_ID_RE = re.compile(SAFE_ID_PATTERN)
 
@@ -84,6 +86,15 @@ def ensure_safe_id(value: str, *, kind: str) -> str:
     if not isinstance(value, str) or not SAFE_ID_RE.match(value):
         raise UnsafeNameError(f"{kind} invalide {value!r} (attendu {SAFE_ID_RE.pattern})")
     return value
+
+
+def ensure_filename(name: str) -> str:
+    """Valide un nom de fichier (composant unique, sans separateur de chemin)."""
+    if not isinstance(name, str) or ".." in name or not FILENAME_RE.match(name):
+        raise UnsafeNameError(
+            f"nom de fichier invalide {name!r} (attendu {FILENAME_RE.pattern}, sans '..')"
+        )
+    return name
 
 
 # Champs obligatoires d'une campagne REELLE (mesuree). Chaque feuille doit etre

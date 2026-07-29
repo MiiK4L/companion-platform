@@ -45,3 +45,28 @@ class SimulationDriver(InstrumentDriver):
                 "rows": rows,
             }
         ]
+
+    def capture(self, definition_id, config):
+        """Brut factice DETERMINISTE + parametres, pour exercer l'archivage brut."""
+        series_name = str(config.get("series", "signal"))
+        samples = int(config.get("samples", 8))
+        lines = ["index;value"]
+        for index in range(samples):
+            seed = sha256_text(f"{definition_id}:{index}")
+            value = int(seed[:8], 16) / _UINT32_MAX
+            lines.append(f"{index};{round(value, 6)}")
+        raw_content = "\n".join(lines) + "\n"
+        return {
+            "capture_id": "CAP-001",
+            "capture_type": "simulation",
+            "parameters": {"source": "simulation", "samples": samples},
+            "raw": [
+                {
+                    "group": "simulation",
+                    "name": "capture.raw.csv",
+                    "format": "csv",
+                    "content": raw_content,
+                }
+            ],
+            "normalized": [{"series": series_name, "from_raw": "simulation/capture.raw.csv"}],
+        }
