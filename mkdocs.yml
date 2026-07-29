@@ -239,6 +239,7 @@ nav:
           - Banc de référence: phase-1/experiment-platform/reference-bench.md
           - Modèle de données: phase-1/experiment-platform/measurement-data-model.md
           - Outillage: phase-1/experiment-platform/tooling.md
+          - Firmware de banc: phase-1/experiment-platform/bench-firmware.md
           - Cycle d'une campagne: phase-1/experiment-platform/campaign-workflow.md
           - Hors périmètre: phase-1/experiment-platform/out-of-scope.md
   - Guides:
