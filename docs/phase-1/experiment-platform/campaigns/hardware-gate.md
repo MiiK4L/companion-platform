@@ -27,8 +27,18 @@ autorisé.
 | 5 | **Trame correcte acceptée** | trame valide → `ACK_OK`, compteur `tx_ok` incrémenté |
 | 6 | **Trame CRC corrompue rejetée** | corruption réelle d'un octet → rejet, `crc_errors` incrémenté |
 | 7 | **Artefacts bruts importables via B1** | import `manual-import` réussi, empreintes stables, archive vérifiée (`verify_run`) |
-| 8 | **Synchronisation temporelle validée** | horodatages hôte/module corrélés, dérive bornée et consignée (BL-005) |
+| 8 | **Base de temps autoritaire opérationnelle** | marqueur `SYNC` capturé ; traces hôte/module alignées ; dérive bornée et consignée (BL-005, BL-011) |
 | 9 | **Surcoût d'instrumentation borné** | mesure du surcoût, conforme à BL-006 |
+| 10 | **Second contrôleur SPI mappé sur le MÊME DUT** | un contrôleur SPI **matériel** de l'ESP32-S3 est affecté à des broches **exposées** de la XIAO utilisée (BL-012) |
+| 11 | **Configuration `spi-separated` compilée** | build ESP-IDF de la configuration à deux bus, log + empreinte |
+| 12 | **Absence de conflit de broches** | le mapping ne heurte ni le **boot**, ni l'**USB**, ni l'**IRQ**, ni les autres fonctions nécessaires — table de conflits vérifiée |
+| 13 | **Analyseur conforme** | voies et fréquence d'échantillonnage satisfaisant BL-008/BL-009/BL-010 pour la `f_SPI_max` du run |
+
+> **Points 10 à 12 — pas de contournement.** Si le mapping s'avère **impossible**
+> sur la même XIAO, la campagne doit être **redéfinie**, et non exécutée sur un
+> autre véhicule : un GPIO expander ne peut pas porter un SPI multi-MHz, et
+> changer de carte détruirait le caractère **contrôlé** de la comparaison entre
+> variantes. Voir [brochage candidat](pinout-candidate.md).
 
 Les points 5 et 6 constituent l'**auto-test du banc** : ils prouvent que la
 chaîne de détection d'intégrité fonctionne **avant** de mesurer, ce qui est la
@@ -44,7 +54,7 @@ d'une **PR séparée de la campagne**, conformément à la règle « ne jamais m
 
 ## Après le gate
 
-Une fois les 9 points satisfaits :
+Une fois les **13 points** satisfaits :
 
 1. **revue** de la baseline brouillon ;
 2. **instanciation** des valeurs restées ouvertes (BL-104, BL-105) à partir des
