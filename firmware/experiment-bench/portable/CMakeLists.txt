@@ -70,3 +70,17 @@ add_executable(bench_host_wiring
 target_include_directories(bench_host_wiring PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR} ${BENCH_ROOT})
 target_link_libraries(bench_host_wiring bench_portable)
+
+# --- Definition de campagne EXP-L1-BRINGUP-001 (B3) -------------------------
+# Cible SEPAREE du coeur : une campagne n'ajoute qu'un scenario declaratif et ne
+# modifie pas le coeur. Les tests verifient que les profils sont rejouables et
+# que la table des cas est coherente. AUCUNE execution, aucune mesure.
+add_executable(bench_l1_campaign_tests
+  ${BENCH_ROOT}/scenarios/l1_spi_bringup/tests/test_l1_campaign.c
+  ${BENCH_ROOT}/scenarios/l1_spi_bringup/l1_profile.c
+  ${BENCH_ROOT}/scenarios/l1_spi_bringup/l1_scenario.c
+)
+target_include_directories(bench_l1_campaign_tests PRIVATE
+  ${CMAKE_CURRENT_SOURCE_DIR} ${BENCH_ROOT})
+target_link_libraries(bench_l1_campaign_tests bench_portable)
+add_test(NAME bench_l1_campaign_tests COMMAND bench_l1_campaign_tests)
