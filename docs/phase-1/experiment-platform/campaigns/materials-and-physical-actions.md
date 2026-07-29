@@ -22,12 +22,41 @@ SPDX-License-Identifier: CC-BY-4.0
 | Charge afficheur | périphérique SPI de type afficheur, CS dédié | 1 |
 | Alimentation | 3,3 V stable dans les bornes BL-001, courant suffisant | 1 |
 | Câblage | fils courts (≤ 100 mm, BL-003), masse commune | — |
-| Instrumentation temporelle | analyseur logique ≥ 4 voies, échantillonnage ≫ fréquence SPI | 1 |
+| Instrumentation temporelle | analyseur logique — voir §1.1 (critères chiffrés) | 1 |
 | Poste de travail | toolchains Pico SDK **et** ESP-IDF installées (versions figées) | 1 |
 
 > La disponibilité réelle de ces éléments relève de l'**inventaire**, distinct
 > des **capacités du banc de référence** (cf.
 > [banc de référence](../reference-bench.md)).
+
+### 1.1 Analyseur logique — deux niveaux de capture
+
+« ≫ la fréquence SPI » n'est pas un critère exécutable. Deux niveaux sont
+définis, avec des seuils **chiffrés et justifiés** (BL-008 à BL-010) :
+
+| Niveau | Signaux | Voies | Ce qu'il permet |
+|--------|---------|-------|-----------------|
+| **Capture temporelle minimale** | `SCK`, `CS_screen`, `CS_module`, `IRQ` | **≥ 4** | latences, occupation du bus, appariement CS/IRQ — **pas** le décodage des données |
+| **Capture protocolaire complète** | + `MOSI`, `MISO` | **≥ 6** (8 recommandé) | relier transactions, **numéros de séquence** et rejets CRC au niveau bus |
+
+La capture **protocolaire** est requise pour vérifier `M-INTG`
+(`accepted_corrupted_frames`, BL-107) au niveau bus, et donc pour un verdict
+complet.
+
+**Fréquence d'échantillonnage minimale** (BL-010), exprimée par rapport à la
+fréquence SPI **maximale** du run (`f_SPI_max`) :
+
+| Usage | Seuil | À `f_SPI_max` = 20 MHz |
+|-------|-------|------------------------|
+| Décodage des données | **≥ 4 × f_SPI_max** | ≥ 80 MS/s |
+| Analyse temporelle / gigue | **≥ 10 × f_SPI_max** | ≥ 200 MS/s |
+
+> **Justification.** Nyquist (2 ×) suffit à reconstruire un signal, pas à situer
+> un **front** avec la précision requise pour une latence ou une gigue : l'erreur
+> de datation est de l'ordre de la période d'échantillonnage. À 20 MHz SPI, un
+> appareil à **24 MS/s est insuffisant** — il ne fournirait ni décodage fiable ni
+> datation exploitable. Un analyseur ne satisfaisant pas ces seuils rend le run
+> `INVALID` (invariant de catégorie A).
 
 ## 2. Actions physiques (ordre d'exécution en B4)
 
@@ -37,7 +66,9 @@ SPDX-License-Identifier: CC-BY-4.0
    du jour ; vérifier la longueur des liaisons (BL-003).
 4. **Câbler la ligne IRQ** module → hôte, dans le bon sens (sortie module,
    entrée hôte).
-5. **Poser les sondes** sur les points de mesure déclarés.
+5. **Poser les sondes** sur les points de mesure déclarés, **y compris la voie
+   `SYNC`** (marqueur de synchronisation) : sans elle, les traces hôte/module ne
+   sont pas alignables et les latences inter-cartes sont ininterprétables.
 6. **Consigner le câblage** : photo + table des liaisons effectives, jointe au
    contexte d'exécution du run.
 7. **Mettre sous tension** ; vérifier la tension d'alimentation (BL-001) et la
