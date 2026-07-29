@@ -57,7 +57,16 @@ class SimulationDriver(InstrumentDriver):
             lines.append(f"{index};{round(value, 6)}")
         raw_content = "\n".join(lines) + "\n"
         return {
+            "capture_id": "CAP-001",
+            "capture_type": "simulation",
             "parameters": {"source": "simulation", "samples": samples},
-            "raw": [{"name": "capture.raw.csv", "format": "csv", "content": raw_content}],
-            "normalized": [{"series": series_name, "from_raw": "capture.raw.csv"}],
+            "raw": [
+                {
+                    "group": "simulation",
+                    "name": "capture.raw.csv",
+                    "format": "csv",
+                    "content": raw_content,
+                }
+            ],
+            "normalized": [{"series": series_name, "from_raw": "simulation/capture.raw.csv"}],
         }

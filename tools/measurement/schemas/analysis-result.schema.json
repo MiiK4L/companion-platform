@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Analysis result (immutable)",
-  "description": "Resultat d'analyse archive, hashe et lie au verdict. 'values' porte les grandeurs numeriques exploitees.",
+  "description": "Resultat d'analyse archive, hashe et lie au verdict. 'values' porte les grandeurs. Provenance optionnelle (source_capture / generated_from) pour reconstruire la chaine raw -> capture -> csv -> analyse -> verdict.",
   "type": "object",
   "additionalProperties": false,
   "required": ["experiment_id", "analysis_tool", "analysis_tool_version", "summary", "values"],
@@ -10,6 +10,8 @@
     "analysis_tool": { "type": "string", "minLength": 1 },
     "analysis_tool_version": { "type": "string", "minLength": 1 },
     "summary": { "type": "string", "minLength": 1 },
-    "values": { "type": "object" }
+    "values": { "type": "object" },
+    "source_capture": { "type": "string", "pattern": "^CAP-[0-9]{3,}$" },
+    "generated_from": { "type": "array", "items": { "type": "string", "minLength": 1 } }
   }
 }

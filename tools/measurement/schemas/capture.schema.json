@@ -1,11 +1,14 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Capture (artefacts bruts d'acquisition)",
-  "description": "Artefacts bruts d'acquisition (independants du type de mesure : analyseur logique, oscilloscope, alim, dump serie, log firmware, SWO/JTAG, image...) = source de verite du signal. Le CSV normalise est une VUE tracable au brut.",
+  "description": "Une capture identifiee (capture_id/capture_type) regroupe des artefacts bruts d'acquisition PAR FAMILLE (group : logic-analyzer, oscilloscope, serial, photos...). Le brut est la source de verite ; le CSV normalise est une vue tracable (normalized.from_raw = 'group/name'). Le modele autorise plusieurs captures/instruments/variantes ulterieurement.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["parameters", "raw_artifacts", "normalized"],
+  "required": ["capture_id", "capture_type", "parameters", "raw_artifacts", "normalized"],
   "properties": {
+    "capture_id": { "type": "string", "pattern": "^CAP-[0-9]{3,}$" },
+    "capture_type": { "type": "string", "minLength": 1 },
+    "variant_id": { "type": "string", "minLength": 1, "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$" },
     "parameters": { "type": "object" },
     "raw_artifacts": {
       "type": "array",
@@ -13,9 +16,10 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["name", "format", "sha256"],
+        "required": ["group", "name", "format", "sha256"],
         "properties": {
-          "name": { "type": "string", "minLength": 1 },
+          "group": { "type": "string", "minLength": 1, "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$" },
+          "name": { "type": "string", "minLength": 1, "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$" },
           "format": { "type": "string", "minLength": 1 },
           "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
         }
