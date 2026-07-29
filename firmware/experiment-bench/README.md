@@ -16,13 +16,13 @@ portable/   # C standard, ZERO dependance plateforme (~80-90% de la logique) —
   util/       # (in)serialisation gros-boutiste, arithmetique saturante
   crc/ frame/ # CRC-32/IEEE + format de trame versionne protege par CRC
   scheduler/  # echeances / timeouts ABSTRAITS et WRAP-SAFE
-  profiles/   # profil DECLARATIF + generateur deterministe seede
+  profiles/   # profil 100% DECLARATIF (freq, tailles, delais, IRQ, motif, fautes, seed)
   protocol/   # protocole de controle BINAIRE (framed/versionne/borne)
   counters/   # compteurs BRUTS vs statistiques DERIVEES (saturants)
   transport/  # machine d'etat de transaction (saturante, wrap-safe)
   scenario/   # composition profil + roles Host/Slave (distinct du profil)
-  engine/     # moteur Host + Slave (logique partagee ; pas de logique en board)
-  sim/        # lien SPI SIMULE (transport de test) pour derouler le flux en CI
+  engine/     # moteur Host + Slave (n'execute QUE ce que le profil decrit)
+  sim/        # lien SPI SIMULE + INJECTION DE FAUTES (latence, CS, troncature, IRQ...)
   tests/      # tests host (CMake/ctest) — executes en CI
 hal/         # interfaces FINES par ROLE + adaptateurs par cible (stubs, hors CI materiel)
   common/ rp2040/ (esclave) esp32/ (hote)
@@ -46,9 +46,16 @@ docs/        # architecture, build local, comparaison de cible
   **rejetés** (jamais tronqués).
 - **Temps abstrait et wrap-safe** ; compteurs et transport **saturants** (aucun
   débordement silencieux ; `timeout=0` et progression excessive définis).
+- **Profils 100% déclaratifs.** Un profil décrit **tout** : fréquence SPI,
+  tailles de trames, délais inter-transaction, politique IRQ, motif de payload,
+  injections de fautes et seed. Le **moteur n'exécute que ce qui est décrit** —
+  aucun paramètre de scénario codé en dur.
 - **Profile ≠ Scenario ≠ Board application.** Le profil décrit un trafic ; le
   scénario compose profil + rôles ; la board application ne fait que **câbler**
   la HAL au **moteur** partagé (`engine/`). Aucune logique dans les `main.c`.
+- **Lien simulé fautif.** `sim/` n'est **pas** un bus parfait : il injecte
+  latence, CS relâché prématurément, réponse tronquée/perdue, timeout/erreur
+  forcés et IRQ concurrente, pour tester la **synchronisation**.
 - **Instrumentation par événements** ; **transports extensibles** (SPI d'abord).
 
 ## Statut des cibles

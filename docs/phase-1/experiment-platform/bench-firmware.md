@@ -57,10 +57,20 @@ firmware/experiment-bench/
 - **Temps abstrait et wrap-safe** (soustraction modulaire, ticks 64 bits,
   `timeout=0` défini) ; **compteurs et transport saturants** (`bytes_target=0` et
   progression excessive définis ; aucun débordement silencieux).
+- **Profils 100% déclaratifs.** Un profil décrit **tout** ce qui définit le
+  trafic : fréquence SPI, tailles de trames, délais inter-transaction, politique
+  IRQ, motif de payload (seedé / constant / incrémental), injections de fautes et
+  seed de reproductibilité. Le **moteur n'exécute que ce qui est décrit** ; il ne
+  contient **aucun paramètre de scénario codé en dur**.
 - **Profile ≠ Scenario ≠ Board application.** Le profil = paramètres déclaratifs
   rejouables ; le scénario = composition profil + rôles Host/Slave + durée ; la
   board application = câblage des ports aux adaptateurs. Toute la logique vit dans
   le **moteur** ; les `main.c` ne font que câbler.
+- **Lien simulé fautif.** Le lien SPI simulé n'est **pas** un bus parfait : il
+  injecte, par transaction, latence (→ timeout), CS relâché prématurément,
+  réponse tronquée ou perdue, statut timeout/erreur forcé et IRQ concurrente.
+  Les tests host couvrent ainsi les **problèmes de synchronisation**, pas
+  uniquement le nominal.
 - **Instrumentation par événements** ; **transports extensibles**.
 
 ## HAL & boards — statut honnête

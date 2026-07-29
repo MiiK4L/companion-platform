@@ -39,7 +39,9 @@ primitive synchrone unique.
   framing/version/CRC. Arguments trop longs **rejetés**.
 - **Scheduler** (`scheduler/`) : échéances **wrap-safe** (soustraction modulaire,
   ticks 64 bits) ; `timeout=0` défini comme déjà expiré.
-- **Profils** (`profiles/`) : POD déclaratif, générateur déterministe seedé.
+- **Profils** (`profiles/`) : POD **100% déclaratif** — fréquence SPI, tailles,
+  délais, politique IRQ, motif de payload, injections de fautes, seed. Le moteur
+  n'exécute que ce que le profil décrit (aucun paramètre codé en dur).
 - **Compteurs** (`counters/`) : **bruts** (vérité) vs **dérivés** (fonction pure) ;
   toutes les mises à jour **saturent**.
 - **Transport** (`transport/`) : machine d'état de transaction, saturante,
@@ -48,8 +50,11 @@ primitive synchrone unique.
 - **Moteur** (`engine/`) : logique Host **et** Slave (encodage de trames,
   injection de fautes réelles, comptage, événements). Les board applications ne
   font que câbler la HAL au moteur.
-- **Lien simulé** (`sim/`) : relie un port maître à un port esclave en mémoire ;
-  permet de dérouler le **flux complet** (trames CRC, fautes, IRQ) en CI.
+- **Lien simulé** (`sim/`) : relie un port maître à un port esclave en mémoire,
+  avec horloge et IRQ partagées. **Pas un bus parfait** : injecte par transaction
+  latence, CS relâché prématurément, réponse tronquée/perdue, timeout/erreur
+  forcés et IRQ concurrente — pour tester la **synchronisation**, pas que le
+  nominal.
 
 ## HAL & boards
 `hal/common/hal.h` définit deux agrégats **par rôle** : `bench_hal_host_t`
