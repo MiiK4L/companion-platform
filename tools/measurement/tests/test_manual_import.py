@@ -5,13 +5,42 @@
 ephemere (jamais archive), definition independante du chemin, negatifs. Host."""
 
 import json
+import os
 import tempfile
 import unittest
 from pathlib import Path
 
+from measurement.acquisition.driver import InstrumentDriver, get_driver, register_driver
 from measurement.analysis.schema import SchemaError
 from measurement.common.ids import campaign_definition_id
 from measurement.orchestration import run_campaign, verify_run
+
+
+@register_driver("bad_raw_path")
+class _BadRawPath(InstrumentDriver):
+    """Driver de TEST : renvoie un brut par chemin INEXISTANT (echec en staging)."""
+
+    nature = "measured"
+
+    def acquire(self, definition_id, config):
+        return []
+
+    def capture(self, definition_id, config):
+        return {
+            "capture_id": "CAP-001",
+            "capture_type": "x",
+            "parameters": {},
+            "raw": [
+                {
+                    "group": "g",
+                    "name": "f.bin",
+                    "format": "bin",
+                    "path": "/nonexistent/xyz.bin",
+                }
+            ],
+            "normalized": [],
+        }
+
 
 _TS = "2026-01-01T00:00:00+00:00"
 
@@ -178,6 +207,183 @@ class TestManualImport(unittest.TestCase):
             del bad["capture_id"]
             imp = _make_import(Path(tmp), descriptor=bad)
             with self.assertRaises(SchemaError):
+                run_campaign(
+                    _definition(),
+                    Path(tmp) / "out",
+                    context=_context(),
+                    acquisition_overrides={"import_dir": str(imp)},
+                    run_id="RUN1",
+                    generated_at=_TS,
+                )
+
+    def test_snapshot_frozen_against_source_change(self):
+        # Le snapshot est fige a prepare() : acquire()/capture() ne relisent pas
+        # l'entree ; une modification ulterieure de la source est sans effet.
+        with tempfile.TemporaryDirectory() as tmp:
+            imp = _make_import(Path(tmp))
+            driver = get_driver("manual-import")()
+            driver.prepare("defid", {"import_dir": str(imp)})
+            before = driver.capture("defid", {"import_dir": str(imp)})
+            (imp / "raw" / "logic-analyzer" / "cap.bin").write_bytes(b"CHANGED")
+            (imp / "import.json").write_text("{ corrupt", encoding="utf-8")
+            after = driver.capture("defid", {"import_dir": str(imp)})
+            self.assertEqual(before, after)
+            self.assertEqual(before["raw"][0]["content"], bytes(range(256)))
+
+    def test_failure_before_staging_then_retry_same_run_id(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            out = Path(tmp) / "out"
+            with self.assertRaises(ValueError):  # import_dir manquant
+                run_campaign(
+                    _definition(),
+                    out,
+                    context=_context(),
+                    run_id="RUN1",
+                    generated_at=_TS,
+                )
+            def_id = campaign_definition_id(_definition())
+            self.assertFalse((out / def_id / "RUN1").exists())
+            self.assertFalse((out / def_id / "RUN1.staging").exists())
+            imp = _make_import(Path(tmp))
+            run_dir, _ = run_campaign(
+                _definition(),
+                out,
+                context=_context(),
+                acquisition_overrides={"import_dir": str(imp)},
+                run_id="RUN1",
+                generated_at=_TS,
+            )
+            verify_run(run_dir)  # rejeu du meme run_id apres correction
+
+    def test_staging_cleaned_on_write_failure(self):
+        defn = dict(_definition(), acquisition={"driver": "bad_raw_path", "config": {}})
+        with tempfile.TemporaryDirectory() as tmp:
+            out = Path(tmp) / "out"
+            with self.assertRaises(FileNotFoundError):
+                run_campaign(defn, out, context=_context(), run_id="RUN1", generated_at=_TS)
+            def_id = campaign_definition_id(defn)
+            self.assertFalse((out / def_id / "RUN1").exists())
+            self.assertFalse((out / def_id / "RUN1.staging").exists())
+
+    def test_symlink_raw_refused(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            outside = Path(tmp) / "outside.bin"
+            outside.write_bytes(b"x")
+            imp = _make_import(Path(tmp))
+            target = imp / "raw" / "logic-analyzer" / "cap.bin"
+            target.unlink()
+            target.symlink_to(outside)
+            with self.assertRaises(ValueError):
+                run_campaign(
+                    _definition(),
+                    Path(tmp) / "out",
+                    context=_context(),
+                    acquisition_overrides={"import_dir": str(imp)},
+                    run_id="RUN1",
+                    generated_at=_TS,
+                )
+
+    def test_symlink_group_dir_refused(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            ext = Path(tmp) / "ext"
+            ext.mkdir()
+            (ext / "f.bin").write_bytes(b"x")
+            imp = _make_import(Path(tmp))
+            import shutil as _sh
+
+            _sh.rmtree(imp / "raw" / "serial")
+            (imp / "raw" / "serial").symlink_to(ext, target_is_directory=True)
+            with self.assertRaises(ValueError):
+                run_campaign(
+                    _definition(),
+                    Path(tmp) / "out",
+                    context=_context(),
+                    acquisition_overrides={"import_dir": str(imp)},
+                    run_id="RUN1",
+                    generated_at=_TS,
+                )
+
+    @unittest.skipUnless(hasattr(os, "mkfifo"), "mkfifo indisponible")
+    def test_fifo_special_file_refused(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            imp = _make_import(Path(tmp))
+            fifo = imp / "raw" / "logic-analyzer" / "cap.bin"
+            fifo.unlink()
+            os.mkfifo(fifo)
+            with self.assertRaises(ValueError):
+                run_campaign(
+                    _definition(),
+                    Path(tmp) / "out",
+                    context=_context(),
+                    acquisition_overrides={"import_dir": str(imp)},
+                    run_id="RUN1",
+                    generated_at=_TS,
+                )
+
+    def test_bad_csv_header(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            imp = _make_import(Path(tmp))
+            (imp / "signal.csv").write_text("wrong,header\n0,1\n", encoding="utf-8")
+            with self.assertRaises(ValueError):
+                run_campaign(
+                    _definition(),
+                    Path(tmp) / "out",
+                    context=_context(),
+                    acquisition_overrides={"import_dir": str(imp)},
+                    run_id="RUN1",
+                    generated_at=_TS,
+                )
+
+    def test_bad_csv_row_width(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            imp = _make_import(Path(tmp))
+            (imp / "signal.csv").write_text("index,value\n0,1,2\n", encoding="utf-8")
+            with self.assertRaises(ValueError):
+                run_campaign(
+                    _definition(),
+                    Path(tmp) / "out",
+                    context=_context(),
+                    acquisition_overrides={"import_dir": str(imp)},
+                    run_id="RUN1",
+                    generated_at=_TS,
+                )
+
+    def test_duplicate_series_name(self):
+        desc = _descriptor()
+        desc["series"].append(dict(desc["series"][0]))  # meme nom "signal"
+        with tempfile.TemporaryDirectory() as tmp:
+            imp = _make_import(Path(tmp), descriptor=desc)
+            with self.assertRaises(ValueError):
+                run_campaign(
+                    _definition(),
+                    Path(tmp) / "out",
+                    context=_context(),
+                    acquisition_overrides={"import_dir": str(imp)},
+                    run_id="RUN1",
+                    generated_at=_TS,
+                )
+
+    def test_duplicate_raw_group_name(self):
+        desc = _descriptor()
+        desc["raw_artifacts"].append(dict(desc["raw_artifacts"][0]))  # doublon group/name
+        with tempfile.TemporaryDirectory() as tmp:
+            imp = _make_import(Path(tmp), descriptor=desc)
+            with self.assertRaises(ValueError):
+                run_campaign(
+                    _definition(),
+                    Path(tmp) / "out",
+                    context=_context(),
+                    acquisition_overrides={"import_dir": str(imp)},
+                    run_id="RUN1",
+                    generated_at=_TS,
+                )
+
+    def test_provenance_to_unknown_raw(self):
+        desc = _descriptor()
+        desc["normalized"] = [{"series": "signal", "from_raw": "ghost/none.bin"}]
+        with tempfile.TemporaryDirectory() as tmp:
+            imp = _make_import(Path(tmp), descriptor=desc)
+            with self.assertRaises(ValueError):
                 run_campaign(
                     _definition(),
                     Path(tmp) / "out",

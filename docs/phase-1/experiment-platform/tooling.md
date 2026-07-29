@@ -61,6 +61,15 @@ découverte dynamique) :
   logique métier** (ni verdict, ni `[BL]`, ni SPI/CX-Bus). Son API **définit
   l'interface d'acquisition** : un futur driver **automatique** produira les
   **mêmes artefacts** sans toucher schémas, `verify_run`, rapports ni analyse.
+- **Snapshot figé** : `prepare()` fige l'entrée en **une seule** lecture/
+  validation/inventaire/hachage (sûreté symlink et fichiers spéciaux, CSV
+  contrôlé, unicité et provenance vérifiées, mode strict) ; `acquire()`/
+  `capture()` ne relisent jamais l'entrée → l'archive provient d'un **état
+  unique**.
+- **Écriture transactionnelle** : `run_campaign` construit dans un
+  `<run_id>.staging/` puis publie par **rename atomique** vers `<run_id>/`. Un
+  échec ne laisse **aucun run officiel** (staging supprimé) et le `run_id` reste
+  **rejouable**.
 
 ## Déterminisme (règles d'implémentation)
 
