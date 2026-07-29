@@ -35,6 +35,11 @@ Reliés par identifiants et hashes, jamais fondus en un seul objet.
 > expérimentale contrôlée — ex. `spi-shared` / `spi-separated`,
 > `expander-enabled` / `expander-disabled`, `10MHz` / `40MHz`, `firmware-a` /
 > `firmware-b`. Des variantes d'un même `experiment_id` ne diffèrent que par cet axe.
+>
+> **Rôles distincts — aucun ne remplace les autres** : `experiment_id` identifie
+> l'**expérience** ; `variant_id` identifie une **configuration** ; `run_id`
+> identifie une **exécution**. `variant_id` **n'est jamais un identifiant** de run
+> ni d'expérience.
 
 ## Nature d'acquisition vs statut de preuve
 
@@ -88,17 +93,29 @@ pointe vers `artifact_sha256`. **Promotion** : `git_dirty = false` requis ; si
 ## Artefacts bruts d'acquisition & capture
 
 Le socle est **indépendant du type de mesure** : les **artefacts bruts
-d'acquisition** (analyseur logique, oscilloscope, mesures d'alimentation, dumps
-série, logs firmware, captures SWO/JTAG, images…) sont archivés sous **`raw/`**,
-**immuables** et **source de vérité du signal**. **Plusieurs bruts par
-acquisition** (CSV/VCD/binaire…), **chacun hashé**. Le **CSV de série** est une
-**vue normalisée** — jamais la source de vérité.
+d'acquisition** sont archivés sous **`raw/<group>/…`**, **groupés par famille**
+(`logic-analyzer/`, `oscilloscope/`, `serial/`, `photos/`…), **immuables** et
+**source de vérité du signal**. Une même acquisition peut produire **plusieurs
+familles** de bruts sans ambiguïté ; chaque brut est **hashé**. Le **CSV de
+série** est une **vue normalisée** — jamais la source de vérité.
 
-`capture.json` (`capture.schema.json`, immuable) porte les **paramètres de
-capture** (`parameters`, zone libre par type de mesure) + les **empreintes des
-bruts** (`raw_artifacts`) + la **traçabilité brut → série** (`normalized`). Un
-**futur driver automatique** ne remplacera **que l'étape d'acquisition** ; modèle
-de données, schémas, rapports et analyse **inchangés**.
+`capture.json` (`capture.schema.json`, immuable) possède une **identité propre**
+(`capture_id` `CAP-NNN`, `capture_type`, `variant_id` optionnel) et porte les
+**paramètres de capture** (`parameters`, zone libre par type de mesure) + les
+**empreintes des bruts** (`raw_artifacts` avec `group`/`name`) + la **traçabilité
+brut → série** (`normalized.from_raw = "group/name"`). Un **futur driver
+automatique** ne remplacera **que l'étape d'acquisition** ; modèle de données,
+schémas, rapports et analyse **inchangés**.
+
+> **Provenance (lisibilité de la chaîne).** Au-delà des hashes (intégrité), la
+> chaîne complète se relit : `raw/` → `capture.json` (`normalized`) → CSV série →
+> `analysis-result.json` (`source_capture` / `generated_from`) → verdict
+> (`analysis_result_sha256`, `bl_refs`).
+
+> **Évolution prévue (aucun code).** Le modèle est conçu pour accueillir plus tard
+> **plusieurs captures**, **plusieurs instruments** et **plusieurs variantes** dans
+> une même campagne — via des `capture_id`/`variant_id` distincts — **sans casser**
+> les archives existantes.
 
 ## Baseline archivée & versionnée
 
@@ -112,6 +129,12 @@ hypothesis}` et `justification`. Une révision **crée une nouvelle version**
 pas : le record doit être présent, valide, **cohérent avec le protocole** et
 intègre pour promouvoir. Le **verdict** référence les `[BL]` **par leur `id`**
 (`bl_refs`), vérifiés ⊆ `[BL]` de la baseline.
+
+> **Immutabilité sémantique des `[BL]`.** Un `id` (ex. `BL-001`) **ne change
+> jamais de signification**. Si une valeur évolue : **soit** une nouvelle
+> `baseline_version`, **soit** un nouveau `BL-xxx` — **jamais** de modification
+> silencieuse d'un `BL-*` existant. Les `bl_refs` d'un verdict pointent ainsi vers
+> une sémantique **stable** et traçable.
 
 ## Portée de `[M]` (run qualifié ≠ preuve reproductible)
 

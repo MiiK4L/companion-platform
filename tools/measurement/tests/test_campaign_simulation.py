@@ -28,7 +28,7 @@ _ARCHIVE_FILES = (
     "campaign-definition.json",
     "execution-context.json",
     "capture.json",
-    "raw/capture.raw.csv",
+    "raw/simulation/capture.raw.csv",
     "evidence-events/0001-acquisition.json",
     "series/signal.csv",
     "report.md",

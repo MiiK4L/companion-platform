@@ -2,7 +2,7 @@
   "acquisition_nature": "simulated",
   "artifacts": [
     {
-      "path": "raw/capture.raw.csv",
+      "path": "raw/simulation/capture.raw.csv",
       "sha256": "e59ad6095facb411bf4e7159a79d98918aca0be626efe444927c3a6a2cdf64a6"
     },
     {
@@ -12,7 +12,7 @@
   ],
   "baseline_sha256": "N/A",
   "campaign_definition_id": "4b8a1dbd9256ffe7d90dc83eb306886ef7ef2ca5d27d647f044dec121f851d2f",
-  "capture_sha256": "ab838b1c497b550efc16135a58a4ea5f14cbde28120aae1da1fa140be5647641",
+  "capture_sha256": "ccfc9a2e6122e0027fac3bece40c097b384636c2e2be92c1408e9a83bbccdefe",
   "context_sha256": "c201acbfd1d1f3cde6d75dfdb654aad8eba85e7540d96641f9cf420cbbc9b6bb",
   "dec": "DEC-EXAMPLE-000",
   "definition_sha256": "790fb8b5c19e77cfd30c859c5f03ae6cc8de3867d6eb4a2e2630c8cd3c882c81",

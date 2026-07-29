@@ -290,7 +290,7 @@ class TestIntegrity(unittest.TestCase):
     def test_capture_raw_tampering(self):
         with tempfile.TemporaryDirectory() as tmp:
             run_dir, _ = run_campaign(_sim_definition(), tmp)
-            raw = run_dir / "raw" / "capture.raw.csv"
+            raw = run_dir / "raw" / "simulation" / "capture.raw.csv"
             raw.write_text(raw.read_text() + "x", encoding="utf-8")
             with self.assertRaises(GuardrailError):
                 verify_run(run_dir)
@@ -311,6 +311,22 @@ class TestIntegrity(unittest.TestCase):
                 "bl_refs": ["BL-999"],  # inexistant dans la baseline (BL-001)
             }
             record_verdict(run_dir, "PASS", "m", link=link, timestamp=_TS)
+            with self.assertRaises(GuardrailError):
+                verify_run(run_dir)
+
+    def test_analysis_provenance(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            run_dir, _ = run_campaign(_sim_definition(), tmp)  # capture CAP-001
+            # Provenance coherente -> verify OK.
+            record_analysis(
+                run_dir, dict(_analysis(exp="EXP-INT-000"), source_capture="CAP-001")
+            )
+            verify_run(run_dir)
+        with tempfile.TemporaryDirectory() as tmp:
+            run_dir, _ = run_campaign(_sim_definition(), tmp)
+            record_analysis(
+                run_dir, dict(_analysis(exp="EXP-INT-000"), source_capture="CAP-999")
+            )
             with self.assertRaises(GuardrailError):
                 verify_run(run_dir)
 
