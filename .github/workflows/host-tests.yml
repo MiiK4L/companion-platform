@@ -37,3 +37,18 @@ jobs:
         run: cmake --build firmware/host-skeleton/build
       - name: Exécuter les tests host
         run: ctest --test-dir firmware/host-skeleton/build --output-on-failure
+
+  bench-portable:
+    name: Firmware de banc — cœur portable (build + tests)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Récupérer le dépôt
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Vérifier l'indépendance plateforme du cœur portable
+        run: bash tools/check_arch_deps.sh
+      - name: Configurer (CMake)
+        run: cmake -S firmware/experiment-bench/portable -B firmware/experiment-bench/portable/build
+      - name: Compiler (-Wall -Wextra -Werror)
+        run: cmake --build firmware/experiment-bench/portable/build
+      - name: Exécuter les tests host du cœur portable
+        run: ctest --test-dir firmware/experiment-bench/portable/build --output-on-failure
