@@ -25,6 +25,9 @@ Garantir que **toute campagne** (L1 → L8 et suivantes) produise des résultats
 - l'**outillage commun** (orchestration / acquisition / analyse / reporting),
   avec **architecture plugin** et **mode simulation** ([tooling](tooling.md)) ;
 - le **cycle d'une campagne** ([campaign-workflow](campaign-workflow.md)) ;
+- le **firmware de banc** réutilisable ([bench-firmware](bench-firmware.md)) ;
+- les **définitions de campagnes** ([campagnes](campaigns/README.md)) — des
+  **descriptions**, sans résultat de mesure ;
 - l'**architecture** d'ensemble ([architecture](architecture.md)) et le
   [hors périmètre](out-of-scope.md).
 

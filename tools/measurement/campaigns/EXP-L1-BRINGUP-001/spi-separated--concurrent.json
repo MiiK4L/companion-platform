@@ -1,0 +1,70 @@
+{
+  "experiment_id": "EXP-L1-BRINGUP-001",
+  "variant_id": "spi-separated",
+  "experimental_question": "Le partage du bus SPI entre l'afficheur et le CX-Bus degrade-t-il le service au point de le rendre inacceptable, compare a deux bus SPI separes ?",
+  "expected_observation": "Service conforme aux criteres de verdict applicables malgre la charge concurrente.",
+  "verdict_rule": "PASS si tous les criteres de verdict APPLICABLES a ce cas sont satisfaits ; FAIL si l'un d'eux est viole ; INVALID si un invariant de validite du banc (categorie A) n'est pas respecte ; INCONCLUSIVE si les donnees ne permettent pas de trancher. Les criteres listes dans not_applicable_bl sont EXCLUS du calcul : ils ne sont ni satisfaits ni violes. BL-104 et BL-105 n'ont pas encore de seuil instancie : tant qu'ils ne sont pas derives des modes isoles en B4, le verdict sur la degradation reste INCONCLUSIVE.",
+  "protocol_ref": "docs/phase-1/experiment-platform/campaigns/EXP-L1-BRINGUP-001.md",
+  "dec": "DEC-L1-001",
+  "dut": {
+    "description": "Vehicule de reference XIAO ESP32-S3 (hote) face a un simulateur de module CX-Bus sur RP2040 (cible candidate) ; topologie : deux bus SPI distincts, sur le MEME DUT (second controleur SPI materiel). DUT IDENTIQUE entre variantes (exigence BL-012). Aucun composant ni MPN retenu."
+  },
+  "parameters": {
+    "load_mode": "concurrent",
+    "load_description": "afficheur et simulateur CX-Bus actifs simultanement",
+    "topology": "spi-separated",
+    "case_role": "cas evalue (contention)",
+    "scenario_ref": "firmware/experiment-bench/scenarios/l1_spi_bringup/",
+    "applicable_bl": [
+      "BL-001",
+      "BL-002",
+      "BL-003",
+      "BL-004",
+      "BL-005",
+      "BL-006",
+      "BL-007",
+      "BL-008",
+      "BL-009",
+      "BL-010",
+      "BL-011",
+      "BL-012",
+      "BL-101",
+      "BL-107",
+      "BL-102",
+      "BL-103",
+      "BL-106",
+      "BL-104",
+      "BL-105"
+    ],
+    "not_applicable_bl": [],
+    "required_metrics": [
+      "M-LAT(screen)",
+      "M-DIST(screen)",
+      "M-THR(screen)",
+      "M-JIT(screen)",
+      "M-CRCR(screen)",
+      "M-INTG(screen)",
+      "M-LAT(module)",
+      "M-DIST(module)",
+      "M-THR(module)",
+      "M-JIT(module)",
+      "M-SUC(module)",
+      "M-CRCR(module)",
+      "M-INTG(module)",
+      "M-IRQL"
+    ],
+    "not_applicable_metrics": [],
+    "time_authority": "logic-analyzer",
+    "baseline_id": "BL-EXP-L1-BRINGUP-001",
+    "baseline_draft_version": 0,
+    "baseline_draft_ref": "docs/phase-1/experiment-platform/campaigns/baseline-draft.md",
+    "baseline_status": "draft \u2014 n'autorise aucun run ; le baseline-record approuve sera cree en B4 (version 1)",
+    "execution_gate": "docs/phase-1/experiment-platform/campaigns/hardware-gate.md"
+  },
+  "acquisition": {
+    "driver": "manual-import",
+    "config": {
+      "note": "Definition seule (lot B3) : aucun run, aucune acquisition. L'import des artefacts bruts est prevu en B4, apres franchissement du gate materiel."
+    }
+  }
+}

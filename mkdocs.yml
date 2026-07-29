@@ -241,6 +241,13 @@ nav:
           - Outillage: phase-1/experiment-platform/tooling.md
           - Firmware de banc: phase-1/experiment-platform/bench-firmware.md
           - Cycle d'une campagne: phase-1/experiment-platform/campaign-workflow.md
+          - Campagnes:
+              - Vue d'ensemble: phase-1/experiment-platform/campaigns/README.md
+              - EXP-L1-BRINGUP-001: phase-1/experiment-platform/campaigns/EXP-L1-BRINGUP-001.md
+              - Baseline brouillon: phase-1/experiment-platform/campaigns/baseline-draft.md
+              - Brochage candidat: phase-1/experiment-platform/campaigns/pinout-candidate.md
+              - Matériel et actions physiques: phase-1/experiment-platform/campaigns/materials-and-physical-actions.md
+              - Gate matériel: phase-1/experiment-platform/campaigns/hardware-gate.md
           - Hors périmètre: phase-1/experiment-platform/out-of-scope.md
   - Guides:
       - Contribuer au code: guides/contributing-code.md
