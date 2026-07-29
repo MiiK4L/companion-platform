@@ -19,6 +19,7 @@ int main(void) {
   run_counters_tests();
   run_profile_tests();
   run_engine_tests();
+  run_sim_tests();
 
   if (g_test_failures == 0) {
     printf("OK: coeur portable (toutes les suites)\n");

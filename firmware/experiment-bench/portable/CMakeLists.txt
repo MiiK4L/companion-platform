@@ -37,6 +37,7 @@ add_executable(bench_portable_tests
   tests/test_counters.c
   tests/test_profile.c
   tests/test_engine.c
+  tests/test_sim.c
 )
 target_link_libraries(bench_portable_tests bench_portable)
 add_test(NAME bench_portable_tests COMMAND bench_portable_tests)
@@ -53,6 +54,8 @@ set(BENCH_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/..)
 add_executable(bench_slave_wiring
   ${BENCH_ROOT}/boards/rp2040_reference/main.c
   ${BENCH_ROOT}/hal/rp2040/hal_rp2040.c
+  ${BENCH_ROOT}/scenarios/demo/demo_profile.c
+  ${BENCH_ROOT}/scenarios/demo/demo_scenario.c
 )
 target_include_directories(bench_slave_wiring PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR} ${BENCH_ROOT})

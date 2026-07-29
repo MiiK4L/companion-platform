@@ -14,5 +14,6 @@ void run_transport_tests(void);
 void run_counters_tests(void);
 void run_profile_tests(void);
 void run_engine_tests(void);
+void run_sim_tests(void);
 
 #endif  // BENCH_TESTS_H
