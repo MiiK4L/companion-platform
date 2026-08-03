@@ -1,0 +1,131 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Latency analysis block",
+  "description": "Bloc d'analyse de latence, destine au champ 'values' d'un analysis-result. La SERIE BRUTE reste autoritaire : tout ce bloc en est DERIVE et recalculable. La methode de quantile est archivee ; les deux natures de perte (producer_drop, transport_gap) ne sont JAMAIS fusionnees ; une serie lacunaire n'est pas eligible a un verdict sur les quantiles. Les champs statistiques peuvent valoir null quand la population est vide (aucune valeur n'est alors fabriquee) : leur type n'est donc pas contraint ici.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "latency",
+    "reconciliation",
+    "losses",
+    "timeouts",
+    "series_completeness",
+    "quantiles_verdict_eligible"
+  ],
+  "properties": {
+    "latency": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "quantile_method",
+        "dispersion_metric",
+        "valid_sample_count",
+        "min",
+        "max",
+        "mean",
+        "p50",
+        "p95",
+        "p99",
+        "latency_stddev_population"
+      ],
+      "properties": {
+        "quantile_method": { "type": "string", "enum": ["nearest-rank-inclusive-v1"] },
+        "dispersion_metric": { "type": "string", "enum": ["latency_stddev_population"] },
+        "valid_sample_count": { "type": "integer" },
+        "min": { "description": "entier, ou null si population vide" },
+        "max": { "description": "entier, ou null si population vide" },
+        "mean": { "description": "nombre, ou null si population vide" },
+        "p50": { "description": "entier, ou null si population vide" },
+        "p95": { "description": "entier, ou null si population vide" },
+        "p99": { "description": "entier, ou null si population vide" },
+        "latency_stddev_population": {
+          "description": "ecart-type de POPULATION, ou null si population vide. Le terme generique 'jitter' n'est pas employe : il recouvre plusieurs grandeurs distinctes."
+        }
+      }
+    },
+    "reconciliation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["issued", "accounted", "balanced", "difference", "terminal_counts"],
+      "properties": {
+        "issued": { "type": "integer" },
+        "accounted": { "type": "integer" },
+        "balanced": { "type": "boolean" },
+        "difference": { "type": "integer" },
+        "terminal_counts": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Un seul statut TERMINAL par transaction : aucun double comptage. issued = ok + timeout + rejected + unpaired + duplicate + out_of_order + producer_drop.",
+          "required": [
+            "ok",
+            "timeout",
+            "rejected",
+            "unpaired",
+            "duplicate",
+            "out_of_order",
+            "producer_drop"
+          ],
+          "properties": {
+            "ok": { "type": "integer" },
+            "timeout": { "type": "integer" },
+            "rejected": { "type": "integer" },
+            "unpaired": { "type": "integer" },
+            "duplicate": { "type": "integer" },
+            "out_of_order": { "type": "integer" },
+            "producer_drop": { "type": "integer" }
+          }
+        }
+      }
+    },
+    "losses": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "producer_drop (perdu AVANT serialisation) et transport_gap (trame serialisee mais absente ou rejetee cote capture) sont des natures distinctes, jamais additionnees en un compteur unique.",
+      "required": ["producer_drop", "transport_gap"],
+      "properties": {
+        "producer_drop": { "type": "integer" },
+        "transport_gap": { "type": "integer" },
+        "gap_markers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["lost_count", "after_sequence_id"],
+            "properties": {
+              "lost_count": { "type": "integer" },
+              "after_sequence_id": { "type": "integer" }
+            }
+          }
+        }
+      }
+    },
+    "timeouts": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Les timeouts sont EXCLUS de la distribution principale de latence et publies ici, afin qu'un P99 flatteur ne masque jamais un taux de timeout eleve.",
+      "required": ["timeout_count", "timeout_ratio", "timeout_budget_ticks"],
+      "properties": {
+        "timeout_count": { "type": "integer" },
+        "timeout_ratio": { "description": "nombre, ou null si aucune transaction emise" },
+        "timeout_budget_ticks": { "type": "integer" }
+      }
+    },
+    "series_completeness": { "type": "string", "enum": ["complete", "incomplete"] },
+    "quantiles_verdict_eligible": {
+      "type": "boolean",
+      "description": "Faux des qu'une perte existe : une serie lacunaire ne peut pas fonder un verdict sur P95/P99, les pertes se concentrant sur les rafales."
+    },
+    "invalid_sample_count": { "description": "entier, ou null si le bilan est absent" },
+    "histogram": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Comparaison entre l'histogramme recalcule (autoritaire) et celui eventuellement produit par le MCU (secondaire).",
+      "required": ["tooling", "comparison"],
+      "properties": {
+        "tooling": { "type": "object" },
+        "device": { "description": "objet histogramme, ou null si desactive" },
+        "comparison": { "type": "object" }
+      }
+    }
+  }
+}

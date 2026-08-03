@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Latency histogram (vue derivee)",
+  "description": "Histogramme de latence : vue DERIVEE et bornee, jamais autoritaire. Les bornes sont declaratives et VERSIONNEES : deux histogrammes ne sont comparables qu'a version identique. Convention de classe [edges[i], edges[i+1]) : borne basse incluse, borne haute exclue. Aucun P95/P99 precis ne peut en etre tire ; au mieux un intervalle de classe, qui ne satisfait aucun critere de verdict exigeant une valeur precise.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["bin_edges", "bin_counts", "underflow", "overflow", "sample_count"],
+  "properties": {
+    "version": { "type": "integer" },
+    "bin_edges": {
+      "type": "array",
+      "minItems": 2,
+      "items": { "type": "integer" }
+    },
+    "bin_counts": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "integer" }
+    },
+    "underflow": { "type": "integer" },
+    "overflow": { "type": "integer" },
+    "sample_count": { "type": "integer" }
+  }
+}
