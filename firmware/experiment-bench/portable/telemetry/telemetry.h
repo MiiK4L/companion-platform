@@ -33,7 +33,7 @@
 #include "telemetry/ring.h"
 
 // Version du FORMAT de flux (independante des versions de profil/scenario).
-#define BENCH_TELEMETRY_STREAM_VERSION 1u
+#define BENCH_TELEMETRY_STREAM_VERSION 2u
 
 // Types de message (premier octet du payload de trame).
 typedef enum {
@@ -42,6 +42,7 @@ typedef enum {
   BENCH_TM_GAP = 3,
   BENCH_TM_SUMMARY = 4,
   BENCH_TM_HISTOGRAM = 5,
+  BENCH_TM_FOOTER = 6,
 } bench_tm_type_t;
 
 // Politique de rebouclage du compteur de ticks (documentee dans l'en-tete).
@@ -80,24 +81,46 @@ typedef struct {
   uint64_t timeout_budget_ticks;
 } bench_telemetry_summary_t;
 
+// Cloture AUTORITAIRE du flux. Sans elle, une perte des DERNIERES trames est
+// indetectable : rien de posterieur ne revele leur absence. Son absence rend
+// donc la capture INCOMPLETE par definition (y compris si le footer lui-meme
+// est perdu).
+typedef struct {
+  uint32_t last_stream_seq;    // numero de sequence du footer lui-meme
+  uint32_t frames_attempted;   // trames tentees, footer inclus
+  uint32_t frames_accepted;    // trames acceptees AVANT le footer
+  uint32_t frames_refused;     // trames refusees AVANT le footer
+  uint32_t samples_attempted;  // echantillons deposes (acceptes + perdus)
+} bench_telemetry_footer_t;
+
 typedef struct {
   bench_telemetry_sink_t sink;
   bench_ring_t *ring;
-  uint32_t stream_seq;      // numero monotone de trame
-  uint32_t frames_refused;  // trames refusees par le puits (saturant)
+  uint32_t stream_seq;       // numero monotone de trame (avance meme si refus)
+  uint32_t frames_accepted;  // saturant
+  uint32_t frames_refused;   // saturant
 } bench_telemetry_t;
+
+// Longueur maximale d'une chaine d'en-tete. Au-dela, l'en-tete est REJETE :
+// jamais de troncature ni d'omission silencieuse.
+#define BENCH_TELEMETRY_STR_MAX 48u
 
 void bench_telemetry_init(bench_telemetry_t *tm, bench_telemetry_sink_t sink,
                           bench_ring_t *ring);
 
-// Emet l'en-tete de flux. Retourne 1 si la trame a ete acceptee.
+// Emet l'en-tete de flux. Retourne 1 si la trame a ete acceptee, 0 sinon.
+// REJETTE (sans emettre aucune trame) si une chaine depasse
+// BENCH_TELEMETRY_STR_MAX, contient un caractere non imprimable ASCII, ou si
+// l'ensemble ne tient pas dans une trame.
 int bench_telemetry_emit_header(bench_telemetry_t *tm,
                                 const bench_telemetry_header_t *header);
 
-// Draine au plus "max_messages" messages du ring vers le puits. Emet d'abord un
-// MARQUEUR DE LACUNE si des pertes sont en attente, afin que la lacune soit
-// situee a sa position exacte. Travail BORNE : le moteur ne bloque jamais.
-// Retourne le nombre de messages emis.
+// Draine au plus "max_messages" messages du ring vers le puits, en respectant
+// l'ORDRE CHRONOLOGIQUE : un marqueur de lacune n'est emis qu'une fois depiles
+// tous les echantillons qui le precedent. Sa consommation est TRANSACTIONNELLE
+// (peek puis commit) : un refus du puits ne detruit pas l'information de perte,
+// qui sera reemise au drainage suivant. Travail BORNE : jamais de blocage.
+// Retourne le nombre de messages ACCEPTES par le puits.
 uint32_t bench_telemetry_drain(bench_telemetry_t *tm, uint32_t max_messages);
 
 int bench_telemetry_emit_summary(bench_telemetry_t *tm,
@@ -106,5 +129,9 @@ int bench_telemetry_emit_summary(bench_telemetry_t *tm,
 // N'emet rien et retourne 0 si l'histogramme n'est pas initialise (desactive).
 int bench_telemetry_emit_histogram(bench_telemetry_t *tm,
                                    const bench_histogram_t *histogram);
+
+// Emet la CLOTURE du flux. A appeler en dernier. "samples_attempted" est le
+// nombre total d'echantillons deposes dans le tampon (acceptes + perdus).
+int bench_telemetry_emit_footer(bench_telemetry_t *tm, uint32_t samples_attempted);
 
 #endif  // BENCH_TELEMETRY_H
