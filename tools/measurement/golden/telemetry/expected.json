@@ -1,7 +1,7 @@
 {
-  "_comment": "Golden INTER-LANGAGE. stream.hex est produit par l'encodeur C du firmware; les valeurs ci-dessous sont celles que l'analyse Python doit retrouver a l'identique. Toute divergence signale une derive entre les deux implementations du format.",
+  "_comment": "Golden INTER-LANGAGE (format de flux v2). stream.hex est produit par l'encodeur C du firmware ; les valeurs ci-dessous sont celles que l'analyse Python doit retrouver a l'identique. Toute divergence signale une derive entre les deux implementations du format.",
   "header": {
-    "stream_version": 1,
+    "stream_version": 2,
     "clock_id": 1,
     "tick_width_bits": 64,
     "wrap_policy": 0,
@@ -11,13 +11,37 @@
     "histogram_version": 7,
     "profile_id": "golden",
     "variant": "spi-shared",
-    "mode": "module-only"
+    "mode": "module-only",
+    "physical_time_available": true
   },
-  "frames_decoded": 10,
+  "frames_decoded": 11,
   "frames_resync": 0,
+  "unknown_messages": 0,
   "transport_gap": 0,
+  "footer": {
+    "last_stream_seq": 10,
+    "frames_attempted": 11,
+    "frames_accepted": 10,
+    "frames_refused": 0,
+    "samples_attempted": 8
+  },
+  "footer_present": true,
+  "footer_consistent": true,
+  "stream_completeness": "complete",
+  "sequence": {
+    "expected": 11,
+    "gap": 0,
+    "duplicate": 0,
+    "out_of_order": 0,
+    "wrap": 0,
+    "missing_total": 0,
+    "trailing_missing": 0
+  },
   "gaps": [
     { "lost_count": 2, "after_sequence_id": 3 }
+  ],
+  "message_order": [
+    "sample", "sample", "sample", "sample", "gap", "sample", "sample"
   ],
   "sample_sequence_ids": [0, 1, 2, 3, 6, 7],
   "sample_statuses": ["ok", "ok", "ok", "ok", "timeout", "rejected"],
@@ -39,10 +63,14 @@
     "valid_sample_count": 4,
     "min": 10,
     "max": 40,
-    "mean": 25.0,
     "p50": 20,
     "p95": 40,
     "p99": 40,
+    "mean_numerator": 100,
+    "mean_denominator": 4,
+    "variance_numerator": 2000,
+    "variance_denominator": 16,
+    "mean": 25.0,
     "latency_stddev_population": 11.180339887498949
   },
   "reconciliation": {
@@ -52,13 +80,16 @@
     "difference": 0
   },
   "series_completeness": "incomplete",
+  "quantiles_verdict_eligible": false,
+  "_eligibility_comment": "Le FLUX est complet (cloture presente et coherente, aucune trame manquante), mais la SERIE est lacunaire : 2 echantillons perdus avant serialisation. Les quantiles ne sont donc pas eligibles a un verdict.",
   "device_histogram": {
     "version": 7,
     "bin_edges": [0, 15, 25, 35, 45],
     "bin_counts": [1, 1, 1, 1],
     "underflow": 0,
     "overflow": 0,
-    "sample_count": 4
+    "sample_count": 4,
+    "saturated": false
   },
   "histogram_comparison": { "compared": true, "match": true }
 }
