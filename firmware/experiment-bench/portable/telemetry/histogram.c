@@ -6,7 +6,15 @@
 
 #include <stddef.h>
 
-#include "util/sat.h"
+// Incremente en SATURANT et signale si la saturation a eu lieu : au-dela,
+// l'histogramme n'est plus reconciliable.
+static void inc_saturating(bench_histogram_t *h, uint32_t *counter) {
+  if (*counter == UINT32_MAX) {
+    h->saturated = 1;
+    return;
+  }
+  (*counter)++;
+}
 
 int bench_histogram_init(bench_histogram_t *h, const bench_ticks_t *edges,
                          uint32_t bin_count, uint32_t *counts, uint32_t version) {
@@ -17,6 +25,7 @@ int bench_histogram_init(bench_histogram_t *h, const bench_ticks_t *edges,
   h->overflow = 0;
   h->sample_count = 0;
   h->version = version;
+  h->saturated = 0;
 
   if (edges == NULL || counts == NULL) {
     return 0;
@@ -44,20 +53,20 @@ void bench_histogram_add(bench_histogram_t *h, bench_ticks_t value) {
   if (h->edges == NULL || h->counts == NULL || h->bin_count == 0) {
     return;  // histogramme non initialise : ne fabrique aucun chiffre
   }
-  bench_sat_inc_u32(&h->sample_count);
+  inc_saturating(h, &h->sample_count);
 
   if (value < h->edges[0]) {
-    bench_sat_inc_u32(&h->underflow);
+    inc_saturating(h, &h->underflow);
     return;
   }
   if (value >= h->edges[h->bin_count]) {
-    bench_sat_inc_u32(&h->overflow);
+    inc_saturating(h, &h->overflow);
     return;
   }
   // Classe [edges[i], edges[i+1]) : borne basse incluse, borne haute exclue.
   for (uint32_t i = 0; i < h->bin_count; i++) {
     if (value >= h->edges[i] && value < h->edges[i + 1]) {
-      bench_sat_inc_u32(&h->counts[i]);
+      inc_saturating(h, &h->counts[i]);
       return;
     }
   }

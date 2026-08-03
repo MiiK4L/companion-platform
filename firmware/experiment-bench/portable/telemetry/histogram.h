@@ -16,7 +16,9 @@
 //    classe, qui ne peut satisfaire aucun critere de verdict exigeant une
 //    valeur precise ;
 //  - lorsqu'il est active, il est COMPARE au recalcul de l'outillage ; toute
-//    divergence est un defaut d'instrumentation ou d'implementation.
+//    divergence est un defaut d'instrumentation ou d'implementation ;
+//  - s'il SATURE, il le signale (champ ``saturated``) et cesse d'etre
+//    reconciliable : plus aucune comparaison stricte ni verdict possible.
 //
 // Convention de classe : [edges[i], edges[i+1]) — borne basse INCLUSE, borne
 // haute EXCLUE. Une valeur < edges[0] compte en underflow ; une valeur
@@ -39,6 +41,12 @@ typedef struct {
   uint32_t overflow;
   uint32_t sample_count;
   uint32_t version;  // version des bornes (declaree par le profil)
+  // Vrai des qu'une accumulation AURAIT depasse la capacite d'un compteur.
+  // Un histogramme sature reste utile au diagnostic, mais l'identite
+  //   sample_count = somme(bin_counts) + underflow + overflow
+  // n'est plus verifiable : il ne peut donc plus etre compare strictement au
+  // recalcul de l'outillage, ni alimenter le moindre verdict.
+  int saturated;
 } bench_histogram_t;
 
 // Initialise (remet les compteurs a zero). Retourne 0 si la configuration est

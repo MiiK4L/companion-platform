@@ -53,6 +53,16 @@ def compare(device: dict[str, Any] | None, tooling: dict[str, Any]) -> dict[str,
     if device is None:
         return {"compared": False, "reason": "histogramme embarque desactive"}
 
+    if device.get("saturated"):
+        # Apres saturation, l'identite
+        #   sample_count = somme(bin_counts) + underflow + overflow
+        # n'est plus verifiable : aucune comparaison stricte n'a de sens.
+        return {
+            "compared": False,
+            "saturated": True,
+            "reason": "histogramme embarque SATURE : non reconciliable, aucun verdict",
+        }
+
     differences: list[str] = []
     if list(device.get("bin_edges", [])) != list(tooling["bin_edges"]):
         differences.append("bin_edges")
