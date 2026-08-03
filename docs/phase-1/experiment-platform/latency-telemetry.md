@@ -47,6 +47,18 @@ moteur ──1 enregistrement/transaction──▶ ring BORNÉ (K) ──▶ tra
   plus tard sans toucher au cœur.
 - Écriture **atomique par trame** : la trame est acceptée entière ou refusée
   entière — une trame partielle corromprait le flux.
+- **Ordre chronologique garanti** : une perte survient forcément **après** les
+  échantillons déjà présents dans le tampon. Le marqueur n'est donc émis
+  qu'une fois ceux-ci drainés — jamais avant.
+
+```text
+tampon : seq 0,1,2,3   puis pertes 4,5
+flux   : SAMPLE(0..3) PUIS GAP(2, après seq 3)      ← et non l'inverse
+```
+
+- **Consommation transactionnelle du marqueur** (`peek` puis `commit`) : un refus
+  du puits ne détruit pas l'information de perte, qui est **réémise** au drainage
+  suivant.
 
 ### La latence n'est pas transportée
 
@@ -61,10 +73,32 @@ et **politique de wrap**.
 | Perte | Origine | Détection |
 |---|---|---|
 | `producer_drop` | échantillon perdu **avant** sérialisation (ring saturé) | compteur saturant + **marqueur de lacune** situé dans le flux |
-| `transport_gap` | trame sérialisée mais **absente ou rejetée** côté capture | **discontinuité** des numéros de séquence de trame |
+| `transport_gap` | trame sérialisée mais **absente ou rejetée** côté capture | **discontinuité** des numéros de séquence, bornée par la **clôture** |
 
 Les confondre masquerait la cause : saturation du producteur ou défaut de
 transport. Elles restent donc **deux compteurs distincts**.
+
+## Clôture du flux — sans elle, rien ne prouve la fin
+
+Une perte des **dernières** trames serait indétectable : aucune trame ultérieure
+ne révélerait leur absence. Le flux se termine donc par une **clôture** portant
+`last_stream_seq`, `frames_attempted`, `frames_accepted`, `frames_refused` et
+`samples_attempted`.
+
+```text
+stream_completeness = complete   si clôture présente, cohérente et aucune trame manquante
+                    = incomplete sinon (y compris si la clôture elle-même est perdue)
+```
+
+Une absence silencieuse de clôture **ne permet jamais** de déclarer la série
+complète : `quantiles_verdict_eligible` passe à faux.
+
+## Numéros de séquence — analyse en ordre de réception
+
+Les numéros sont analysés **dans l'ordre de réception**, en comparaison
+**modulaire sur 32 bits**, avec des états distincts : `expected`, `gap`,
+`duplicate`, `out_of_order`, `wrap`. Le nombre de trames attendues vient de la
+**clôture** ; sans elle, il ne peut pas être établi.
 
 ## Réconciliation — un seul statut terminal par échantillon
 
@@ -96,6 +130,23 @@ P(p) = x[ceil(p × n)]     sur les valeurs triées, indexées à partir de 1
 écraserait le P99 vers le budget de timeout. Ils sont publiés à part
 (`timeout_count`, `timeout_ratio`, `timeout_budget_ticks`), **à côté** des
 quantiles, pour qu'un P99 flatteur ne masque jamais un taux de timeout élevé.
+
+### Ce qui est autoritaire, et ce qui ne l'est pas
+
+Les **quantiles** (et min/max) sont autoritaires : entiers exacts en ticks. La
+**moyenne** et la **variance** sont archivées sous forme **rationnelle exacte**
+(`mean_numerator`/`mean_denominator`, `variance_numerator`/`variance_denominator`)
+— seule forme recalculable à l'identique sur toute plateforme. Les valeurs
+flottantes correspondantes sont des **vues non autoritaires**, explicitement
+listées comme telles dans le bloc d'analyse.
+
+### Largeur de compteur et fréquence
+
+`elapsed_wrap_safe` applique la largeur **déclarée** par le flux (8/16/32/64
+bits) : appliquer un masque 64 bits à un compteur 32 bits fausserait toute
+latence après rebouclage. Une largeur non déclarée est **refusée**. Si
+`tick_hz = 0`, aucune conversion physique n'est possible : aucun verdict exprimé
+en secondes ou microsecondes.
 
 ### Dispersion : pas de « gigue »
 
@@ -134,13 +185,18 @@ edges[i+1])` (borne basse incluse, haute exclue) ; accumulation **saturante** ;
   de classe, insuffisant pour un critère de verdict.
 - Lorsqu'il est activé, il est **comparé** au recalcul outillage ; toute
   divergence est un **défaut** à investiguer, pas un arbitrage.
+- **Saturation** : dès qu'une accumulation atteint la capacité d'un compteur, le
+  drapeau `saturated` est levé. L'identité
+  `sample_count = Σ bin_counts + underflow + overflow` n'est alors plus
+  vérifiable : l'histogramme reste utile au diagnostic mais **n'est plus
+  réconciliable** et **retire l'éligibilité au verdict**.
 
 ## Vérification
 
 | Niveau | Contenu |
 |---|---|
-| C (`ctest`) | codec, ring borné (pertes comptées et **localisées**), histogramme (convention, saturation, configurations invalides), flux (trames CRC, séquence monotone, refus du puits) |
-| Python (`unittest`) | quantiles + **cas limites** (`n=0,1,2`, valeurs égales, rang exactement sur une frontière), wrap-safe, réconciliation, complétude, histogramme, **biais de perte** |
+| C (`ctest`) | codec ; **ordre** de la lacune (tampon plein, drain partiel, transactions après la lacune, plages multiples, exactitude d'`after_sequence_id`) ; **refus du marqueur puis réémission** ; histogramme (convention, **saturation signalée**, configurations invalides) ; **rejet** des chaînes d'en-tête trop longues ou non imprimables ; **clôture** ; refus du puits |
+| Python (`unittest`) | quantiles + **cas limites** ; wrap **par largeur déclarée** (8/16/32/64) ; `tick_hz = 0` ; séquence (lacune, doublon, hors ordre, **wrap uint32**) ; **clôture absente/incohérente/perdue** ; tests **négatifs** du parseur (en-tête tronqué, dupliqué, non premier, chaîne invalide, sample trop court/long, summary dupliqué, histogramme tronqué ou `bin_count` excessif, type inconnu) ; **biais de perte** ; valeurs **rationnelles exactes** |
 | **Golden inter-langage** | `golden/telemetry/stream.hex` est produit par l'encodeur **C** et décodé par **Python** ; le test C le reproduit **octet à octet**. Source unique : toute dérive entre les deux implémentations échoue |
 
 ## Périmètre
