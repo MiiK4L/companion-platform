@@ -57,6 +57,8 @@ _ALL_SCHEMAS = (
     "event-details-review.schema.json",
     "event-details-verdict.schema.json",
     "event-details-promotion.schema.json",
+    "latency-histogram.schema.json",
+    "latency-analysis.schema.json",
 )
 
 _MANIFEST_SCHEMA = "acquisition-manifest.schema.json"

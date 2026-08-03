@@ -1,0 +1,64 @@
+{
+  "_comment": "Golden INTER-LANGAGE. stream.hex est produit par l'encodeur C du firmware; les valeurs ci-dessous sont celles que l'analyse Python doit retrouver a l'identique. Toute divergence signale une derive entre les deux implementations du format.",
+  "header": {
+    "stream_version": 1,
+    "clock_id": 1,
+    "tick_width_bits": 64,
+    "wrap_policy": 0,
+    "tick_hz": 1000000,
+    "ring_capacity": 4,
+    "histogram_enabled": true,
+    "histogram_version": 7,
+    "profile_id": "golden",
+    "variant": "spi-shared",
+    "mode": "module-only"
+  },
+  "frames_decoded": 10,
+  "frames_resync": 0,
+  "transport_gap": 0,
+  "gaps": [
+    { "lost_count": 2, "after_sequence_id": 3 }
+  ],
+  "sample_sequence_ids": [0, 1, 2, 3, 6, 7],
+  "sample_statuses": ["ok", "ok", "ok", "ok", "timeout", "rejected"],
+  "summary": {
+    "issued": 8,
+    "ok": 4,
+    "timeout": 1,
+    "rejected": 1,
+    "unpaired": 0,
+    "duplicate": 0,
+    "out_of_order": 0,
+    "producer_drop": 2,
+    "timeout_budget_ticks": 500
+  },
+  "valid_latencies": [10, 20, 30, 40],
+  "stats": {
+    "quantile_method": "nearest-rank-inclusive-v1",
+    "dispersion_metric": "latency_stddev_population",
+    "valid_sample_count": 4,
+    "min": 10,
+    "max": 40,
+    "mean": 25.0,
+    "p50": 20,
+    "p95": 40,
+    "p99": 40,
+    "latency_stddev_population": 11.180339887498949
+  },
+  "reconciliation": {
+    "issued": 8,
+    "accounted": 8,
+    "balanced": true,
+    "difference": 0
+  },
+  "series_completeness": "incomplete",
+  "device_histogram": {
+    "version": 7,
+    "bin_edges": [0, 15, 25, 35, 45],
+    "bin_counts": [1, 1, 1, 1],
+    "underflow": 0,
+    "overflow": 0,
+    "sample_count": 4
+  },
+  "histogram_comparison": { "compared": true, "match": true }
+}
