@@ -26,6 +26,8 @@ Garantir que **toute campagne** (L1 → L8 et suivantes) produise des résultats
   avec **architecture plugin** et **mode simulation** ([tooling](tooling.md)) ;
 - le **cycle d'une campagne** ([campaign-workflow](campaign-workflow.md)) ;
 - le **firmware de banc** réutilisable ([bench-firmware](bench-firmware.md)) ;
+- la **télémétrie de latence** — série brute par transaction, quantiles et
+  histogrammes dérivés ([latency-telemetry](latency-telemetry.md)) ;
 - les **définitions de campagnes** ([campagnes](campaigns/README.md)) — des
   **descriptions**, sans résultat de mesure ;
 - l'**architecture** d'ensemble ([architecture](architecture.md)) et le
