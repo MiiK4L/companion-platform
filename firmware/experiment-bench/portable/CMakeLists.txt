@@ -24,6 +24,10 @@ add_library(bench_portable STATIC
   scenario/scenario.c
   engine/engine.c
   sim/sim_link.c
+  telemetry/record.c
+  telemetry/ring.c
+  telemetry/histogram.c
+  telemetry/telemetry.c
 )
 
 enable_testing()
@@ -38,8 +42,14 @@ add_executable(bench_portable_tests
   tests/test_profile.c
   tests/test_engine.c
   tests/test_sim.c
+  tests/test_telemetry.c
 )
 target_link_libraries(bench_portable_tests bench_portable)
+# Golden INTER-LANGAGE : le meme fichier est lu par les tests C (reproduction
+# octet a octet de l'encodeur) et par les tests Python (decodage et statistiques).
+# Source unique de verite : aucune duplication du flux de reference.
+target_compile_definitions(bench_portable_tests PRIVATE
+  BENCH_GOLDEN_TELEMETRY_HEX="${CMAKE_CURRENT_SOURCE_DIR}/../../../tools/measurement/golden/telemetry/stream.hex")
 add_test(NAME bench_portable_tests COMMAND bench_portable_tests)
 
 # --- Verification de CABLAGE (compile-only) --------------------------------
