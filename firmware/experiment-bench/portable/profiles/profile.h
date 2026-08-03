@@ -14,6 +14,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "events/events.h"  // bench_ticks_t
+
 // Motif de payload (declaratif).
 typedef enum {
   BENCH_PAYLOAD_SEEDED = 0,    // octets pseudo-aleatoires deterministes (seed)
@@ -43,6 +45,14 @@ typedef struct {
   uint32_t fault_crc_every;    // injecte une faute CRC toutes les N tx (0 = aucune)
   uint32_t fault_crc_byte;     // index d'octet corrompu lors d'une faute CRC
   uint32_t fault_timeout_every;  // force un timeout toutes les N tx (0 = aucun)
+
+  // --- Telemetrie (declaratif ; le moteur ne decide rien) ---
+  int sample_export_enabled;     // 0 = aucun echantillon produit
+  uint32_t sample_ring_capacity; // capacite DECLAREE du tampon borne
+  int histogram_enabled;         // 0 par DEFAUT : l'histogramme est optionnel
+  uint32_t histogram_version;    // version des bornes (comparabilite)
+  const bench_ticks_t *histogram_edges;  // bin_count + 1 bornes croissantes
+  uint32_t histogram_bin_count;
 } bench_profile_t;
 
 // Generateur pseudo-aleatoire DETERMINISTE (xorshift64), portable.
