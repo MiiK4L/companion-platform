@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Companion Platform contributors
 #
 # SPDX-License-Identifier: Apache-2.0
-"""Analyse de la telemetrie de latence (lot B4.1, format de flux v2).
+"""Analyse de la telemetrie de latence (lot B4.1, format de flux v3).
 
 Couvre la methode de quantile FIGEE (cas limites compris), l'arithmetique
 wrap-safe a largeur DECLAREE, la reconciliation sans double comptage, la
@@ -50,15 +50,39 @@ def _header_payload(
     return p
 
 
-def _footer_payload(last_seq: int, attempted: int) -> bytes:
+def _footer_payload(
+    last_seq: int,
+    attempted: int,
+    accepted: int | None = None,
+    refused: int = 0,
+    samples: int = 0,
+) -> bytes:
+    """Cloture. Convention : les compteurs sont captures AVANT l'emission du
+    footer, donc accepted + refused + 1 == attempted quand tout est coherent."""
+    if accepted is None:
+        accepted = max(attempted - refused - 1, 0)
     return (
         bytes([T.TM_FOOTER])
         + last_seq.to_bytes(4, "big")
         + attempted.to_bytes(4, "big")
-        + (0).to_bytes(4, "big")
-        + (0).to_bytes(4, "big")
-        + (0).to_bytes(4, "big")
+        + accepted.to_bytes(4, "big")
+        + refused.to_bytes(4, "big")
+        + samples.to_bytes(4, "big")
     )
+
+
+def _summary_payload(
+    issued: int = 0,
+    ok: int = 0,
+    producer_drop: int = 0,
+    gap_records_merged: int = 0,
+    gap_capacity: int = 4,
+) -> bytes:
+    fields = [issued, ok, 0, 0, 0, 0, 0, producer_drop, gap_records_merged, gap_capacity]
+    p = bytes([T.TM_SUMMARY])
+    for v in fields:
+        p += v.to_bytes(4, "big")
+    return p + (0).to_bytes(8, "big")
 
 
 class QuantileTest(unittest.TestCase):
@@ -255,7 +279,6 @@ class GoldenStreamTest(unittest.TestCase):
     def test_sequence_et_trames(self):
         self.assertEqual(self.parsed["frames_decoded"], self.expected["frames_decoded"])
         self.assertEqual(self.parsed["transport_gap"], self.expected["transport_gap"])
-        self.assertEqual(self.parsed["unknown_messages"], 0)
         self.assertEqual(self.parsed["sequence"], self.expected["sequence"])
 
     def test_ordre_des_messages(self):
@@ -355,15 +378,8 @@ class ParserRobustnessTest(unittest.TestCase):
                 T.parse_stream(stream)
 
     def test_summary_duplique(self):
-        body = bytes([T.TM_SUMMARY]) + b"\x00" * 40
-        stream = _frame(0, _header_payload()) + _frame(1, body) + _frame(2, body)
-        with self.assertRaises(T.TelemetryError):
-            T.parse_stream(stream)
-
-    def test_sample_apres_le_bilan(self):
-        summary = bytes([T.TM_SUMMARY]) + b"\x00" * 40
-        sample = bytes([T.TM_SAMPLE]) + b"\x00" * 22
-        stream = _frame(0, _header_payload()) + _frame(1, summary) + _frame(2, sample)
+        b = _summary_payload()
+        stream = _frame(0, _header_payload()) + _frame(1, b) + _frame(2, b)
         with self.assertRaises(T.TelemetryError):
             T.parse_stream(stream)
 
@@ -388,11 +404,11 @@ class ParserRobustnessTest(unittest.TestCase):
         with self.assertRaises(T.TelemetryError):
             T.parse_stream(stream)
 
-    def test_type_inconnu_compte(self):
+    def test_type_inconnu_rejete(self):
+        """Version 3 : un type inconnu est REJETE, pas tolere."""
         stream = _frame(0, _header_payload()) + _frame(1, bytes([0x7F]) + b"\x00" * 4)
-        stream += _frame(2, _footer_payload(2, 3))
-        parsed = T.parse_stream(stream)
-        self.assertEqual(parsed["unknown_messages"], 1, "type inconnu compte, pas devine")
+        with self.assertRaises(T.TelemetryError):
+            T.parse_stream(stream)
 
     def test_octets_parasites_ignores(self):
         parsed = T.parse_stream(b"\x00\x01\x02" + _load_golden_stream())
@@ -403,7 +419,7 @@ class StreamClosureTest(unittest.TestCase):
     """Point 2 : sans cloture, une perte des DERNIERES trames est indetectable."""
 
     def test_cloture_absente_rend_incomplete(self):
-        stream = _frame(0, _header_payload()) + _frame(1, bytes([T.TM_SUMMARY]) + b"\x00" * 40)
+        stream = _frame(0, _header_payload()) + _frame(1, _summary_payload())
         parsed = T.parse_stream(stream)
         self.assertFalse(parsed["footer_present"])
         self.assertEqual(parsed["stream_completeness"], "incomplete")
@@ -415,15 +431,17 @@ class StreamClosureTest(unittest.TestCase):
 
     def test_derniere_trame_perdue_detectee(self):
         """La cloture est recue mais des trames anterieures manquent."""
-        stream = _frame(0, _header_payload()) + _frame(5, _footer_payload(5, 6))
+        stream = _frame(0, _header_payload()) + _frame(1, _summary_payload())
+        stream += _frame(5, _footer_payload(5, 6))
         parsed = T.parse_stream(stream)
         self.assertTrue(parsed["footer_present"])
-        self.assertEqual(parsed["transport_gap"], 4, "seq 1..4 absentes")
+        self.assertEqual(parsed["transport_gap"], 3, "seq 2..4 absentes")
         self.assertEqual(parsed["stream_completeness"], "incomplete")
 
     def test_cloture_incoherente(self):
         # frames_attempted ne correspond pas a last_stream_seq + 1.
-        stream = _frame(0, _header_payload()) + _frame(1, _footer_payload(1, 99))
+        stream = _frame(0, _header_payload()) + _frame(1, _summary_payload())
+        stream += _frame(2, _footer_payload(2, 99))
         parsed = T.parse_stream(stream)
         self.assertFalse(parsed["footer_consistent"])
         self.assertEqual(parsed["stream_completeness"], "incomplete")
@@ -441,7 +459,8 @@ class StreamClosureTest(unittest.TestCase):
 
 class ClockTest(unittest.TestCase):
     def test_tick_hz_nul_interdit_la_conversion(self):
-        stream = _frame(0, _header_payload(tick_hz=0)) + _frame(1, _footer_payload(1, 2))
+        stream = _frame(0, _header_payload(tick_hz=0)) + _frame(1, _summary_payload())
+        stream += _frame(2, _footer_payload(2, 3))
         parsed = T.parse_stream(stream)
         self.assertFalse(parsed["header"]["physical_time_available"])
         block = T.build_analysis(parsed)
@@ -461,7 +480,8 @@ class ClockTest(unittest.TestCase):
             + bytes([0, 0])
         )
         stream = _frame(0, _header_payload(width=32)) + _frame(1, sample)
-        stream += _frame(2, _footer_payload(2, 3))
+        stream += _frame(2, _summary_payload(issued=1, ok=1))
+        stream += _frame(3, _footer_payload(3, 4, samples=1))
         parsed = T.parse_stream(stream)
         self.assertEqual(T.valid_latencies(parsed), [10], "wrap 32 bits correctement traite")
 
@@ -494,12 +514,19 @@ class LossBiasTest(unittest.TestCase):
                 "duplicate": 0,
                 "out_of_order": 0,
                 "producer_drop": producer_drop,
+                "gap_records_merged": 0,
+                "gap_capacity": 8,
                 "timeout_budget_ticks": 1000,
             },
             "device_histogram": None,
             "transport_gap": 0,
             "stream_completeness": "complete",
+            "summary_present": True,
             "footer_present": True,
+            "footer_consistent": True,
+            "gap_localization_complete": True,
+            "histogram_required": False,
+            "histogram_present": False,
             "sequence": {},
         }
 
@@ -536,3 +563,173 @@ class LossBiasTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class StreamStateMachineTest(unittest.TestCase):
+    """Point 3 : HEADER -> (SAMPLE|GAP)* -> SUMMARY -> HISTOGRAM? -> FOOTER."""
+
+    _SAMPLE = bytes([T.TM_SAMPLE]) + b"\x00" * 22
+    _GAP = bytes([T.TM_GAP]) + b"\x00" * 8
+
+    def test_ordre_nominal_accepte(self):
+        stream = _frame(0, _header_payload()) + _frame(1, self._SAMPLE)
+        stream += _frame(2, self._GAP) + _frame(3, _summary_payload(issued=1, ok=1))
+        stream += _frame(4, _footer_payload(4, 5, samples=1))
+        parsed = T.parse_stream(stream)
+        self.assertEqual(parsed["stream_completeness"], "complete")
+
+    def test_sample_apres_summary_interdit(self):
+        stream = _frame(0, _header_payload()) + _frame(1, _summary_payload())
+        stream += _frame(2, self._SAMPLE)
+        with self.assertRaises(T.TelemetryError):
+            T.parse_stream(stream)
+
+    def test_gap_apres_summary_interdit(self):
+        stream = _frame(0, _header_payload()) + _frame(1, _summary_payload())
+        stream += _frame(2, self._GAP)
+        with self.assertRaises(T.TelemetryError):
+            T.parse_stream(stream)
+
+    def test_footer_avant_summary_interdit(self):
+        stream = _frame(0, _header_payload()) + _frame(1, _footer_payload(1, 2))
+        with self.assertRaises(T.TelemetryError):
+            T.parse_stream(stream)
+
+    def test_message_apres_footer_interdit(self):
+        stream = _frame(0, _header_payload()) + _frame(1, _summary_payload())
+        stream += _frame(2, _footer_payload(2, 3)) + _frame(3, self._SAMPLE)
+        with self.assertRaises(T.TelemetryError):
+            T.parse_stream(stream)
+
+    def test_footer_duplique_interdit(self):
+        stream = _frame(0, _header_payload()) + _frame(1, _summary_payload())
+        stream += _frame(2, _footer_payload(2, 3)) + _frame(3, _footer_payload(3, 4))
+        with self.assertRaises(T.TelemetryError):
+            T.parse_stream(stream)
+
+    def test_histogramme_avant_header_interdit(self):
+        hist = bytes([T.TM_HISTOGRAM]) + b"\x00" * 21
+        with self.assertRaises(T.TelemetryError):
+            T.parse_stream(_frame(0, hist))
+
+
+class FooterReconciliationTest(unittest.TestCase):
+    """Points 1, 2 et 5 : le bilan est obligatoire et la cloture est reconciliee."""
+
+    def _stream(self, footer: bytes, summary: bytes | None = None) -> bytes:
+        s = _frame(0, _header_payload())
+        seq = 1
+        if summary is not None:
+            s += _frame(seq, summary)
+            seq += 1
+        return s + _frame(seq, footer)
+
+    def test_summary_absent_rend_ineligible(self):
+        """Sans bilan, on ignore si TOUTES les transactions sont representees."""
+        stream = _frame(0, _header_payload()) + _frame(1, _footer_payload(1, 2))
+        # Le footer avant summary est refuse par la machine d'etat : on verifie
+        # donc le cas d'un flux qui s'arrete apres l'en-tete.
+        with self.assertRaises(T.TelemetryError):
+            T.parse_stream(stream)
+
+        only_header = _frame(0, _header_payload())
+        parsed = T.parse_stream(only_header)
+        self.assertFalse(parsed["summary_present"])
+        block = T.build_analysis(parsed)
+        self.assertFalse(block["quantiles_verdict_eligible"])
+        self.assertIn("summary_present", block["eligibility"]["blocking"])
+
+    def test_summary_non_equilibre(self):
+        # issued = 10 mais seulement 4 statuts terminaux comptes.
+        stream = self._stream(
+            _footer_payload(2, 3, samples=10), _summary_payload(issued=10, ok=4)
+        )
+        block = T.build_analysis(T.parse_stream(stream))
+        self.assertFalse(block["reconciliation"]["balanced"])
+        self.assertIn("reconciliation_balanced", block["eligibility"]["blocking"])
+
+    def test_issued_different_de_samples_attempted(self):
+        stream = self._stream(
+            _footer_payload(2, 3, samples=99), _summary_payload(issued=4, ok=4)
+        )
+        parsed = T.parse_stream(stream)
+        self.assertFalse(parsed["footer_checks"]["samples_attempted_matches_issued"])
+        self.assertFalse(parsed["footer_consistent"])
+        block = T.build_analysis(parsed)
+        self.assertIn("summary_footer_consistent", block["eligibility"]["blocking"])
+
+    def test_sequence_de_la_trame_footer_incorrecte(self):
+        # Le footer annonce last_stream_seq = 9 mais sa trame porte seq 2.
+        stream = self._stream(_footer_payload(9, 10), _summary_payload())
+        parsed = T.parse_stream(stream)
+        self.assertFalse(parsed["footer_checks"]["footer_frame_seq_matches"])
+        self.assertFalse(parsed["footer_consistent"])
+
+    def test_compteurs_footer_incoherents(self):
+        # accepted + refused + 1 != attempted.
+        stream = self._stream(_footer_payload(2, 3, accepted=0, refused=0), _summary_payload())
+        parsed = T.parse_stream(stream)
+        self.assertFalse(parsed["footer_checks"]["frames_accounted"])
+
+    def test_premiere_sequence_non_nulle(self):
+        stream = _frame(5, _header_payload()) + _frame(6, _summary_payload())
+        stream += _frame(7, _footer_payload(7, 8))
+        parsed = T.parse_stream(stream)
+        self.assertFalse(parsed["footer_checks"]["first_sequence_is_zero"])
+        self.assertFalse(parsed["footer_consistent"])
+
+
+class GapLocalizationTest(unittest.TestCase):
+    """Point 4 : des pertes non localisables retirent l'eligibilite."""
+
+    def _stream(self, summary: bytes) -> bytes:
+        s = _frame(0, _header_payload()) + _frame(1, summary)
+        return s + _frame(2, _footer_payload(2, 3, samples=4))
+
+    def test_plages_fusionnees(self):
+        parsed = T.parse_stream(
+            self._stream(
+                _summary_payload(issued=4, ok=2, producer_drop=2, gap_records_merged=1)
+            )
+        )
+        self.assertFalse(parsed["gap_localization_complete"])
+        block = T.build_analysis(parsed)
+        self.assertIn("gap_localization_complete", block["eligibility"]["blocking"])
+
+    def test_pertes_sans_capacite_de_localisation(self):
+        parsed = T.parse_stream(
+            self._stream(_summary_payload(issued=4, ok=2, producer_drop=2, gap_capacity=0))
+        )
+        self.assertFalse(
+            parsed["gap_localization_complete"],
+            "des pertes sans place declaree ne sont pas localisables",
+        )
+
+    def test_aucune_perte_capacite_nulle_reste_localisable(self):
+        parsed = T.parse_stream(self._stream(_summary_payload(issued=4, ok=4, gap_capacity=0)))
+        self.assertTrue(parsed["gap_localization_complete"], "aucune perte a localiser")
+
+
+class HistogramAnnouncedTest(unittest.TestCase):
+    """Point 6 : un histogramme annonce ne peut pas disparaitre silencieusement."""
+
+    def test_annonce_mais_absent(self):
+        header = _header_payload()
+        # Active le drapeau histogram_enabled (offset 18 du payload).
+        header = header[:18] + bytes([1]) + header[19:]
+        stream = _frame(0, header) + _frame(1, _summary_payload())
+        stream += _frame(2, _footer_payload(2, 3))
+        parsed = T.parse_stream(stream)
+        self.assertTrue(parsed["histogram_required"])
+        self.assertFalse(parsed["histogram_present"])
+        block = T.build_analysis(parsed)
+        self.assertIn("histogram_usable_if_required", block["eligibility"]["blocking"])
+
+    def test_desactive_et_absent_reste_utilisable(self):
+        stream = _frame(0, _header_payload()) + _frame(1, _summary_payload())
+        stream += _frame(2, _footer_payload(2, 3))
+        block = T.build_analysis(T.parse_stream(stream))
+        self.assertTrue(
+            block["eligibility"]["conditions"]["histogram_usable_if_required"],
+            "absence normale quand l'histogramme est desactive",
+        )

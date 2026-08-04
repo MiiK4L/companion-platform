@@ -377,7 +377,7 @@ static void test_cloture_du_flux(void) {
   bench_sample_t s = {1, 0, 10, BENCH_SAMPLE_OK, 0};
   (void)bench_ring_push(&ring, &s);
   (void)bench_telemetry_drain(&tm, 8);
-  const bench_telemetry_summary_t sum = {1, 1, 0, 0, 0, 0, 0, 0, 100};
+  const bench_telemetry_summary_t sum = {1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 100};
   (void)bench_telemetry_emit_summary(&tm, &sum);
   EXPECT_EQ_INT(bench_telemetry_emit_footer(&tm, 1), 1, "cloture emise");
 
@@ -492,7 +492,7 @@ static void test_golden_inter_langage(void) {
   (void)bench_ring_push(&ring, &s7);
   (void)bench_telemetry_drain(&tm, 64);
 
-  const bench_telemetry_summary_t sum = {8, 4, 1, 1, 0, 0, 0, 2, 500};
+  const bench_telemetry_summary_t sum = {8, 4, 1, 1, 0, 0, 0, 2, 0, 0, 500};
   (void)bench_telemetry_emit_summary(&tm, &sum);
   (void)bench_telemetry_emit_histogram(&tm, &h);
   (void)bench_telemetry_emit_footer(&tm, 8);
@@ -503,12 +503,53 @@ static void test_golden_inter_langage(void) {
 #endif
 }
 
+// Point 4 : faute de place, les plages FUSIONNENT et le signalent ; le total
+// reste exact mais la localisation ne l'est plus.
+static void test_fusion_de_plages(void) {
+  bench_sample_t slots[1];
+  bench_gap_record_t gaps[1];  // une seule plage memorisable
+  bench_ring_t ring;
+  bench_ring_init(&ring, slots, 1, gaps, 1);
+
+  bench_sample_t s = {0, 0, 10, BENCH_SAMPLE_OK, 0};
+  (void)bench_ring_push(&ring, &s);  // remplit
+  s.sequence_id = 1;
+  (void)bench_ring_push(&ring, &s);  // plage A
+  bench_sample_t got;
+  (void)bench_ring_pop(&ring, &got);
+  s.sequence_id = 2;
+  (void)bench_ring_push(&ring, &s);  // accepte
+  s.sequence_id = 3;
+  (void)bench_ring_push(&ring, &s);  // plage B : plus de place -> FUSION
+
+  EXPECT_EQ_INT(ring.producer_drop, 2, "total de pertes exact");
+  EXPECT_EQ_INT(ring.gap_count, 1, "une seule plage memorisee");
+  EXPECT(ring.gap_records_merged >= 1, "fusion SIGNALEE");
+}
+
+// Aucune place declaree : les pertes sont comptees mais non localisables.
+static void test_pertes_sans_capacite_de_localisation(void) {
+  bench_sample_t slots[1];
+  bench_ring_t ring;
+  bench_ring_init(&ring, slots, 1, NULL, 0);
+
+  bench_sample_t s = {0, 0, 10, BENCH_SAMPLE_OK, 0};
+  (void)bench_ring_push(&ring, &s);
+  s.sequence_id = 1;
+  (void)bench_ring_push(&ring, &s);
+  EXPECT_EQ_INT(ring.producer_drop, 1, "perte comptee");
+  EXPECT_EQ_INT(ring.gap_count, 0, "aucune plage localisee");
+  EXPECT_EQ_INT(ring.gap_capacity, 0, "capacite nulle exposee au bilan");
+}
+
 void run_telemetry_tests(void) {
   test_record_codec();
   test_ordre_de_la_lacune();
   test_ordre_dans_le_flux();
   test_drain_partiel_et_reprise();
   test_plages_multiples();
+  test_fusion_de_plages();
+  test_pertes_sans_capacite_de_localisation();
   test_refus_du_marqueur_puis_reemission();
   test_histogramme();
   test_histogramme_sature();

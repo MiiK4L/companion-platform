@@ -1,7 +1,7 @@
 {
-  "_comment": "Golden INTER-LANGAGE (format de flux v2). stream.hex est produit par l'encodeur C du firmware ; les valeurs ci-dessous sont celles que l'analyse Python doit retrouver a l'identique. Toute divergence signale une derive entre les deux implementations du format.",
+  "_comment": "Golden INTER-LANGAGE (format de flux v3). stream.hex est produit par l'encodeur C du firmware ; les valeurs ci-dessous sont celles que l'analyse Python doit retrouver a l'identique. Toute divergence signale une derive entre les deux implementations du format.",
   "header": {
-    "stream_version": 2,
+    "stream_version": 3,
     "clock_id": 1,
     "tick_width_bits": 64,
     "wrap_policy": 0,
@@ -38,13 +38,36 @@
     "trailing_missing": 0
   },
   "gaps": [
-    { "lost_count": 2, "after_sequence_id": 3 }
+    {
+      "lost_count": 2,
+      "after_sequence_id": 3
+    }
   ],
   "message_order": [
-    "sample", "sample", "sample", "sample", "gap", "sample", "sample"
+    "sample",
+    "sample",
+    "sample",
+    "sample",
+    "gap",
+    "sample",
+    "sample"
   ],
-  "sample_sequence_ids": [0, 1, 2, 3, 6, 7],
-  "sample_statuses": ["ok", "ok", "ok", "ok", "timeout", "rejected"],
+  "sample_sequence_ids": [
+    0,
+    1,
+    2,
+    3,
+    6,
+    7
+  ],
+  "sample_statuses": [
+    "ok",
+    "ok",
+    "ok",
+    "ok",
+    "timeout",
+    "rejected"
+  ],
   "summary": {
     "issued": 8,
     "ok": 4,
@@ -54,9 +77,16 @@
     "duplicate": 0,
     "out_of_order": 0,
     "producer_drop": 2,
-    "timeout_budget_ticks": 500
+    "timeout_budget_ticks": 500,
+    "gap_records_merged": 0,
+    "gap_capacity": 5
   },
-  "valid_latencies": [10, 20, 30, 40],
+  "valid_latencies": [
+    10,
+    20,
+    30,
+    40
+  ],
   "stats": {
     "quantile_method": "nearest-rank-inclusive-v1",
     "dispersion_metric": "latency_stddev_population",
@@ -81,15 +111,44 @@
   },
   "series_completeness": "incomplete",
   "quantiles_verdict_eligible": false,
-  "_eligibility_comment": "Le FLUX est complet (cloture presente et coherente, aucune trame manquante), mais la SERIE est lacunaire : 2 echantillons perdus avant serialisation. Les quantiles ne sont donc pas eligibles a un verdict.",
+  "_eligibility_comment": "Le FLUX est complet (cloture presente, tous les controles de compteurs passent) et le bilan est reconcilie, mais la SERIE est lacunaire : 2 echantillons perdus avant serialisation. Seule la condition series_complete bloque ; les quantiles ne sont donc pas eligibles a un verdict.",
   "device_histogram": {
     "version": 7,
-    "bin_edges": [0, 15, 25, 35, 45],
-    "bin_counts": [1, 1, 1, 1],
+    "bin_edges": [
+      0,
+      15,
+      25,
+      35,
+      45
+    ],
+    "bin_counts": [
+      1,
+      1,
+      1,
+      1
+    ],
     "underflow": 0,
     "overflow": 0,
     "sample_count": 4,
     "saturated": false
   },
-  "histogram_comparison": { "compared": true, "match": true }
+  "histogram_comparison": {
+    "compared": true,
+    "match": true
+  },
+  "footer_checks": {
+    "first_sequence_is_zero": true,
+    "footer_frame_seq_matches": true,
+    "frames_attempted_matches_last_seq": true,
+    "frames_accounted": true,
+    "decoded_plus_gap_matches_attempted": true,
+    "samples_attempted_matches_issued": true
+  },
+  "summary_present": true,
+  "gap_localization_complete": true,
+  "histogram_required": true,
+  "histogram_present": true,
+  "eligibility_blocking": [
+    "series_complete"
+  ]
 }
