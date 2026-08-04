@@ -40,7 +40,7 @@ TM_HISTOGRAM = 5
 TM_FOOTER = 6
 
 #: Version du FORMAT de flux acceptee (miroir de BENCH_TELEMETRY_STREAM_VERSION).
-STREAM_VERSION = 2
+STREAM_VERSION = 3
 NO_SEQ = 0xFFFFFFFF
 _SEQ_MOD = 1 << 32
 _SEQ_HALF = 1 << 31
@@ -54,7 +54,7 @@ HISTOGRAM_MAX_BINS = 16
 
 _SAMPLE_WIRE_SIZE = 22
 _GAP_BODY = 1 + 8
-_SUMMARY_BODY = 1 + 8 * 4 + 8
+_SUMMARY_BODY = 1 + 10 * 4 + 8
 _FOOTER_BODY = 1 + 5 * 4
 _HEADER_FIXED = 1 + 2 + 1 + 1 + 1 + 8 + 4 + 1 + 2
 _HISTOGRAM_FIXED = 1 + 5 * 4 + 1
@@ -190,6 +190,8 @@ def _parse_summary(p: bytes) -> dict[str, int]:
         "duplicate",
         "out_of_order",
         "producer_drop",
+        "gap_records_merged",
+        "gap_capacity",
     )
     out = {k: _u32(p, 1 + 4 * i) for i, k in enumerate(keys)}
     out["timeout_budget_ticks"] = _u64(p, 1 + 4 * len(keys))
@@ -293,74 +295,123 @@ def parse_stream(data: bytes) -> dict[str, Any]:
     if not frames:
         raise TelemetryError("aucune trame valide dans le flux")
 
+    # --- MACHINE D'ETAT du flux (ordre UNIQUE, documente et teste) -----------
+    #   HEADER -> (SAMPLE | GAP)* -> SUMMARY -> HISTOGRAM? -> FOOTER
+    # Toute transition non prevue est une erreur de STRUCTURE, jamais une
+    # tolerance silencieuse.
+    ST_INIT, ST_BODY, ST_SUMMARY, ST_HISTOGRAM, ST_END = range(5)
+    _ALLOWED = {
+        ST_INIT: {TM_HEADER},
+        ST_BODY: {TM_SAMPLE, TM_GAP, TM_SUMMARY},
+        ST_SUMMARY: {TM_HISTOGRAM, TM_FOOTER},
+        ST_HISTOGRAM: {TM_FOOTER},
+        ST_END: set(),
+    }
+    _NAMES = {
+        TM_HEADER: "header",
+        TM_SAMPLE: "sample",
+        TM_GAP: "gap",
+        TM_SUMMARY: "summary",
+        TM_HISTOGRAM: "histogram",
+        TM_FOOTER: "footer",
+    }
+
+    state = ST_INIT
     header: dict[str, Any] | None = None
     summary: dict[str, int] | None = None
     footer: dict[str, int] | None = None
+    footer_frame_seq: int | None = None
     histogram: dict[str, Any] | None = None
     samples: list[dict[str, Any]] = []
     gaps: list[dict[str, int]] = []
-    unknown_messages = 0
 
-    for index, f in enumerate(frames):
+    for f in frames:
         p = f["payload"]
         if not p:
             raise TelemetryError("message vide")
         kind = p[0]
+        if kind not in _NAMES:
+            # Version 3 : un type inconnu est REJETE. Il n'existe pas de zone
+            # d'extension ; le tolerer laisserait un flux inconnu passer pour
+            # eligible.
+            raise TelemetryError(f"type de message inconnu : {kind}")
+        if kind not in _ALLOWED[state]:
+            raise TelemetryError(f"{_NAMES[kind]} : transition interdite (etat {state})")
+
         if kind == TM_HEADER:
-            if index != 0:
-                raise TelemetryError("header : doit etre le PREMIER message")
-            if header is not None:
-                raise TelemetryError("header : duplique")
             header = _parse_header(p)
+            state = ST_BODY
         elif kind == TM_SAMPLE:
-            if summary is not None:
-                raise TelemetryError("sample apres le bilan")
             samples.append(_parse_sample(p))
         elif kind == TM_GAP:
             gaps.append(_parse_gap(p))
         elif kind == TM_SUMMARY:
-            if summary is not None:
-                raise TelemetryError("summary : duplique")
             summary = _parse_summary(p)
+            state = ST_SUMMARY
         elif kind == TM_HISTOGRAM:
-            if histogram is not None:
-                raise TelemetryError("histogram : duplique")
             if header is not None and not header["histogram_enabled"]:
                 raise TelemetryError("histogram present alors qu'il n'est pas annonce")
             histogram = _parse_histogram(p)
-        elif kind == TM_FOOTER:
-            if footer is not None:
-                raise TelemetryError("footer : duplique")
+            state = ST_HISTOGRAM
+        else:  # TM_FOOTER
             footer = _parse_footer(p)
-        else:
-            unknown_messages += 1  # compte explicitement, ne devine rien
+            footer_frame_seq = f["seq"]
+            state = ST_END
 
     if header is None:
         raise TelemetryError("header absent : flux inexploitable")
-    if header["histogram_enabled"] and histogram is None:
-        # Annonce mais absent : ce n'est pas fatal, c'est une lacune de capture.
-        pass
 
     seqs = [f["seq"] for f in frames]
     last_expected = footer["last_stream_seq"] if footer else None
     sequence = analyse_sequence(seqs, last_expected)
+    transport_gap = sequence["missing_total"]
 
-    # Sans cloture valide, l'absence des DERNIERES trames est indetectable :
-    # la capture ne peut pas etre declaree complete.
-    footer_valid = footer is not None
-    if footer_valid:
+    # --- RECONCILIATION DE FLUX (convention des compteurs, archivee) ---------
+    # Les compteurs du footer sont captures AVANT son emission ; le "+1" des
+    # relations ci-dessous correspond donc au footer lui-meme.
+    unique_frames = len(set(seqs))
+    checks: dict[str, bool] = {}
+    if footer is not None:
         expected_frames = (footer["last_stream_seq"] + 1) % _SEQ_MOD
         if expected_frames == 0:
             expected_frames = _SEQ_MOD
-        transport_gap = sequence["missing_total"]
-        footer_consistent = footer["frames_attempted"] == expected_frames
+        checks["first_sequence_is_zero"] = seqs[0] == 0
+        checks["footer_frame_seq_matches"] = footer_frame_seq == footer["last_stream_seq"]
+        checks["frames_attempted_matches_last_seq"] = (
+            footer["frames_attempted"] == expected_frames
+        )
+        checks["frames_accounted"] = (
+            footer["frames_accepted"] + footer["frames_refused"] + 1
+            == footer["frames_attempted"]
+        )
+        checks["decoded_plus_gap_matches_attempted"] = (
+            unique_frames + transport_gap == footer["frames_attempted"]
+        )
+        if summary is not None:
+            checks["samples_attempted_matches_issued"] = (
+                footer["samples_attempted"] == summary["issued"]
+            )
+    footer_consistent = bool(checks) and all(checks.values())
+
+    # Une lacune fusionnee (ou l'absence de place declaree) rend la LOCALISATION
+    # des pertes incomplete, meme si le TOTAL reste exact.
+    if summary is not None:
+        merged = summary.get("gap_records_merged", 0)
+        gap_capacity = summary.get("gap_capacity", 0)
+        producer_drop = summary.get("producer_drop", 0)
+        gap_localization_complete = merged == 0 and not (
+            gap_capacity == 0 and producer_drop > 0
+        )
     else:
-        transport_gap = sequence["missing_total"]
-        footer_consistent = False
+        gap_localization_complete = False
+
+    # Un histogramme ANNONCE ne peut pas disparaitre silencieusement.
+    histogram_required = bool(header["histogram_enabled"])
+    histogram_present = histogram is not None
 
     stream_completeness = (
         "complete"
-        if (footer_valid and footer_consistent and transport_gap == 0)
+        if (footer is not None and footer_consistent and transport_gap == 0)
         else "incomplete"
     )
 
@@ -372,12 +423,17 @@ def parse_stream(data: bytes) -> dict[str, Any]:
         "footer": footer,
         "device_histogram": histogram,
         "frames_decoded": len(frames),
+        "frames_unique": unique_frames,
         "frames_resync": resyncs,
-        "unknown_messages": unknown_messages,
         "sequence": sequence,
         "transport_gap": transport_gap,
-        "footer_present": footer_valid,
+        "summary_present": summary is not None,
+        "footer_present": footer is not None,
         "footer_consistent": footer_consistent,
+        "footer_checks": checks,
+        "gap_localization_complete": gap_localization_complete,
+        "histogram_required": histogram_required,
+        "histogram_present": histogram_present,
         "stream_completeness": stream_completeness,
         "producer_drop_from_gaps": sum(g["lost_count"] for g in gaps),
     }
@@ -445,12 +501,37 @@ def build_analysis(parsed: dict[str, Any], edges: list[int] | None = None) -> di
 
     latencies = valid_latencies(parsed)
     series_completeness = st.series_completeness(producer_drop, transport_gap)
-    eligible = series_completeness == "complete" and stream_completeness == "complete"
+    reconciliation = st.reconcile(summary)
+
+    # --- ELIGIBILITE AU VERDICT : conjonction EXPLICITE -----------------------
+    # Une serie n'est pas qualifiee complete au seul motif qu'aucune trame ne
+    # semble manquer : sans bilan reconcilie, on ignore si TOUTES les
+    # transactions attendues sont representees.
+    hist_required = bool(parsed.get("histogram_required", False))
+    hist_present = bool(parsed.get("histogram_present", False))
+    device_hist = parsed.get("device_histogram")
+    hist_saturated = bool((device_hist or {}).get("saturated", False))
+    # Un histogramme ANNONCE ne peut pas disparaitre silencieusement, et un
+    # histogramme SATURE n'est plus reconciliable : les deux retirent l'usage.
+    hist_usable = (not hist_saturated) and (not hist_required or hist_present)
+
+    conditions = {
+        "summary_present": bool(parsed.get("summary_present", False)),
+        "reconciliation_balanced": bool(reconciliation["balanced"]),
+        "summary_footer_consistent": bool(parsed.get("footer_consistent", False)),
+        "series_complete": series_completeness == "complete",
+        "stream_complete": stream_completeness == "complete",
+        "gap_localization_complete": bool(parsed.get("gap_localization_complete", False)),
+        "histogram_usable_if_required": hist_usable,
+    }
+    eligible = all(conditions.values())
+    blocking = sorted(k for k, v in conditions.items() if not v)
 
     block: dict[str, Any] = {
         "latency": st.latency_stats(latencies),
-        "reconciliation": st.reconcile(summary),
+        "reconciliation": reconciliation,
         "losses": {
+            # Les deux natures de perte ne sont JAMAIS fusionnees.
             "producer_drop": producer_drop,
             "transport_gap": transport_gap,
             "gap_markers": parsed.get("gaps", []),
@@ -473,27 +554,27 @@ def build_analysis(parsed: dict[str, Any], edges: list[int] | None = None) -> di
         },
         "series_completeness": series_completeness,
         "stream_completeness": stream_completeness,
+        "summary_present": conditions["summary_present"],
         "footer_present": bool(parsed.get("footer_present", False)),
+        "footer_checks": parsed.get("footer_checks", {}),
+        "gap_localization_complete": conditions["gap_localization_complete"],
+        "histogram_required": hist_required,
+        "histogram_present": hist_present,
         "sequence": parsed.get("sequence", {}),
+        "eligibility": {"conditions": conditions, "blocking": blocking},
         "quantiles_verdict_eligible": eligible,
         "invalid_sample_count": (
             int(summary.get("issued", 0)) - int(summary.get("ok", 0)) if summary else None
         ),
     }
 
-    device_hist = parsed.get("device_histogram")
     if edges is None and device_hist is not None:
         edges = list(device_hist["bin_edges"])
     if edges:
         tooling = hist.derive(latencies, edges)
-        comparison = hist.compare(device_hist, tooling)
         block["histogram"] = {
             "tooling": tooling,
             "device": device_hist,
-            "comparison": comparison,
+            "comparison": hist.compare(device_hist, tooling),
         }
-        if device_hist is not None and device_hist.get("saturated"):
-            # Un histogramme sature n'est plus reconciliable : il reste utile au
-            # diagnostic, mais ne peut alimenter aucun verdict.
-            block["quantiles_verdict_eligible"] = False
     return block
