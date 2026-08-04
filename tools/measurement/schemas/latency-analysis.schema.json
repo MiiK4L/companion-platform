@@ -5,15 +5,18 @@
   "type": "object",
   "additionalProperties": false,
   "required": [
-    "latency",
-    "reconciliation",
-    "losses",
-    "timeouts",
-    "series_completeness",
-    "quantiles_verdict_eligible",
-    "stream_completeness",
+    "clock",
+    "eligibility",
     "footer_present",
-    "clock"
+    "gap_localization_complete",
+    "latency",
+    "losses",
+    "quantiles_verdict_eligible",
+    "reconciliation",
+    "series_completeness",
+    "stream_completeness",
+    "summary_present",
+    "timeouts"
   ],
   "properties": {
     "latency": {
@@ -298,6 +301,44 @@
     "sequence": {
       "type": "object",
       "description": "Etats de l'analyse des numeros de sequence, en ordre de reception (attendu, lacune, doublon, hors ordre, wrap)."
+    },
+    "summary_present": {
+      "type": "boolean",
+      "description": "Le bilan est OBLIGATOIRE : sans lui, la reconciliation des transactions est impossible et les quantiles ne sont pas eligibles."
+    },
+    "footer_checks": {
+      "type": "object",
+      "description": "Controles de coherence des compteurs de cloture (sequence initiale, sequence de la trame footer, relations entre frames_attempted/accepted/refused, trames decodees + transport_gap, samples_attempted vs issued)."
+    },
+    "gap_localization_complete": {
+      "type": "boolean",
+      "description": "Faux si des plages de pertes ont ete fusionnees faute de place, ou si des pertes sont survenues sans capacite de localisation declaree : le TOTAL reste exact, la POSITION ne l'est plus."
+    },
+    "histogram_required": {
+      "type": "boolean"
+    },
+    "histogram_present": {
+      "type": "boolean"
+    },
+    "eligibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Conjonction EXPLICITE des conditions d'eligibilite au verdict, et liste des conditions bloquantes.",
+      "required": [
+        "conditions",
+        "blocking"
+      ],
+      "properties": {
+        "conditions": {
+          "type": "object"
+        },
+        "blocking": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
     }
   }
 }
