@@ -33,7 +33,7 @@
 #include "telemetry/ring.h"
 
 // Version du FORMAT de flux (independante des versions de profil/scenario).
-#define BENCH_TELEMETRY_STREAM_VERSION 2u
+#define BENCH_TELEMETRY_STREAM_VERSION 3u
 
 // Types de message (premier octet du payload de trame).
 typedef enum {
@@ -78,6 +78,13 @@ typedef struct {
   uint32_t duplicate;
   uint32_t out_of_order;
   uint32_t producer_drop;
+  // Localisation des pertes : si des plages ont du etre FUSIONNEES faute de
+  // place, le TOTAL des pertes reste exact mais leur POSITION ne l'est plus.
+  // De meme si aucune place n'est declaree alors que des pertes surviennent.
+  // Ces deux champs permettent a l'outillage de le savoir plutot que de croire
+  // a une localisation exacte.
+  uint32_t gap_records_merged;
+  uint32_t gap_capacity;
   uint64_t timeout_budget_ticks;
 } bench_telemetry_summary_t;
 
@@ -123,6 +130,8 @@ int bench_telemetry_emit_header(bench_telemetry_t *tm,
 // Retourne le nombre de messages ACCEPTES par le puits.
 uint32_t bench_telemetry_drain(bench_telemetry_t *tm, uint32_t max_messages);
 
+// Emet le bilan. Les champs gap_records_merged et gap_capacity sont RENSEIGNES
+// depuis le tampon lorsqu'il est attache : ils ne peuvent pas etre oublies.
 int bench_telemetry_emit_summary(bench_telemetry_t *tm,
                                  const bench_telemetry_summary_t *summary);
 

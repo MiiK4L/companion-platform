@@ -143,7 +143,7 @@ uint32_t bench_telemetry_drain(bench_telemetry_t *tm, uint32_t max_messages) {
 
 int bench_telemetry_emit_summary(bench_telemetry_t *tm,
                                  const bench_telemetry_summary_t *s) {
-  uint8_t body[1 + 8 * 4 + 8];
+  uint8_t body[1 + 10 * 4 + 8];
   size_t off = 0;
   body[off++] = (uint8_t)BENCH_TM_SUMMARY;
   bench_wire_put_u32(body + off, s->issued); off += 4;
@@ -154,6 +154,13 @@ int bench_telemetry_emit_summary(bench_telemetry_t *tm,
   bench_wire_put_u32(body + off, s->duplicate); off += 4;
   bench_wire_put_u32(body + off, s->out_of_order); off += 4;
   bench_wire_put_u32(body + off, s->producer_drop); off += 4;
+  // Le tampon fait AUTORITE sur la qualite de localisation des pertes.
+  const uint32_t merged =
+      (tm->ring != NULL) ? tm->ring->gap_records_merged : s->gap_records_merged;
+  const uint32_t gap_cap =
+      (tm->ring != NULL) ? tm->ring->gap_capacity : s->gap_capacity;
+  bench_wire_put_u32(body + off, merged); off += 4;
+  bench_wire_put_u32(body + off, gap_cap); off += 4;
   bench_wire_put_u64(body + off, s->timeout_budget_ticks); off += 8;
   return emit_frame(tm, body, off);
 }
