@@ -93,6 +93,37 @@ stream_completeness = complete   si clôture présente, cohérente et aucune tra
 Une absence silencieuse de clôture **ne permet jamais** de déclarer la série
 complète : `quantiles_verdict_eligible` passe à faux.
 
+### Réconciliation de la clôture (convention archivée)
+
+Les compteurs du footer sont **capturés avant son émission** ; le `+ 1` des
+relations ci-dessous correspond donc **au footer lui-même** :
+
+```text
+first_stream_seq                       == 0
+footer_frame_seq                       == footer.last_stream_seq
+frames_attempted                       == last_stream_seq + 1
+frames_accepted + frames_refused + 1   == frames_attempted
+decoded_unique_frames + transport_gap  == frames_attempted
+samples_attempted                      == summary.issued
+```
+
+Chaque relation est vérifiée séparément et exposée dans `footer_checks` : une
+seule qui échoue rend la clôture incohérente.
+
+## Machine d'état du flux
+
+L'ordre des messages est **unique**, documenté et testé :
+
+```text
+HEADER → (SAMPLE | GAP)* → SUMMARY → HISTOGRAM? → FOOTER
+```
+
+Toute transition non prévue est une **erreur de structure** : `SAMPLE` ou `GAP`
+après le bilan, `FOOTER` avant le bilan, histogramme avant l'en-tête, message
+**après** le footer, en-tête ou bilan dupliqué. En version 3, un **type inconnu
+est rejeté** : il n'existe pas de zone d'extension, et le tolérer laisserait un
+flux inconnu passer pour éligible.
+
 ## Numéros de séquence — analyse en ordre de réception
 
 Les numéros sont analysés **dans l'ordre de réception**, en comparaison
@@ -168,6 +199,35 @@ series_completeness = complete   si producer_drop = 0 ET transport_gap = 0
 > perte, même faible, biaise donc la **queue** de distribution dans le sens
 > favorable.
 
+## Éligibilité au verdict — conjonction explicite
+
+Une série n'est **pas** qualifiée complète au seul motif qu'aucune trame ne
+semble manquer : sans **bilan obligatoire et réconcilié**, on ignore si toutes
+les transactions attendues sont représentées.
+
+```text
+quantiles_verdict_eligible =
+      summary_present
+  AND reconciliation.balanced
+  AND summary_footer_consistent
+  AND series_complete
+  AND stream_complete
+  AND gap_localization_complete
+  AND histogram_usable_if_required
+```
+
+Le bloc d'analyse expose chaque condition **et la liste des conditions
+bloquantes** (`eligibility.blocking`) : le lecteur sait *pourquoi* un verdict
+est refusé, il n'a pas à le déduire.
+
+- **`gap_localization_complete`** est faux si des plages de pertes ont dû être
+  **fusionnées** faute de place, ou si des pertes sont survenues sans capacité de
+  localisation déclarée. Le **total** des pertes reste exact, mais leur
+  **position** ne l'est plus : le flux reste utile au diagnostic sans prétendre
+  savoir où les pertes ont eu lieu.
+- **`histogram_usable_if_required`** est faux si un histogramme **annoncé** est
+  absent, ou s'il est **saturé**.
+
 Conséquence **mécanique** (et non déclarative) : le bloc d'analyse porte
 `quantiles_verdict_eligible`, **faux** dès qu'une perte existe. Une série
 `incomplete` ne fonde **aucun** verdict sur P95/P99 ; par défaut, le run est
@@ -195,8 +255,8 @@ edges[i+1])` (borne basse incluse, haute exclue) ; accumulation **saturante** ;
 
 | Niveau | Contenu |
 |---|---|
-| C (`ctest`) | codec ; **ordre** de la lacune (tampon plein, drain partiel, transactions après la lacune, plages multiples, exactitude d'`after_sequence_id`) ; **refus du marqueur puis réémission** ; histogramme (convention, **saturation signalée**, configurations invalides) ; **rejet** des chaînes d'en-tête trop longues ou non imprimables ; **clôture** ; refus du puits |
-| Python (`unittest`) | quantiles + **cas limites** ; wrap **par largeur déclarée** (8/16/32/64) ; `tick_hz = 0` ; séquence (lacune, doublon, hors ordre, **wrap uint32**) ; **clôture absente/incohérente/perdue** ; tests **négatifs** du parseur (en-tête tronqué, dupliqué, non premier, chaîne invalide, sample trop court/long, summary dupliqué, histogramme tronqué ou `bin_count` excessif, type inconnu) ; **biais de perte** ; valeurs **rationnelles exactes** |
+| C (`ctest`) | codec ; **fusion de plages** signalée et pertes sans capacité de localisation ; **ordre** de la lacune (tampon plein, drain partiel, transactions après la lacune, plages multiples, exactitude d'`after_sequence_id`) ; **refus du marqueur puis réémission** ; histogramme (convention, **saturation signalée**, configurations invalides) ; **rejet** des chaînes d'en-tête trop longues ou non imprimables ; **clôture** ; refus du puits |
+| Python (`unittest`) | quantiles + **cas limites** ; wrap **par largeur déclarée** (8/16/32/64) ; `tick_hz = 0` ; séquence (lacune, doublon, hors ordre, **wrap uint32**) ; **clôture absente/incohérente/perdue** ; **machine d'état** (sample/gap après bilan, footer avant bilan, message après footer, histogramme avant en-tête, type inconnu **rejeté**) ; **réconciliation de clôture** (séquence de la trame footer, compteurs, `issued` vs `samples_attempted`, première séquence non nulle) ; **bilan absent ou déséquilibré** ; **pertes non localisables** ; **histogramme annoncé mais absent** ; **biais de perte** ; valeurs **rationnelles exactes** |
 | **Golden inter-langage** | `golden/telemetry/stream.hex` est produit par l'encodeur **C** et décodé par **Python** ; le test C le reproduit **octet à octet**. Source unique : toute dérive entre les deux implémentations échoue |
 
 ## Périmètre
