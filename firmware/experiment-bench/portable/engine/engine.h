@@ -27,6 +27,7 @@
 #include "ports/irq.h"
 #include "ports/spi.h"
 #include "scenario/scenario.h"
+#include "telemetry/telemetry.h"
 
 // Acquittement transporte dans le payload de la reponse de l'esclave (1 octet).
 typedef enum {
@@ -67,7 +68,17 @@ typedef struct {
   bench_counters_t counters;
   uint64_t rng;
   uint32_t event_seq;
+  // Telemetrie OPTIONNELLE : NULL => comportement inchange (aucun echantillon).
+  // Le moteur ne decide pas d'exporter : c'est le PROFIL qui le declare.
+  bench_telemetry_t *telemetry;
+  bench_histogram_t *histogram;  // NULL ou desactive => non alimente
 } bench_host_engine_t;
+
+// Attache un flux de telemetrie et, optionnellement, un histogramme embarque.
+// A appeler apres bench_host_engine_init. L'un et l'autre peuvent etre NULL.
+void bench_host_engine_attach_telemetry(bench_host_engine_t *engine,
+                                        bench_telemetry_t *telemetry,
+                                        bench_histogram_t *histogram);
 
 void bench_host_engine_init(bench_host_engine_t *engine,
                             const bench_scenario_t *scenario,

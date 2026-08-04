@@ -1,0 +1,344 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Latency analysis block",
+  "description": "Bloc d'analyse de latence, destine au champ 'values' d'un analysis-result. La SERIE BRUTE reste autoritaire : tout ce bloc en est DERIVE et recalculable. La methode de quantile est archivee ; les deux natures de perte (producer_drop, transport_gap) ne sont JAMAIS fusionnees ; une serie lacunaire n'est pas eligible a un verdict sur les quantiles. Les champs statistiques peuvent valoir null quand la population est vide (aucune valeur n'est alors fabriquee) : leur type n'est donc pas contraint ici.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "clock",
+    "eligibility",
+    "footer_present",
+    "gap_localization_complete",
+    "latency",
+    "losses",
+    "quantiles_verdict_eligible",
+    "reconciliation",
+    "series_completeness",
+    "stream_completeness",
+    "summary_present",
+    "timeouts"
+  ],
+  "properties": {
+    "latency": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "quantile_method",
+        "dispersion_metric",
+        "valid_sample_count",
+        "min",
+        "max",
+        "p50",
+        "p95",
+        "p99",
+        "mean_numerator",
+        "mean_denominator",
+        "variance_numerator",
+        "variance_denominator",
+        "mean",
+        "latency_stddev_population"
+      ],
+      "properties": {
+        "quantile_method": {
+          "type": "string",
+          "enum": [
+            "nearest-rank-inclusive-v1"
+          ]
+        },
+        "dispersion_metric": {
+          "type": "string",
+          "enum": [
+            "latency_stddev_population"
+          ]
+        },
+        "valid_sample_count": {
+          "type": "integer"
+        },
+        "min": {
+          "description": "entier, ou null si population vide"
+        },
+        "max": {
+          "description": "entier, ou null si population vide"
+        },
+        "mean": {
+          "description": "vue flottante NON AUTORITAIRE de mean_numerator/mean_denominator, ou null"
+        },
+        "p50": {
+          "description": "entier, ou null si population vide"
+        },
+        "p95": {
+          "description": "entier, ou null si population vide"
+        },
+        "p99": {
+          "description": "entier, ou null si population vide"
+        },
+        "latency_stddev_population": {
+          "description": "vue flottante NON AUTORITAIRE derivee de variance_numerator/variance_denominator, ou null. Le terme generique 'jitter' n'est pas employe."
+        },
+        "mean_numerator": {
+          "description": "entier EXACT (forme rationnelle autoritaire), ou null si population vide"
+        },
+        "mean_denominator": {
+          "description": "entier EXACT (forme rationnelle autoritaire), ou null si population vide"
+        },
+        "variance_numerator": {
+          "description": "entier EXACT (forme rationnelle autoritaire), ou null si population vide"
+        },
+        "variance_denominator": {
+          "description": "entier EXACT (forme rationnelle autoritaire), ou null si population vide"
+        },
+        "authoritative_fields": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "exact_rational_fields": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "float_views_non_authoritative": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "reconciliation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "issued",
+        "accounted",
+        "balanced",
+        "difference",
+        "terminal_counts"
+      ],
+      "properties": {
+        "issued": {
+          "type": "integer"
+        },
+        "accounted": {
+          "type": "integer"
+        },
+        "balanced": {
+          "type": "boolean"
+        },
+        "difference": {
+          "type": "integer"
+        },
+        "terminal_counts": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Un seul statut TERMINAL par transaction : aucun double comptage. issued = ok + timeout + rejected + unpaired + duplicate + out_of_order + producer_drop.",
+          "required": [
+            "ok",
+            "timeout",
+            "rejected",
+            "unpaired",
+            "duplicate",
+            "out_of_order",
+            "producer_drop"
+          ],
+          "properties": {
+            "ok": {
+              "type": "integer"
+            },
+            "timeout": {
+              "type": "integer"
+            },
+            "rejected": {
+              "type": "integer"
+            },
+            "unpaired": {
+              "type": "integer"
+            },
+            "duplicate": {
+              "type": "integer"
+            },
+            "out_of_order": {
+              "type": "integer"
+            },
+            "producer_drop": {
+              "type": "integer"
+            }
+          }
+        }
+      }
+    },
+    "losses": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "producer_drop (perdu AVANT serialisation) et transport_gap (trame serialisee mais absente ou rejetee cote capture) sont des natures distinctes, jamais additionnees en un compteur unique.",
+      "required": [
+        "producer_drop",
+        "transport_gap"
+      ],
+      "properties": {
+        "producer_drop": {
+          "type": "integer"
+        },
+        "transport_gap": {
+          "type": "integer"
+        },
+        "gap_markers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "lost_count",
+              "after_sequence_id"
+            ],
+            "properties": {
+              "lost_count": {
+                "type": "integer"
+              },
+              "after_sequence_id": {
+                "type": "integer"
+              }
+            }
+          }
+        }
+      }
+    },
+    "timeouts": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Les timeouts sont EXCLUS de la distribution principale de latence et publies ici, afin qu'un P99 flatteur ne masque jamais un taux de timeout eleve.",
+      "required": [
+        "timeout_count",
+        "timeout_ratio",
+        "timeout_budget_ticks"
+      ],
+      "properties": {
+        "timeout_count": {
+          "type": "integer"
+        },
+        "timeout_ratio": {
+          "description": "nombre, ou null si aucune transaction emise"
+        },
+        "timeout_budget_ticks": {
+          "type": "integer"
+        }
+      }
+    },
+    "series_completeness": {
+      "type": "string",
+      "enum": [
+        "complete",
+        "incomplete"
+      ]
+    },
+    "quantiles_verdict_eligible": {
+      "type": "boolean",
+      "description": "Faux des qu'une perte existe : une serie lacunaire ne peut pas fonder un verdict sur P95/P99, les pertes se concentrant sur les rafales."
+    },
+    "invalid_sample_count": {
+      "description": "entier, ou null si le bilan est absent"
+    },
+    "histogram": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Comparaison entre l'histogramme recalcule (autoritaire) et celui eventuellement produit par le MCU (secondaire).",
+      "required": [
+        "tooling",
+        "comparison"
+      ],
+      "properties": {
+        "tooling": {
+          "type": "object"
+        },
+        "device": {
+          "description": "objet histogramme, ou null si desactive"
+        },
+        "comparison": {
+          "type": "object"
+        }
+      }
+    },
+    "clock": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "tick_hz = 0 rend toute conversion physique indisponible : aucun verdict exprime en secondes ou microsecondes n'est alors possible.",
+      "required": [
+        "tick_width_bits",
+        "tick_hz",
+        "physical_time_available"
+      ],
+      "properties": {
+        "tick_width_bits": {
+          "type": "integer",
+          "enum": [
+            8,
+            16,
+            32,
+            64
+          ]
+        },
+        "tick_hz": {
+          "type": "integer"
+        },
+        "physical_time_available": {
+          "type": "boolean"
+        }
+      }
+    },
+    "stream_completeness": {
+      "type": "string",
+      "enum": [
+        "complete",
+        "incomplete"
+      ],
+      "description": "Sans cloture valide, une perte des dernieres trames serait indetectable : la capture est alors incomplete."
+    },
+    "footer_present": {
+      "type": "boolean"
+    },
+    "sequence": {
+      "type": "object",
+      "description": "Etats de l'analyse des numeros de sequence, en ordre de reception (attendu, lacune, doublon, hors ordre, wrap)."
+    },
+    "summary_present": {
+      "type": "boolean",
+      "description": "Le bilan est OBLIGATOIRE : sans lui, la reconciliation des transactions est impossible et les quantiles ne sont pas eligibles."
+    },
+    "footer_checks": {
+      "type": "object",
+      "description": "Controles de coherence des compteurs de cloture (sequence initiale, sequence de la trame footer, relations entre frames_attempted/accepted/refused, trames decodees + transport_gap, samples_attempted vs issued)."
+    },
+    "gap_localization_complete": {
+      "type": "boolean",
+      "description": "Faux si des plages de pertes ont ete fusionnees faute de place, ou si des pertes sont survenues sans capacite de localisation declaree : le TOTAL reste exact, la POSITION ne l'est plus."
+    },
+    "histogram_required": {
+      "type": "boolean"
+    },
+    "histogram_present": {
+      "type": "boolean"
+    },
+    "eligibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Conjonction EXPLICITE des conditions d'eligibilite au verdict, et liste des conditions bloquantes.",
+      "required": [
+        "conditions",
+        "blocking"
+      ],
+      "properties": {
+        "conditions": {
+          "type": "object"
+        },
+        "blocking": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

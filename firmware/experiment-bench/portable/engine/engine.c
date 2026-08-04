@@ -138,6 +138,41 @@ void bench_host_engine_init(bench_host_engine_t *engine,
   bench_counters_reset(&engine->counters);
   bench_profile_seed(scenario->profile, &engine->rng);
   engine->event_seq = 0;
+  engine->telemetry = NULL;
+  engine->histogram = NULL;
+}
+
+void bench_host_engine_attach_telemetry(bench_host_engine_t *engine,
+                                        bench_telemetry_t *telemetry,
+                                        bench_histogram_t *histogram) {
+  engine->telemetry = telemetry;
+  engine->histogram = histogram;
+}
+
+// Produit UN echantillon terminal pour la transaction, si et seulement si le
+// PROFIL declare l'export. Non bloquant : une perte est comptee par le ring.
+// L'histogramme n'est alimente que par les latences VALIDES (les timeouts sont
+// exclus de la distribution) et seulement s'il est active.
+static void record_sample(bench_host_engine_t *e, uint32_t index,
+                          bench_ticks_t t_start, bench_ticks_t t_end,
+                          bench_sample_status_t status, uint8_t flags) {
+  if (!e->scenario->profile->sample_export_enabled || e->telemetry == NULL) {
+    return;
+  }
+  bench_sample_t s;
+  s.sequence_id = index;
+  s.t_start = t_start;
+  s.t_end = t_end;
+  s.status = (uint8_t)status;
+  s.flags = flags;
+  if (e->telemetry->ring != NULL) {
+    (void)bench_ring_push(e->telemetry->ring, &s);
+  }
+  if (status == BENCH_SAMPLE_OK && e->histogram != NULL) {
+    bench_histogram_add(e->histogram, bench_elapsed(t_start, t_end));
+  }
+  // Drainage BORNE : le moteur ne bloque jamais sur le puits.
+  (void)bench_telemetry_drain(e->telemetry, 4);
 }
 
 int bench_host_engine_step(bench_host_engine_t *e, uint32_t index) {
@@ -163,6 +198,8 @@ int bench_host_engine_step(bench_host_engine_t *e, uint32_t index) {
     bench_counters_record_tx(&e->counters, 0, 0, bench_txn_latency(&txn, now_t));
     emit(e->sink, e->sink_ctx, &e->event_seq, BENCH_EV_TIMEOUT, now_t);
     emit(e->sink, e->sink_ctx, &e->event_seq, BENCH_EV_TX_END, now_t);
+    record_sample(e, index, now0, now_t, BENCH_SAMPLE_TIMEOUT,
+                  BENCH_SAMPLE_FLAG_FAULT_TIMEOUT);
     bench_clock_delay(&e->clock, prof->inter_delay_ticks);
     return 0;
   }
@@ -210,6 +247,7 @@ int bench_host_engine_step(bench_host_engine_t *e, uint32_t index) {
     bench_counters_record_tx(&e->counters, 0, 0, lat);
     emit(e->sink, e->sink_ctx, &e->event_seq, BENCH_EV_TIMEOUT, now1);
     emit(e->sink, e->sink_ctx, &e->event_seq, BENCH_EV_TX_END, now1);
+    record_sample(e, index, now0, now1, BENCH_SAMPLE_TIMEOUT, 0);
     bench_clock_delay(&e->clock, prof->inter_delay_ticks);
     return 0;
   }
@@ -221,6 +259,10 @@ int bench_host_engine_step(bench_host_engine_t *e, uint32_t index) {
     }
     bench_counters_record_tx(&e->counters, 0, 0, lat);
     emit(e->sink, e->sink_ctx, &e->event_seq, BENCH_EV_TX_END, now1);
+    record_sample(e, index, now0, now1,
+                  (st == BENCH_SPI_TIMEOUT) ? BENCH_SAMPLE_TIMEOUT
+                                            : BENCH_SAMPLE_REJECTED,
+                  0);
     bench_clock_delay(&e->clock, prof->inter_delay_ticks);
     return -1;
   }
@@ -240,6 +282,9 @@ int bench_host_engine_step(bench_host_engine_t *e, uint32_t index) {
   bench_counters_record_tx(&e->counters, ok, psize, lat);
 
   emit(e->sink, e->sink_ctx, &e->event_seq, BENCH_EV_TX_END, now1);
+  record_sample(e, index, now0, now1,
+                ok ? BENCH_SAMPLE_OK : BENCH_SAMPLE_REJECTED,
+                bench_profile_fault_crc(prof, index) ? BENCH_SAMPLE_FLAG_FAULT_CRC : 0);
   bench_clock_delay(&e->clock, prof->inter_delay_ticks);
   return 0;
 }

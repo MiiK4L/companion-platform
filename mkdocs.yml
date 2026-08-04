@@ -240,6 +240,7 @@ nav:
           - Modèle de données: phase-1/experiment-platform/measurement-data-model.md
           - Outillage: phase-1/experiment-platform/tooling.md
           - Firmware de banc: phase-1/experiment-platform/bench-firmware.md
+          - Télémétrie de latence: phase-1/experiment-platform/latency-telemetry.md
           - Cycle d'une campagne: phase-1/experiment-platform/campaign-workflow.md
           - Campagnes:
               - Vue d'ensemble: phase-1/experiment-platform/campaigns/README.md
