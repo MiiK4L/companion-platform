@@ -28,6 +28,9 @@ add_library(bench_portable STATIC
   telemetry/ring.c
   telemetry/histogram.c
   telemetry/telemetry.c
+  arbiter/arbiter.c
+  concurrent/producer.c
+  concurrent/concurrent.c
 )
 
 enable_testing()
@@ -43,6 +46,7 @@ add_executable(bench_portable_tests
   tests/test_engine.c
   tests/test_sim.c
   tests/test_telemetry.c
+  tests/test_concurrent.c
 )
 target_link_libraries(bench_portable_tests bench_portable)
 # Golden INTER-LANGAGE : le meme fichier est lu par les tests C (reproduction
