@@ -4,12 +4,17 @@ SPDX-FileCopyrightText: 2026 Companion Platform contributors
 SPDX-License-Identifier: CC-BY-4.0
 -->
 
-# Télémétrie de latence (lot B4.1)
+# Télémétrie de latence (lots B4.1 et B4.2)
 
 > **Statut : Proposé.** Évolution du **socle**, indépendante de toute campagne :
-> aucun matériel, aucun flash, aucune mesure, aucun run. B4.1 **n'autorise pas**
-> l'ouverture de la campagne EXP-L1-BRINGUP-001, qui reste soumise au
+> aucun matériel, aucun flash, aucune mesure, aucun run. Ces lots **n'autorisent
+> pas** l'ouverture de la campagne EXP-L1-BRINGUP-001, qui reste soumise au
 > [gate matériel](campaigns/hardware-gate.md).
+>
+> **B4.2 valide UNIQUEMENT le moteur, l'arbitre et l'instrumentation.** La
+> simulation ne produit **aucune donnée `[M]`**, **aucune preuve expérimentale**,
+> et **aucun élément permettant d'arbitrer `DEC-L1-001`**. Un entrelacement
+> simulé n'est pas une contention mesurée.
 
 Les compteurs agrégés livrés en B2 (`latency_sum_ticks`, `latency_max_ticks`) ne
 permettent pas de reconstruire une distribution : une moyenne seule masque les
@@ -265,3 +270,86 @@ B4.1 **ne** contient : aucune implémentation matérielle, aucun flux concurrent
 (B4.2), aucun run, aucune donnée `[M]`, aucune ADR. Les seuils de perte
 acceptable et de résolution d'horloge sont proposés comme **candidats** pour la
 **baseline v1** (B4.7a) — le brouillon v0 déjà fusionné n'est pas modifié.
+
+
+---
+
+# Deux flux concurrents (lot B4.2)
+
+## Séparation génération / arbitrage
+
+Les **producteurs** restent seuls responsables de leur **cadence**, de leurs
+**seeds**, de leurs **payloads** et de leurs **IRQ**. L'**arbitre** n'accorde que
+le bus : il ne modifie **jamais** le comportement interne d'un producteur.
+
+## Atomicité — un invariant, pas une hypothèse
+
+Une transaction SPI est **atomique** : le bus est acquis **avant** l'assertion du
+CS, reste détenu pendant toute la transaction, et n'est libéré qu'**après** sa
+fin complète. **Aucune préemption au milieu** d'une transaction ; elle ne peut
+intervenir qu'**entre** deux transactions. L'arbitre refuse toute attribution
+tant que le bus est détenu, et un test le vérifie mécaniquement.
+
+## Topologie — la seule variable
+
+```text
+spi-shared     : 1 arbitre pour les deux producteurs  → contention possible
+spi-separated  : 1 arbitre PAR producteur             → bus_wait_ticks == 0
+```
+
+Profils, seeds, politique, durée d'occupation et cadence sont **identiques**
+entre les deux montages. Les **modes isolés** réutilisent les **mêmes**
+producteurs, le second étant simplement **désactivé** — jamais un profil
+simplifié. Conséquence testée : `shared/screen-only` et `separated/screen-only`
+donnent des résultats **strictement identiques**, puisque sans concurrence la
+topologie ne doit rien changer.
+
+## Politiques d'arbitrage
+
+| Politique | Rôle |
+|---|---|
+| **FIFO** | référence de la campagne ; ordre d'arrivée stable |
+| **Round-robin** | référence de la campagne ; alternance, sans famine |
+| Priorité fixe | **mode de stress uniquement**, pour valider la détection de famine et ses compteurs. **Pas** la politique de référence |
+
+Les demandes **simultanées** sont départagées par un **rang d'arrivée global**,
+ce qui rend le tie-break déterministe et documenté.
+
+## Files et famine
+
+Par producteur : profondeur, **débordements imputés au bon producteur**, âge de
+la plus ancienne requête, `max_bus_wait_ticks`,
+`requests_over_starvation_threshold`, `queue_overflow_count`.
+
+## Causes de timeout — jamais ambiguës
+
+`none` · `bus_wait` · `peripheral_response` · `transport` · `scheduler`.
+Un timeout dû à l'**attente du bus** n'est **jamais** assimilé à un périphérique
+silencieux : ce sont deux diagnostics opposés.
+
+## Format de flux v4
+
+**v4 remplace v3 partout** — le moteur mono-flux émet lui aussi du v4
+(producteur 0, instants de bus dégénérés). Le parseur **rejette explicitement**
+toute version antérieure : il n'existe **aucun fallback silencieux**.
+
+| Champ | Rôle |
+|---|---|
+| `global_event_seq` | ordre **global**, strictement monotone — capture l'entrelacement |
+| `producer_sequence_id` | séquence **locale**, continue par producteur |
+| `t_request`, `t_grant`, `t_release`, `t_end` | quatre instants, en ticks bruts |
+| `timeout_cause` | cause explicite sur chaque enregistrement terminal |
+
+**Aucune des deux numérotations n'est reconstruite depuis l'autre** : avec deux
+producteurs ou une lacune, la déduction serait fausse. Les durées sont
+**dérivées**, jamais transportées :
+
+```text
+bus_wait_ticks = t_grant   - t_request
+bus_hold_ticks = t_release - t_grant
+```
+
+Une **lacune conserve l'identité** des producteurs touchés
+(`lost_by_producer`) : une perte dans le flux global n'efface jamais **qui** a
+perdu. Le **bilan est par producteur**, et la réconciliation doit se fermer
+**globalement ET pour chaque producteur** pris isolément.
