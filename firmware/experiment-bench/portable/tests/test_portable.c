@@ -21,6 +21,7 @@ int main(void) {
   run_engine_tests();
   run_sim_tests();
   run_telemetry_tests();
+  run_concurrent_tests();
 
   if (g_test_failures == 0) {
     printf("OK: coeur portable (toutes les suites)\n");
