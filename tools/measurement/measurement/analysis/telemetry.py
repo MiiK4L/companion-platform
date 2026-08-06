@@ -40,7 +40,7 @@ TM_HISTOGRAM = 5
 TM_FOOTER = 6
 
 #: Version du FORMAT de flux acceptee (miroir de BENCH_TELEMETRY_STREAM_VERSION).
-STREAM_VERSION = 3
+STREAM_VERSION = 4
 NO_SEQ = 0xFFFFFFFF
 _SEQ_MOD = 1 << 32
 _SEQ_HALF = 1 << 31
@@ -52,11 +52,12 @@ STR_MAX = 48
 #: Nombre maximal de classes d'histogramme (miroir de BENCH_HISTOGRAM_MAX_BINS).
 HISTOGRAM_MAX_BINS = 16
 
-_SAMPLE_WIRE_SIZE = 22
-_GAP_BODY = 1 + 8
-_SUMMARY_BODY = 1 + 10 * 4 + 8
+_SAMPLE_WIRE_SIZE = 44
+_GAP_MAX_PRODUCERS = 4
+_GAP_BODY = 1 + 4 + 4 + 1 + 4 * _GAP_MAX_PRODUCERS
+_PRODUCER_SUMMARY_BODY = 1 + 16 * 4 + 2 * 8
 _FOOTER_BODY = 1 + 5 * 4
-_HEADER_FIXED = 1 + 2 + 1 + 1 + 1 + 8 + 4 + 1 + 2
+_HEADER_FIXED = 1 + 2 + 1 + 1 + 1 + 8 + 4 + 1 + 2 + 1 + 1 + 1 + 8
 _HISTOGRAM_FIXED = 1 + 5 * 4 + 1
 
 STATUS_NAMES = {
@@ -135,6 +136,10 @@ def _parse_header(p: bytes) -> dict[str, Any]:
         "ring_capacity": _u32(p, 14),
         "histogram_enabled": bool(p[18]),
         "histogram_version": _u16(p, 19),
+        "topology": "spi-separated" if p[21] else "spi-shared",
+        "arb_policy": p[22],
+        "producer_count": p[23],
+        "starvation_threshold_ticks": _u64(p, 24),
     }
 
     off = _HEADER_FIXED
@@ -166,21 +171,43 @@ def _parse_header(p: bytes) -> dict[str, Any]:
 def _parse_sample(p: bytes) -> dict[str, int]:
     _exact(p, 1 + _SAMPLE_WIRE_SIZE, "sample")
     return {
-        "sequence_id": _u32(p, 1),
-        "t_start": _u64(p, 5),
-        "t_end": _u64(p, 13),
-        "status": p[21],
-        "flags": p[22],
+        "producer_id": p[1],
+        # Les DEUX numerotations sont transportees : aucune n'est reconstruite.
+        "producer_sequence_id": _u32(p, 2),
+        "global_event_seq": _u32(p, 6),
+        # Les QUATRE instants de bus, en ticks bruts.
+        "t_request": _u64(p, 10),
+        "t_grant": _u64(p, 18),
+        "t_release": _u64(p, 26),
+        "t_end": _u64(p, 34),
+        "status": p[42],
+        "timeout_cause": p[43],
+        "flags": p[44],
     }
 
 
-def _parse_gap(p: bytes) -> dict[str, int]:
-    _exact(p, _GAP_BODY, "gap")
-    return {"lost_count": _u32(p, 1), "after_sequence_id": _u32(p, 5)}
+def _parse_gap(p: bytes) -> dict[str, Any]:
+    _need(p, 1 + 4 + 4 + 1, "gap")
+    n = p[9]
+    if n > _GAP_MAX_PRODUCERS:
+        raise TelemetryError(f"gap : producer_count hors bornes ({n})")
+    _exact(p, 1 + 4 + 4 + 1 + 4 * n, "gap")
+    return {
+        "lost_count": _u32(p, 1),
+        "after_global_seq": _u32(p, 5),
+        # Une perte dans le flux global n'efface PAS l'identite du producteur.
+        "lost_by_producer": [_u32(p, 10 + 4 * i) for i in range(n)],
+    }
 
 
-def _parse_summary(p: bytes) -> dict[str, int]:
-    _exact(p, _SUMMARY_BODY, "summary")
+def _parse_summary(p: bytes) -> dict[str, Any]:
+    _need(p, 2, "summary")
+    n = p[1]
+    if n > 4:
+        raise TelemetryError(f"summary : producer_count hors bornes ({n})")
+    expected = 2 + n * _PRODUCER_SUMMARY_BODY + 4 + 4 + 8
+    _exact(p, expected, "summary")
+
     keys = (
         "issued",
         "ok",
@@ -190,11 +217,50 @@ def _parse_summary(p: bytes) -> dict[str, int]:
         "duplicate",
         "out_of_order",
         "producer_drop",
-        "gap_records_merged",
-        "gap_capacity",
+        "timeout_bus_wait",
+        "timeout_peripheral_response",
+        "timeout_transport",
+        "timeout_scheduler",
+        "queue_overflow_count",
+        "requests_over_starvation_threshold",
+        "max_queue_depth",
+        "_reserved",
     )
-    out = {k: _u32(p, 1 + 4 * i) for i, k in enumerate(keys)}
-    out["timeout_budget_ticks"] = _u64(p, 1 + 4 * len(keys))
+    per: list[dict[str, int]] = []
+    off = 2
+    for _ in range(n):
+        entry: dict[str, int] = {"producer_id": p[off]}
+        off += 1
+        for k in keys:
+            entry[k] = _u32(p, off)
+            off += 4
+        entry.pop("_reserved", None)
+        entry["max_bus_wait_ticks"] = _u64(p, off)
+        off += 8
+        entry["oldest_pending_age_ticks"] = _u64(p, off)
+        off += 8
+        per.append(entry)
+
+    out: dict[str, Any] = {
+        "producer_count": n,
+        "per_producer": per,
+        "gap_records_merged": _u32(p, off),
+        "gap_capacity": _u32(p, off + 4),
+        "timeout_budget_ticks": _u64(p, off + 8),
+    }
+    # Agregat GLOBAL, derive de la ventilation : la reconciliation doit se
+    # fermer globalement ET pour chaque producteur pris isolement.
+    for k in (
+        "issued",
+        "ok",
+        "timeout",
+        "rejected",
+        "unpaired",
+        "duplicate",
+        "out_of_order",
+        "producer_drop",
+    ):
+        out[k] = sum(e[k] for e in per)
     return out
 
 
@@ -440,14 +506,43 @@ def parse_stream(data: bytes) -> dict[str, Any]:
 
 
 CSV_COLUMNS = (
-    "sequence_id",
-    "t_start_ticks",
+    "producer_id",
+    "producer_sequence_id",
+    "global_event_seq",
+    "t_request_ticks",
+    "t_grant_ticks",
+    "t_release_ticks",
     "t_end_ticks",
     "latency_ticks",
+    "bus_wait_ticks",
+    "bus_hold_ticks",
     "status",
+    "timeout_cause",
     "variant",
     "mode",
 )
+
+TIMEOUT_CAUSES = {
+    0: "none",
+    1: "bus_wait",
+    2: "peripheral_response",
+    3: "transport",
+    4: "scheduler",
+}
+
+
+def bus_wait_ticks(sample: dict[str, Any], width_bits: int = 64) -> int:
+    """Invariant : bus_wait_ticks = t_grant - t_request (wrap-safe)."""
+    from .stats import elapsed_wrap_safe
+
+    return elapsed_wrap_safe(sample["t_request"], sample["t_grant"], width_bits)
+
+
+def bus_hold_ticks(sample: dict[str, Any], width_bits: int = 64) -> int:
+    """Invariant : bus_hold_ticks = t_release - t_grant (wrap-safe)."""
+    from .stats import elapsed_wrap_safe
+
+    return elapsed_wrap_safe(sample["t_grant"], sample["t_release"], width_bits)
 
 
 def to_series_rows(parsed: dict[str, Any]) -> list[list[Any]]:
@@ -460,11 +555,18 @@ def to_series_rows(parsed: dict[str, Any]) -> list[list[Any]]:
     mode = header.get("mode", "")
     return [
         [
-            s["sequence_id"],
-            s["t_start"],
+            s["producer_id"],
+            s["producer_sequence_id"],
+            s["global_event_seq"],
+            s["t_request"],
+            s["t_grant"],
+            s["t_release"],
             s["t_end"],
-            elapsed_wrap_safe(s["t_start"], s["t_end"], width),
+            elapsed_wrap_safe(s["t_request"], s["t_end"], width),
+            bus_wait_ticks(s, width),
+            bus_hold_ticks(s, width),
             STATUS_NAMES.get(s["status"], f"unknown_{s['status']}"),
+            TIMEOUT_CAUSES.get(s["timeout_cause"], f"unknown_{s['timeout_cause']}"),
             variant,
             mode,
         ]
@@ -478,10 +580,68 @@ def valid_latencies(parsed: dict[str, Any]) -> list[int]:
 
     width = (parsed.get("header") or {}).get("tick_width_bits", 64)
     return [
-        elapsed_wrap_safe(s["t_start"], s["t_end"], width)
+        elapsed_wrap_safe(s["t_request"], s["t_end"], width)
         for s in parsed["samples"]
         if s["status"] == 0
     ]
+
+
+def per_producer_analysis(parsed: dict[str, Any]) -> dict[int, dict[str, Any]]:
+    """Statistiques PAR PRODUCTEUR, avec verification des invariants de bus.
+
+    La reconciliation doit se fermer pour CHAQUE producteur pris isolement, pas
+    seulement globalement."""
+    from . import stats as st
+
+    width = (parsed.get("header") or {}).get("tick_width_bits", 64)
+    summary = parsed.get("summary") or {}
+    by_producer: dict[int, dict[str, Any]] = {}
+
+    for entry in summary.get("per_producer", []):
+        pid = entry["producer_id"]
+        samples = [s for s in parsed["samples"] if s["producer_id"] == pid]
+        latencies = [
+            st.elapsed_wrap_safe(s["t_request"], s["t_end"], width)
+            for s in samples
+            if s["status"] == 0
+        ]
+        waits = [bus_wait_ticks(s, width) for s in samples]
+        # Sequence LOCALE continue : verifiee sans jamais la deduire de l'ordre
+        # global, et inversement.
+        local = [s["producer_sequence_id"] for s in samples]
+        by_producer[pid] = {
+            "counts": entry,
+            "reconciliation": st.reconcile(entry),
+            "latency": st.latency_stats(latencies),
+            "bus_wait_total": sum(waits),
+            "bus_wait_max": max(waits) if waits else 0,
+            "local_sequence_contiguous": local == sorted(local),
+            "recorded_sample_count": len(samples),
+        }
+    return by_producer
+
+
+def check_bus_invariants(parsed: dict[str, Any]) -> dict[str, Any]:
+    """Verifie les invariants d'instants de bus sur chaque enregistrement."""
+    width = (parsed.get("header") or {}).get("tick_width_bits", 64)
+    violations: list[dict[str, Any]] = []
+    for s in parsed["samples"]:
+        wait = bus_wait_ticks(s, width)
+        hold = bus_hold_ticks(s, width)
+        if wait > (1 << (width - 1)) or hold > (1 << (width - 1)):
+            # Un ecart superieur a la demi-plage revele un ordre incoherent
+            # (t_grant avant t_request, ou t_release avant t_grant).
+            violations.append({"global_event_seq": s["global_event_seq"]})
+    topology = (parsed.get("header") or {}).get("topology")
+    zero_wait_expected = topology == "spi-separated"
+    nonzero = [s["global_event_seq"] for s in parsed["samples"] if bus_wait_ticks(s, width)]
+    return {
+        "ordering_violations": violations,
+        "topology": topology,
+        # En topologie separee, aucune attente n'est possible hors faute injectee.
+        "separated_zero_bus_wait": (not zero_wait_expected) or not nonzero,
+        "samples_with_bus_wait": nonzero,
+    }
 
 
 def build_analysis(parsed: dict[str, Any], edges: list[int] | None = None) -> dict[str, Any]:
