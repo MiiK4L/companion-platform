@@ -194,3 +194,86 @@ uint32_t bench_concurrent_run(bench_concurrent_t *e, uint32_t max_steps) {
   }
   return steps;
 }
+
+// --------------------------------------------------------------------------
+// Pont vers la telemetrie v4
+// --------------------------------------------------------------------------
+void bench_conc_telemetry_init(bench_conc_telemetry_t *b, bench_telemetry_t *tm,
+                               uint32_t drain_budget) {
+  memset(b, 0, sizeof(*b));
+  b->tm = tm;
+  b->drain_budget = drain_budget;
+}
+
+void bench_conc_telemetry_sink(void *ctx, const bench_conc_result_t *r) {
+  bench_conc_telemetry_t *b = (bench_conc_telemetry_t *)ctx;
+  if (b == NULL || b->tm == NULL || b->tm->ring == NULL) {
+    return;
+  }
+  const uint8_t id = r->producer_id;
+  bench_sample_t s;
+  memset(&s, 0, sizeof(s));
+  s.producer_id = id;
+  s.producer_sequence_id = r->local_sequence;
+  s.global_event_seq = r->global_order;
+  s.t_request = r->requested_at;
+  s.t_grant = r->granted_at;
+  s.t_release = r->released_at;
+  s.t_end = r->released_at;
+  s.status = r->status;
+  s.timeout_cause = r->timeout_cause;
+
+  bench_sat_inc_u32(&b->issued[id]);
+  if (!bench_ring_push(b->tm->ring, &s)) {
+    // Enregistrement PERDU : statut terminal `producer_drop`, et rien d'autre.
+    bench_sat_inc_u32(&b->producer_drop[id]);
+  } else if (r->status == BENCH_SAMPLE_OK) {
+    bench_sat_inc_u32(&b->ok[id]);
+  } else if (r->status == BENCH_SAMPLE_TIMEOUT) {
+    bench_sat_inc_u32(&b->timeout[id]);
+    if (r->timeout_cause < 5) {
+      bench_sat_inc_u32(&b->timeout_by_cause[id][r->timeout_cause]);
+    }
+  } else {
+    bench_sat_inc_u32(&b->rejected[id]);
+  }
+
+  if (b->drain_budget > 0) {
+    (void)bench_telemetry_drain(b->tm, b->drain_budget);
+  }
+}
+
+void bench_concurrent_fill_summary(const bench_concurrent_t *e,
+                                   const bench_conc_telemetry_t *bridge,
+                                   bench_telemetry_summary_t *out,
+                                   bench_ticks_t now) {
+  memset(out, 0, sizeof(*out));
+  out->producer_count = e->producer_count;
+  for (uint8_t i = 0; i < e->producer_count; i++) {
+    bench_producer_summary_t *ps = &out->per_producer[i];
+    const bench_arbiter_t *a = e->bus_of[i];
+    ps->producer_id = i;
+    if (bridge != NULL) {
+      ps->issued = bridge->issued[i];
+      ps->ok = bridge->ok[i];
+      ps->timeout = bridge->timeout[i];
+      ps->rejected = bridge->rejected[i];
+      ps->producer_drop = bridge->producer_drop[i];
+      ps->timeout_bus_wait = bridge->timeout_by_cause[i][BENCH_TIMEOUT_BUS_WAIT];
+      ps->timeout_peripheral_response =
+          bridge->timeout_by_cause[i][BENCH_TIMEOUT_PERIPHERAL_RESPONSE];
+      ps->timeout_transport = bridge->timeout_by_cause[i][BENCH_TIMEOUT_TRANSPORT];
+      ps->timeout_scheduler = bridge->timeout_by_cause[i][BENCH_TIMEOUT_SCHEDULER];
+    }
+    if (a != NULL) {
+      ps->queue_overflow_count = a->overflow_by_producer[i];
+      ps->requests_over_starvation_threshold =
+          a->requests_over_starvation_threshold[i];
+      ps->max_bus_wait_ticks = a->max_bus_wait_ticks[i];
+      ps->max_queue_depth = a->max_depth_total;
+      ps->oldest_pending_age_ticks = bench_arbiter_oldest_pending_age(a, now);
+    }
+  }
+  out->timeout_budget_ticks =
+      (e->producer_count > 0) ? e->producers[0].profile->timeout_ticks : 0;
+}

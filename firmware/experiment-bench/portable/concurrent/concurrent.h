@@ -30,6 +30,7 @@
 #include "concurrent/producer.h"
 #include "counters/counters.h"
 #include "events/events.h"
+#include "telemetry/telemetry.h"
 
 #define BENCH_CONC_MAX_PRODUCERS BENCH_MAX_PRODUCERS
 
@@ -87,5 +88,39 @@ int bench_concurrent_step(bench_concurrent_t *e);
 
 // Deroule jusqu'a epuisement (borne par "max_steps" pour ne jamais boucler).
 uint32_t bench_concurrent_run(bench_concurrent_t *e, uint32_t max_steps);
+
+// --- Pont vers la TELEMETRIE v4 --------------------------------------------
+// Convertit chaque resultat terminal en enregistrement v4 et le depose dans le
+// tampon borne. Les deux numerotations et les quatre instants de bus sont
+// transportes tels quels ; les durees en seront DERIVEES par l'outillage.
+//
+// Le pont compte les issues AU POINT D'ARCHIVAGE : un echantillon dont
+// l'enregistrement est PERDU a pour statut terminal `producer_drop`, et son
+// resultat n'est PAS aussi compte en ok/timeout. C'est ce qui rend l'identite
+//   issued = ok + timeout + rejected + unpaired + duplicate + out_of_order
+//            + producer_drop
+// vraie PAR PRODUCTEUR : un enregistrement perdu a un resultat inconnu de
+// l'archive, il ne peut pas etre compte deux fois.
+typedef struct {
+  bench_telemetry_t *tm;
+  uint32_t issued[BENCH_CONC_MAX_PRODUCERS];
+  uint32_t ok[BENCH_CONC_MAX_PRODUCERS];
+  uint32_t timeout[BENCH_CONC_MAX_PRODUCERS];
+  uint32_t rejected[BENCH_CONC_MAX_PRODUCERS];
+  uint32_t producer_drop[BENCH_CONC_MAX_PRODUCERS];
+  uint32_t timeout_by_cause[BENCH_CONC_MAX_PRODUCERS][5];
+  uint32_t drain_budget;  // 0 = ne draine pas (drainage differe)
+} bench_conc_telemetry_t;
+
+void bench_conc_telemetry_init(bench_conc_telemetry_t *b, bench_telemetry_t *tm,
+                               uint32_t drain_budget);
+void bench_conc_telemetry_sink(void *ctx, const bench_conc_result_t *result);
+
+// Renseigne un bilan PAR PRODUCTEUR : issues archivees depuis le pont, file et
+// famine depuis les arbitres.
+void bench_concurrent_fill_summary(const bench_concurrent_t *e,
+                                   const bench_conc_telemetry_t *bridge,
+                                   bench_telemetry_summary_t *out,
+                                   bench_ticks_t now);
 
 #endif  // BENCH_CONCURRENT_H

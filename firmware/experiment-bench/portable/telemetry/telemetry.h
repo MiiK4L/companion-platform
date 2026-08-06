@@ -28,12 +28,13 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "arbiter/arbiter.h"  // BENCH_MAX_PRODUCERS
 #include "telemetry/histogram.h"
 #include "telemetry/record.h"
 #include "telemetry/ring.h"
 
 // Version du FORMAT de flux (independante des versions de profil/scenario).
-#define BENCH_TELEMETRY_STREAM_VERSION 3u
+#define BENCH_TELEMETRY_STREAM_VERSION 4u
 
 // Types de message (premier octet du payload de trame).
 typedef enum {
@@ -63,13 +64,24 @@ typedef struct {
   uint32_t ring_capacity;
   uint8_t histogram_enabled;
   uint16_t histogram_version;
+  // --- v4 : contexte d'arbitrage, necessaire pour interpreter les attentes ---
+  uint8_t topology;        // 0 = spi-shared (1 bus), 1 = spi-separated (N bus)
+  uint8_t arb_policy;      // bench_arb_policy_t
+  uint8_t producer_count;
+  uint64_t starvation_threshold_ticks;
   const char *profile_id;  // peut etre NULL
   const char *variant;     // peut etre NULL
   const char *mode;        // peut etre NULL
 } bench_telemetry_header_t;
 
-// Bilan de fin de run : statuts TERMINAUX, un seul par transaction.
+#define BENCH_TOPOLOGY_SHARED 0u
+#define BENCH_TOPOLOGY_SEPARATED 1u
+
+// Bilan PAR PRODUCTEUR : la reconciliation doit se fermer globalement ET pour
+// chaque producteur pris isolement. Les debordements de file et les compteurs
+// de famine sont imputes au producteur concerne, jamais agreges a l'aveugle.
 typedef struct {
+  uint8_t producer_id;
   uint32_t issued;
   uint32_t ok;
   uint32_t timeout;
@@ -78,11 +90,25 @@ typedef struct {
   uint32_t duplicate;
   uint32_t out_of_order;
   uint32_t producer_drop;
+  // Ventilation des timeouts par CAUSE : aucune ambiguite entre attente de bus
+  // et peripherique muet.
+  uint32_t timeout_bus_wait;
+  uint32_t timeout_peripheral_response;
+  uint32_t timeout_transport;
+  uint32_t timeout_scheduler;
+  // File et famine, imputees au producteur.
+  uint32_t queue_overflow_count;
+  uint32_t requests_over_starvation_threshold;
+  uint32_t max_queue_depth;
+  uint64_t max_bus_wait_ticks;
+  uint64_t oldest_pending_age_ticks;
+} bench_producer_summary_t;
+
+typedef struct {
+  uint8_t producer_count;
+  bench_producer_summary_t per_producer[BENCH_MAX_PRODUCERS];
   // Localisation des pertes : si des plages ont du etre FUSIONNEES faute de
-  // place, le TOTAL des pertes reste exact mais leur POSITION ne l'est plus.
-  // De meme si aucune place n'est declaree alors que des pertes surviennent.
-  // Ces deux champs permettent a l'outillage de le savoir plutot que de croire
-  // a une localisation exacte.
+  // place, le TOTAL reste exact mais la POSITION ne l'est plus.
   uint32_t gap_records_merged;
   uint32_t gap_capacity;
   uint64_t timeout_budget_ticks;

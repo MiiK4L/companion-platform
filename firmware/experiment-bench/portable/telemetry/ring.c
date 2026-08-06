@@ -16,6 +16,11 @@ void bench_ring_init(bench_ring_t *ring, bench_sample_t *slots, uint32_t capacit
   ring->capacity = capacity;
   ring->gaps = gaps;
   ring->gap_capacity = (gaps != NULL) ? gap_capacity : 0;
+  // Remise a zero DEFENSIVE : une lecture hors gap_count ne doit jamais rendre
+  // de memoire non initialisee, qui se propagerait en compteur fantaisiste.
+  if (gaps != NULL) {
+    memset(gaps, 0, (size_t)gap_capacity * sizeof(*gaps));
+  }
   ring->has_last_seq = 0;
 }
 
@@ -28,7 +33,7 @@ static bench_gap_record_t *newest_gap(bench_ring_t *ring) {
   return &ring->gaps[idx];
 }
 
-static void record_drop(bench_ring_t *ring) {
+static void record_drop(bench_ring_t *ring, uint8_t producer_id) {
   bench_sat_inc_u32(&ring->producer_drop);
   if (ring->gaps == NULL || ring->gap_capacity == 0) {
     return;  // pertes comptees, mais non localisables faute de place declaree
@@ -38,6 +43,10 @@ static void record_drop(bench_ring_t *ring) {
   bench_gap_record_t *last = newest_gap(ring);
   if (last != NULL && last->after_pushed_total == ring->pushed_total) {
     last->lost_count = bench_sat_add_u32(last->lost_count, 1);
+    if (producer_id < BENCH_GAP_MAX_PRODUCERS) {
+      last->lost_by_producer[producer_id] =
+          bench_sat_add_u32(last->lost_by_producer[producer_id], 1);
+    }
     return;
   }
   if (ring->gap_count == ring->gap_capacity) {
@@ -45,28 +54,36 @@ static void record_drop(bench_ring_t *ring) {
     // signale. L'information de perte n'est jamais supprimee.
     if (last != NULL) {
       last->lost_count = bench_sat_add_u32(last->lost_count, 1);
+      if (producer_id < BENCH_GAP_MAX_PRODUCERS) {
+        last->lost_by_producer[producer_id] =
+            bench_sat_add_u32(last->lost_by_producer[producer_id], 1);
+      }
     }
     bench_sat_inc_u32(&ring->gap_records_merged);
     return;
   }
   const uint32_t idx = (ring->gap_head + ring->gap_count) % ring->gap_capacity;
+  memset(&ring->gaps[idx], 0, sizeof(ring->gaps[idx]));
   ring->gaps[idx].lost_count = 1;
-  ring->gaps[idx].after_seq =
-      ring->has_last_seq ? ring->last_seq : BENCH_RING_NO_SEQ;
+  if (producer_id < BENCH_GAP_MAX_PRODUCERS) {
+    ring->gaps[idx].lost_by_producer[producer_id] = 1;
+  }
+  ring->gaps[idx].after_global_seq =
+      ring->has_last_seq ? ring->last_global_seq : BENCH_RING_NO_SEQ;
   ring->gaps[idx].after_pushed_total = ring->pushed_total;
   ring->gap_count++;
 }
 
 int bench_ring_push(bench_ring_t *ring, const bench_sample_t *sample) {
   if (ring->capacity == 0 || ring->slots == NULL || ring->count >= ring->capacity) {
-    record_drop(ring);
+    record_drop(ring, sample->producer_id);
     return 0;
   }
   const uint32_t tail = (ring->head + ring->count) % ring->capacity;
   ring->slots[tail] = *sample;
   ring->count++;
   ring->pushed_total++;
-  ring->last_seq = sample->sequence_id;
+  ring->last_global_seq = sample->global_event_seq;
   ring->has_last_seq = 1;
   return 1;
 }
