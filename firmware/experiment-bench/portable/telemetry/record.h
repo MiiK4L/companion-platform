@@ -2,23 +2,28 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-// Enregistrement de TELEMETRIE par transaction : la donnee BRUTE autoritaire de
-// la latence. Le coeur n'agrege plus seulement des compteurs : il produit un
-// echantillon par transaction, horodate en TICKS BRUTS, que l'outillage
-// reconstruit en serie complete.
+// Enregistrement de TELEMETRIE par transaction (format de flux v4).
 //
-// La LATENCE n'est PAS transportee : elle est recalculee depuis t_start/t_end
-// avec l'arithmetique WRAP-SAFE du coeur (scheduler.h). Transporter une valeur
-// redondante autoriserait une contradiction entre elle et ses entrees.
+// DEUX NUMEROTATIONS COEXISTENT, et aucune n'est reconstruite depuis l'autre :
+//   - global_event_seq    : ordre GLOBAL du flux, strictement monotone, tous
+//                           producteurs confondus ; il capture l'ENTRELACEMENT ;
+//   - producer_sequence_id: sequence PROPRE au producteur, continue ; elle
+//                           survit a l'entrelacement et aux pertes.
+// Deduire l'une de l'autre serait faux des qu'il y a deux producteurs ou une
+// lacune : les deux sont donc transportees explicitement.
 //
-// Un echantillon porte UN SEUL statut terminal, afin que l'identite de
-// reconciliation ne double-compte jamais :
+// QUATRE INSTANTS de bus sont transportes en TICKS BRUTS :
+//   t_request : demande du bus        t_grant  : obtention du bus
+//   t_release : liberation du bus     t_end    : fin de la transaction
+// Les durees en sont DERIVEES par l'outillage, jamais transportees :
+//   bus_wait_ticks = t_grant   - t_request
+//   bus_hold_ticks = t_release - t_grant
+// Transporter une duree redondante autoriserait une contradiction avec ses
+// entrees ; les invariants ci-dessus sont verifiables cote analyse.
 //
-//   issued = ok + timeout + rejected + unpaired + duplicate + out_of_order
-//            + producer_drop
-//
-// (les pertes de TRANSPORT sont reconciliees separement, par les numeros de
-// sequence de trame ; elles ne sont pas des transactions executees.)
+// Un echantillon porte UN SEUL statut terminal ET une CAUSE de timeout
+// explicite, afin qu'une attente de bus ne soit jamais confondue avec un
+// peripherique muet.
 #ifndef BENCH_TELEMETRY_RECORD_H
 #define BENCH_TELEMETRY_RECORD_H
 
@@ -29,31 +34,33 @@
 
 // Statut TERMINAL d'un echantillon (un seul par transaction).
 typedef enum {
-  BENCH_SAMPLE_OK = 0,            // transaction terminee et valide
-  BENCH_SAMPLE_TIMEOUT = 1,       // budget epuise (EXCLU de la distribution)
-  BENCH_SAMPLE_REJECTED = 2,      // trame rejetee (CRC/format)
-  BENCH_SAMPLE_UNPAIRED = 3,      // debut sans fin, ou appariement impossible
-  BENCH_SAMPLE_DUPLICATE = 4,     // numero de sequence deja vu
-  BENCH_SAMPLE_OUT_OF_ORDER = 5,  // sequence hors ordre (distinct de duplicate)
+  BENCH_SAMPLE_OK = 0,
+  BENCH_SAMPLE_TIMEOUT = 1,
+  BENCH_SAMPLE_REJECTED = 2,
+  BENCH_SAMPLE_UNPAIRED = 3,
+  BENCH_SAMPLE_DUPLICATE = 4,
+  BENCH_SAMPLE_OUT_OF_ORDER = 5,
 } bench_sample_status_t;
 
-// Drapeaux (bitmask) : contexte non terminal, n'influe pas sur le statut.
-#define BENCH_SAMPLE_FLAG_FAULT_CRC 0x01u      // faute CRC injectee par le profil
-#define BENCH_SAMPLE_FLAG_FAULT_TIMEOUT 0x02u  // timeout injecte par le profil
+#define BENCH_SAMPLE_FLAG_FAULT_CRC 0x01u
+#define BENCH_SAMPLE_FLAG_FAULT_TIMEOUT 0x02u
 
 typedef struct {
-  uint32_t sequence_id;
-  bench_ticks_t t_start;  // ticks BRUTS (aucune conversion embarquee)
-  bench_ticks_t t_end;    // ticks BRUTS
+  uint8_t producer_id;
+  uint32_t producer_sequence_id;  // sequence LOCALE, continue
+  uint32_t global_event_seq;      // ordre GLOBAL, strictement monotone
+  bench_ticks_t t_request;
+  bench_ticks_t t_grant;
+  bench_ticks_t t_release;
+  bench_ticks_t t_end;
   uint8_t status;         // bench_sample_status_t
+  uint8_t timeout_cause;  // bench_timeout_cause_t
   uint8_t flags;
 } bench_sample_t;
 
-// Taille encodee, FIXE : u32 + u64 + u64 + u8 + u8.
-#define BENCH_SAMPLE_WIRE_SIZE 22u
+// Taille encodee, FIXE : u8 + u32 + u32 + 4 x u64 + u8 + u8 + u8.
+#define BENCH_SAMPLE_WIRE_SIZE 44u
 
-// Encode/decode un echantillon (gros-boutiste). Retourne le nombre d'octets
-// ecrits/lus, ou 0 si la capacite est insuffisante.
 size_t bench_sample_encode(uint8_t *out, size_t cap, const bench_sample_t *s);
 size_t bench_sample_decode(const uint8_t *in, size_t len, bench_sample_t *out);
 

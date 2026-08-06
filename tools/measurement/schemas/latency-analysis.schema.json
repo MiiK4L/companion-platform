@@ -191,14 +191,22 @@
             "additionalProperties": false,
             "required": [
               "lost_count",
-              "after_sequence_id"
+              "after_global_seq",
+              "lost_by_producer"
             ],
             "properties": {
               "lost_count": {
                 "type": "integer"
               },
-              "after_sequence_id": {
+              "after_global_seq": {
                 "type": "integer"
+              },
+              "lost_by_producer": {
+                "type": "array",
+                "items": {
+                  "type": "integer"
+                },
+                "description": "Ventilation des pertes PAR PRODUCTEUR : une perte dans le flux global n'efface jamais l'identite du producteur concerne."
               }
             }
           }

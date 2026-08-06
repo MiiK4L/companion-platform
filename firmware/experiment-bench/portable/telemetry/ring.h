@@ -36,9 +36,14 @@
 // Aucun echantillon accepte avant la lacune (perte des le premier depot).
 #define BENCH_RING_NO_SEQ 0xFFFFFFFFu
 
+// Une lacune conserve l'IDENTITE des producteurs touches : une perte dans le
+// flux global ne doit jamais effacer QUI a perdu des echantillons.
+#define BENCH_GAP_MAX_PRODUCERS 4u
+
 typedef struct {
-  uint32_t lost_count;          // pertes consecutives de cette plage
-  uint32_t after_seq;           // dernier sequence_id accepte avant la plage
+  uint32_t lost_count;          // total de pertes consecutives de cette plage
+  uint32_t lost_by_producer[BENCH_GAP_MAX_PRODUCERS];  // ventilation exacte
+  uint32_t after_global_seq;    // dernier global_event_seq accepte
   uint64_t after_pushed_total;  // echantillons acceptes avant la plage
 } bench_gap_record_t;
 
@@ -58,7 +63,7 @@ typedef struct {
   uint32_t gap_count;
   uint32_t gap_records_merged;  // plages fusionnees faute de place (saturant)
 
-  uint32_t last_seq;
+  uint32_t last_global_seq;
   int has_last_seq;
 } bench_ring_t;
 

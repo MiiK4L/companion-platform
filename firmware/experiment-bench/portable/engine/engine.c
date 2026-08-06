@@ -6,6 +6,7 @@
 
 #include <string.h>
 
+#include "concurrent/producer.h"  // bench_timeout_cause_t
 #include "profiles/profile.h"
 #include "transport/transport.h"
 
@@ -159,11 +160,22 @@ static void record_sample(bench_host_engine_t *e, uint32_t index,
   if (!e->scenario->profile->sample_export_enabled || e->telemetry == NULL) {
     return;
   }
+  // Moteur MONO-FLUX : un seul producteur (identifiant 0). Les instants de bus
+  // sont degeneres (aucun arbitrage), ce qui reste exact et coherent avec v4 :
+  // t_grant = t_request et t_release = t_end.
   bench_sample_t s;
-  s.sequence_id = index;
-  s.t_start = t_start;
+  memset(&s, 0, sizeof(s));
+  s.producer_id = 0;
+  s.producer_sequence_id = index;
+  s.global_event_seq = index;
+  s.t_request = t_start;
+  s.t_grant = t_start;
+  s.t_release = t_end;
   s.t_end = t_end;
   s.status = (uint8_t)status;
+  s.timeout_cause = (status == BENCH_SAMPLE_TIMEOUT)
+                        ? (uint8_t)BENCH_TIMEOUT_PERIPHERAL_RESPONSE
+                        : (uint8_t)BENCH_TIMEOUT_NONE;
   s.flags = flags;
   if (e->telemetry->ring != NULL) {
     (void)bench_ring_push(e->telemetry->ring, &s);

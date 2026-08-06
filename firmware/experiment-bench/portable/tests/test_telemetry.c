@@ -10,6 +10,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "concurrent/concurrent.h"
+#include "concurrent/producer.h"  // bench_timeout_cause_t
 #include "frame/frame.h"
 #include "scheduler/scheduler.h"
 #include "telemetry/histogram.h"
@@ -96,7 +98,8 @@ static uint32_t msg_u32_at(const cap_t *c, uint32_t index, size_t field_off) {
 }
 
 static void test_record_codec(void) {
-  const bench_sample_t s = {42, 1000, 1250, BENCH_SAMPLE_OK,
+  const bench_sample_t s = {0, 42, 42, 1000, 1000, 1250, 1250,
+                            BENCH_SAMPLE_OK, BENCH_TIMEOUT_NONE,
                             BENCH_SAMPLE_FLAG_FAULT_CRC};
   uint8_t buf[BENCH_SAMPLE_WIRE_SIZE];
   EXPECT_EQ_INT(bench_sample_encode(buf, sizeof(buf), &s), BENCH_SAMPLE_WIRE_SIZE,
@@ -106,8 +109,11 @@ static void test_record_codec(void) {
   bench_sample_t out;
   EXPECT_EQ_INT(bench_sample_decode(buf, sizeof(buf), &out), BENCH_SAMPLE_WIRE_SIZE,
                 "decodage");
-  EXPECT_EQ_INT(out.sequence_id, 42, "sequence restituee");
-  EXPECT_EQ_INT((long long)out.t_start, 1000, "t_start restitue");
+  EXPECT_EQ_INT(out.producer_sequence_id, 42, "sequence locale restituee");
+  EXPECT_EQ_INT(out.global_event_seq, 42, "ordre global restitue");
+  EXPECT_EQ_INT((long long)out.t_request, 1000, "t_request restitue");
+  EXPECT_EQ_INT((long long)out.t_grant, 1000, "t_grant restitue");
+  EXPECT_EQ_INT((long long)out.t_release, 1250, "t_release restitue");
   EXPECT_EQ_INT((long long)out.t_end, 1250, "t_end restitue");
   EXPECT_EQ_INT(out.flags, BENCH_SAMPLE_FLAG_FAULT_CRC, "drapeaux restitues");
   EXPECT_EQ_INT(bench_sample_decode(buf, 3, &out), 0, "decodage tronque refuse");
@@ -120,13 +126,15 @@ static void test_ordre_de_la_lacune(void) {
   bench_ring_t ring;
   bench_ring_init(&ring, slots, 4, gaps, 5);
 
-  bench_sample_t s = {0, 0, 10, BENCH_SAMPLE_OK, 0};
+  bench_sample_t s = {0, 0, 0, 0, 0, 10, 10, BENCH_SAMPLE_OK, 0, 0};
   for (uint32_t i = 0; i < 4; i++) {  // remplit
-    s.sequence_id = i;
+    s.producer_sequence_id = i;
+    s.global_event_seq = i;
     EXPECT_EQ_INT(bench_ring_push(&ring, &s), 1, "stockage");
   }
   for (uint32_t i = 4; i < 6; i++) {  // deborde : pertes 4 et 5
-    s.sequence_id = i;
+    s.producer_sequence_id = i;
+    s.global_event_seq = i;
     EXPECT_EQ_INT(bench_ring_push(&ring, &s), 0, "perte");
   }
   EXPECT_EQ_INT(ring.producer_drop, 2, "2 pertes");
@@ -138,14 +146,14 @@ static void test_ordre_de_la_lacune(void) {
   bench_sample_t got;
   for (uint32_t i = 0; i < 4; i++) {
     EXPECT_EQ_INT(bench_ring_pop(&ring, &got), 1, "depilage");
-    EXPECT_EQ_INT(got.sequence_id, i, "ordre FIFO");
+    EXPECT_EQ_INT(got.producer_sequence_id, i, "ordre FIFO");
     if (i < 3) {
       EXPECT_EQ_INT(bench_ring_peek_gap(&ring, &g), 0, "toujours pas echue");
     }
   }
   EXPECT_EQ_INT(bench_ring_peek_gap(&ring, &g), 1, "echue apres le dernier depilage");
   EXPECT_EQ_INT(g.lost_count, 2, "2 pertes dans la plage");
-  EXPECT_EQ_INT(g.after_seq, 3, "lacune situee APRES la sequence 3");
+  EXPECT_EQ_INT(g.after_global_seq, 3, "lacune situee APRES la sequence 3");
 }
 
 // Le flux doit porter SAMPLE(0..3) PUIS GAP, jamais l'inverse.
@@ -160,9 +168,10 @@ static void test_ordre_dans_le_flux(void) {
   bench_telemetry_t tm;
   bench_telemetry_init(&tm, sink, &ring);
 
-  bench_sample_t s = {0, 0, 10, BENCH_SAMPLE_OK, 0};
+  bench_sample_t s = {0, 0, 0, 0, 0, 10, 10, BENCH_SAMPLE_OK, 0, 0};
   for (uint32_t i = 0; i < 6; i++) {
-    s.sequence_id = i;
+    s.producer_sequence_id = i;
+    s.global_event_seq = i;
     (void)bench_ring_push(&ring, &s);
   }
   EXPECT_EQ_INT(bench_telemetry_drain(&tm, 64), 5, "4 echantillons + 1 lacune");
@@ -186,9 +195,10 @@ static void test_drain_partiel_et_reprise(void) {
   bench_telemetry_t tm;
   bench_telemetry_init(&tm, sink, &ring);
 
-  bench_sample_t s = {0, 0, 10, BENCH_SAMPLE_OK, 0};
+  bench_sample_t s = {0, 0, 0, 0, 0, 10, 10, BENCH_SAMPLE_OK, 0, 0};
   for (uint32_t i = 0; i < 6; i++) {  // 0..3 stockes, 4 et 5 perdus
-    s.sequence_id = i;
+    s.producer_sequence_id = i;
+    s.global_event_seq = i;
     (void)bench_ring_push(&ring, &s);
   }
   EXPECT_EQ_INT(bench_telemetry_drain(&tm, 2), 2, "drain partiel : 2 messages");
@@ -197,7 +207,8 @@ static void test_drain_partiel_et_reprise(void) {
 
   // Nouvelles transactions APRES la lacune : elles ne doivent pas la devancer.
   for (uint32_t i = 6; i < 8; i++) {
-    s.sequence_id = i;
+    s.producer_sequence_id = i;
+    s.global_event_seq = i;
     EXPECT_EQ_INT(bench_ring_push(&ring, &s), 1, "depot apres liberation");
   }
   EXPECT_EQ_INT(bench_telemetry_drain(&tm, 64), 5, "2 restants + lacune + 2 nouveaux");
@@ -220,23 +231,24 @@ static void test_plages_multiples(void) {
   bench_telemetry_t tm;
   bench_telemetry_init(&tm, sink, &ring);
 
-  bench_sample_t s = {0, 0, 10, BENCH_SAMPLE_OK, 0};
+  bench_sample_t s = {0, 0, 0, 0, 0, 10, 10, BENCH_SAMPLE_OK, 0, 0};
   // Plage A : remplit (0,1) puis perd 2.
   for (uint32_t i = 0; i < 3; i++) {
-    s.sequence_id = i;
+    s.producer_sequence_id = i;
+    s.global_event_seq = i;
     (void)bench_ring_push(&ring, &s);
   }
   bench_sample_t got;
   (void)bench_ring_pop(&ring, &got);  // libere une place
-  s.sequence_id = 10;
+  s.producer_sequence_id = 10; s.global_event_seq = 10;
   EXPECT_EQ_INT(bench_ring_push(&ring, &s), 1, "nouveau depot accepte");
-  s.sequence_id = 11;
+  s.producer_sequence_id = 11; s.global_event_seq = 11;
   EXPECT_EQ_INT(bench_ring_push(&ring, &s), 0, "plage B : nouvelle perte");
 
   EXPECT_EQ_INT(ring.gap_count, 2, "deux plages DISTINCTES conservees");
-  EXPECT_EQ_INT(gaps[0].after_seq, 1, "plage A apres seq 1");
+  EXPECT_EQ_INT(gaps[0].after_global_seq, 1, "plage A apres seq 1");
   EXPECT_EQ_INT(gaps[0].lost_count, 1, "plage A : 1 perte");
-  EXPECT_EQ_INT(gaps[1].after_seq, 10, "plage B apres seq 10");
+  EXPECT_EQ_INT(gaps[1].after_global_seq, 10, "plage B apres seq 10");
   EXPECT_EQ_INT(gaps[1].lost_count, 1, "plage B : 1 perte");
 }
 
@@ -252,9 +264,10 @@ static void test_refus_du_marqueur_puis_reemission(void) {
   bench_telemetry_t tm;
   bench_telemetry_init(&tm, sink, &ring);
 
-  bench_sample_t s = {0, 0, 10, BENCH_SAMPLE_OK, 0};
+  bench_sample_t s = {0, 0, 0, 0, 0, 10, 10, BENCH_SAMPLE_OK, 0, 0};
   for (uint32_t i = 0; i < 4; i++) {  // 0,1 stockes ; 2,3 perdus
-    s.sequence_id = i;
+    s.producer_sequence_id = i;
+    s.global_event_seq = i;
     (void)bench_ring_push(&ring, &s);
   }
   // Refuse exactement la 3e trame (index 2) : ce sera le marqueur.
@@ -374,10 +387,15 @@ static void test_cloture_du_flux(void) {
                                         .wrap_policy = 0, .tick_hz = 1000,
                                         .ring_capacity = 4, .profile_id = "p"};
   (void)bench_telemetry_emit_header(&tm, &hdr);
-  bench_sample_t s = {1, 0, 10, BENCH_SAMPLE_OK, 0};
+  bench_sample_t s = {0, 1, 1, 0, 0, 10, 10, BENCH_SAMPLE_OK, 0, 0};
   (void)bench_ring_push(&ring, &s);
   (void)bench_telemetry_drain(&tm, 8);
-  const bench_telemetry_summary_t sum = {1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 100};
+  bench_telemetry_summary_t sum;
+  memset(&sum, 0, sizeof(sum));
+  sum.producer_count = 1;
+  sum.per_producer[0].issued = 1;
+  sum.per_producer[0].ok = 1;
+  sum.timeout_budget_ticks = 100;
   (void)bench_telemetry_emit_summary(&tm, &sum);
   EXPECT_EQ_INT(bench_telemetry_emit_footer(&tm, 1), 1, "cloture emise");
 
@@ -406,7 +424,7 @@ static void test_refus_du_puits(void) {
                                         .wrap_policy = 0, .tick_hz = 1,
                                         .ring_capacity = 4, .profile_id = "p"};
   EXPECT_EQ_INT(bench_telemetry_emit_header(&tm, &hdr), 1, "en-tete accepte");
-  bench_sample_t s = {1, 0, 10, BENCH_SAMPLE_OK, 0};
+  bench_sample_t s = {0, 1, 1, 0, 0, 10, 10, BENCH_SAMPLE_OK, 0, 0};
   (void)bench_ring_push(&ring, &s);
   (void)bench_telemetry_drain(&tm, 4);
 
@@ -453,49 +471,54 @@ static void test_golden_inter_langage(void) {
   fclose(f);
   EXPECT(exp_len > 0, "golden non vide");
 
+  // Rejoue EXACTEMENT le scenario de reference v4 : deux producteurs sur un
+  // bus PARTAGE en tourniquet, drainage differe pour forcer une lacune.
   cap_t cap;
   cap_init(&cap);
-  bench_sample_t slots[4];
-  bench_gap_record_t gaps[5];
+  bench_sample_t slots[3];
+  bench_gap_record_t gaps[4];
   bench_ring_t ring;
-  bench_ring_init(&ring, slots, 4, gaps, 5);
+  bench_ring_init(&ring, slots, 3, gaps, 4);
   bench_telemetry_sink_t sink = {&cap, cap_write};
   bench_telemetry_t tm;
   bench_telemetry_init(&tm, sink, &ring);
 
-  const bench_ticks_t edges[5] = {0, 15, 25, 35, 45};
-  uint32_t counts[4];
-  bench_histogram_t h;
-  EXPECT_EQ_INT(bench_histogram_init(&h, edges, 4, counts, 7), 1, "histogramme golden");
+  bench_bus_request_t rq[16];
+  bench_arbiter_t bus;
+  bench_arbiter_init(&bus, BENCH_ARB_ROUND_ROBIN, rq, 16, 3);
+
+  bench_profile_t pa;
+  bench_profile_t pb;
+  memset(&pa, 0, sizeof(pa));
+  memset(&pb, 0, sizeof(pb));
+  pa.profile_id = "screen"; pa.profile_version = 1; pa.seed = 0x1A2B3C4Dull;
+  pa.transaction_count = 3; pa.packet_size = 32; pa.timeout_ticks = 100000;
+  pb.profile_id = "module"; pb.profile_version = 1; pb.seed = 0x0BADC0DEull;
+  pb.transaction_count = 3; pb.packet_size = 8; pb.timeout_ticks = 5;
+
+  bench_conc_telemetry_t bridge;
+  bench_conc_telemetry_init(&bridge, &tm, 0);
+  bench_concurrent_t ce;
+  bench_concurrent_init(&ce, 10, bench_conc_telemetry_sink, &bridge);
+  bench_concurrent_add_producer(&ce, &pa, 1, &bus);
+  bench_concurrent_add_producer(&ce, &pb, 1, &bus);
 
   const bench_telemetry_header_t hdr = {
       .clock_id = 1, .tick_width_bits = 64, .wrap_policy = BENCH_WRAP_POLICY_MODULAR,
-      .tick_hz = 1000000, .ring_capacity = 4, .histogram_enabled = 1,
-      .histogram_version = 7, .profile_id = "golden", .variant = "spi-shared",
-      .mode = "module-only"};
+      .tick_hz = 1000000, .ring_capacity = 3, .histogram_enabled = 0,
+      .histogram_version = 0, .topology = BENCH_TOPOLOGY_SHARED,
+      .arb_policy = BENCH_ARB_ROUND_ROBIN, .producer_count = 2,
+      .starvation_threshold_ticks = 3, .profile_id = "golden-v4",
+      .variant = "spi-shared", .mode = "concurrent"};
   (void)bench_telemetry_emit_header(&tm, &hdr);
 
-  const bench_ticks_t starts[6] = {100, 200, 300, 400, 500, 600};
-  const bench_ticks_t ends[6] = {110, 220, 330, 440, 550, 700};
-  const uint8_t sts[6] = {BENCH_SAMPLE_OK, BENCH_SAMPLE_OK, BENCH_SAMPLE_OK,
-                          BENCH_SAMPLE_OK, BENCH_SAMPLE_OK, BENCH_SAMPLE_TIMEOUT};
-  for (uint32_t i = 0; i < 6; i++) {
-    bench_sample_t s = {i, starts[i], ends[i], sts[i], 0};
-    if (bench_ring_push(&ring, &s) && sts[i] == BENCH_SAMPLE_OK) {
-      bench_histogram_add(&h, bench_elapsed(starts[i], ends[i]));
-    }
-  }
-  (void)bench_telemetry_drain(&tm, 64);
-  bench_sample_t s6 = {6, 700, 705, BENCH_SAMPLE_TIMEOUT, 0};
-  (void)bench_ring_push(&ring, &s6);
-  bench_sample_t s7 = {7, 800, 860, BENCH_SAMPLE_REJECTED, 0};
-  (void)bench_ring_push(&ring, &s7);
-  (void)bench_telemetry_drain(&tm, 64);
+  (void)bench_concurrent_run(&ce, 5000);
+  (void)bench_telemetry_drain(&tm, 256);
 
-  const bench_telemetry_summary_t sum = {8, 4, 1, 1, 0, 0, 0, 2, 0, 0, 500};
+  bench_telemetry_summary_t sum;
+  bench_concurrent_fill_summary(&ce, &bridge, &sum, ce.now);
   (void)bench_telemetry_emit_summary(&tm, &sum);
-  (void)bench_telemetry_emit_histogram(&tm, &h);
-  (void)bench_telemetry_emit_footer(&tm, 8);
+  (void)bench_telemetry_emit_footer(&tm, ce.global_order);
 
   EXPECT_EQ_INT((long long)cap.len, (long long)exp_len, "taille du flux golden");
   EXPECT(cap.len == exp_len && memcmp(cap.buf, expected, exp_len) == 0,
@@ -511,15 +534,18 @@ static void test_fusion_de_plages(void) {
   bench_ring_t ring;
   bench_ring_init(&ring, slots, 1, gaps, 1);
 
-  bench_sample_t s = {0, 0, 10, BENCH_SAMPLE_OK, 0};
+  bench_sample_t s = {0, 0, 0, 0, 0, 10, 10, BENCH_SAMPLE_OK, 0, 0};
   (void)bench_ring_push(&ring, &s);  // remplit
-  s.sequence_id = 1;
+  s.producer_sequence_id = 1;
+  s.global_event_seq = 1;
   (void)bench_ring_push(&ring, &s);  // plage A
   bench_sample_t got;
   (void)bench_ring_pop(&ring, &got);
-  s.sequence_id = 2;
+  s.producer_sequence_id = 2;
+  s.global_event_seq = 2;
   (void)bench_ring_push(&ring, &s);  // accepte
-  s.sequence_id = 3;
+  s.producer_sequence_id = 3;
+  s.global_event_seq = 3;
   (void)bench_ring_push(&ring, &s);  // plage B : plus de place -> FUSION
 
   EXPECT_EQ_INT(ring.producer_drop, 2, "total de pertes exact");
@@ -533,9 +559,10 @@ static void test_pertes_sans_capacite_de_localisation(void) {
   bench_ring_t ring;
   bench_ring_init(&ring, slots, 1, NULL, 0);
 
-  bench_sample_t s = {0, 0, 10, BENCH_SAMPLE_OK, 0};
+  bench_sample_t s = {0, 0, 0, 0, 0, 10, 10, BENCH_SAMPLE_OK, 0, 0};
   (void)bench_ring_push(&ring, &s);
-  s.sequence_id = 1;
+  s.producer_sequence_id = 1;
+  s.global_event_seq = 1;
   (void)bench_ring_push(&ring, &s);
   EXPECT_EQ_INT(ring.producer_drop, 1, "perte comptee");
   EXPECT_EQ_INT(ring.gap_count, 0, "aucune plage localisee");

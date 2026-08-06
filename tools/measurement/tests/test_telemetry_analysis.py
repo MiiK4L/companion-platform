@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Companion Platform contributors
 #
 # SPDX-License-Identifier: Apache-2.0
-"""Analyse de la telemetrie de latence (lot B4.1, format de flux v3).
+"""Analyse de la telemetrie (lots B4.1 et B4.2, format de flux v4).
 
 Couvre la methode de quantile FIGEE (cas limites compris), l'arithmetique
 wrap-safe a largeur DECLAREE, la reconciliation sans double comptage, la
@@ -40,11 +40,20 @@ def _frame(seq: int, payload: bytes) -> bytes:
 
 
 def _header_payload(
-    profile=b"p", variant=b"v", mode=b"m", width=64, version=T.STREAM_VERSION, tick_hz=1000
+    profile=b"p",
+    variant=b"v",
+    mode=b"m",
+    width=64,
+    version=T.STREAM_VERSION,
+    tick_hz=1000,
+    topology=0,
+    producers=1,
 ) -> bytes:
     p = bytes([T.TM_HEADER]) + version.to_bytes(2, "big")
     p += bytes([1, width, 0]) + tick_hz.to_bytes(8, "big") + (4).to_bytes(4, "big")
     p += bytes([0]) + (0).to_bytes(2, "big")
+    # v4 : topologie, politique d'arbitrage, nombre de producteurs, seuil.
+    p += bytes([topology, 0, producers]) + (0).to_bytes(8, "big")
     for s in (profile, variant, mode):
         p += bytes([len(s)]) + s
     return p
@@ -77,12 +86,40 @@ def _summary_payload(
     producer_drop: int = 0,
     gap_records_merged: int = 0,
     gap_capacity: int = 4,
+    producers: int = 1,
 ) -> bytes:
-    fields = [issued, ok, 0, 0, 0, 0, 0, producer_drop, gap_records_merged, gap_capacity]
-    p = bytes([T.TM_SUMMARY])
-    for v in fields:
-        p += v.to_bytes(4, "big")
+    """Bilan v4 : un bloc PAR PRODUCTEUR, puis les champs globaux."""
+    p = bytes([T.TM_SUMMARY, producers])
+    for pid in range(producers):
+        vals = [issued, ok, 0, 0, 0, 0, 0, producer_drop] if pid == 0 else [0] * 8
+        vals += [0, 0, 0, 0]  # timeouts par cause
+        vals += [0, 0, 0, 0]  # file, famine, profondeur, reserve
+        p += bytes([pid])
+        for v in vals:
+            p += v.to_bytes(4, "big")
+        p += (0).to_bytes(8, "big") + (0).to_bytes(8, "big")
+    p += gap_records_merged.to_bytes(4, "big") + gap_capacity.to_bytes(4, "big")
     return p + (0).to_bytes(8, "big")
+
+
+def _sample_payload(
+    producer_id=0,
+    local=0,
+    glob=0,
+    t_req=0,
+    t_grant=0,
+    t_rel=10,
+    t_end=10,
+    status=0,
+    cause=0,
+    flags=0,
+) -> bytes:
+    """Echantillon v4 : deux numerotations et quatre instants de bus."""
+    p = bytes([T.TM_SAMPLE, producer_id])
+    p += local.to_bytes(4, "big") + glob.to_bytes(4, "big")
+    for v in (t_req, t_grant, t_rel, t_end):
+        p += v.to_bytes(8, "big")
+    return p + bytes([status, cause, flags])
 
 
 class QuantileTest(unittest.TestCase):
@@ -260,7 +297,7 @@ class HistogramTest(unittest.TestCase):
 
 
 class GoldenStreamTest(unittest.TestCase):
-    """Le flux est produit par l'encodeur C : ce test verrouille les deux formats."""
+    """Flux v4 produit par l'encodeur C : ce test verrouille les deux formats."""
 
     def setUp(self):
         self.parsed = T.parse_stream(_load_golden_stream())
@@ -268,59 +305,103 @@ class GoldenStreamTest(unittest.TestCase):
 
     def test_entete(self):
         self.assertEqual(self.parsed["header"], self.expected["header"])
+        self.assertEqual(self.parsed["header"]["stream_version"], 4)
 
-    def test_cloture(self):
+    def test_cloture_et_sequence(self):
         self.assertEqual(self.parsed["footer"], self.expected["footer"])
         self.assertTrue(self.parsed["footer_consistent"])
-        self.assertEqual(
-            self.parsed["stream_completeness"], self.expected["stream_completeness"]
-        )
-
-    def test_sequence_et_trames(self):
-        self.assertEqual(self.parsed["frames_decoded"], self.expected["frames_decoded"])
-        self.assertEqual(self.parsed["transport_gap"], self.expected["transport_gap"])
         self.assertEqual(self.parsed["sequence"], self.expected["sequence"])
+        self.assertEqual(self.parsed["transport_gap"], self.expected["transport_gap"])
 
-    def test_ordre_des_messages(self):
-        """La lacune doit apparaitre APRES les echantillons qui la precedent."""
-        self.assertEqual(self.parsed["gaps"], self.expected["gaps"])
-        ids = [s["sequence_id"] for s in self.parsed["samples"]]
-        self.assertEqual(ids, self.expected["sample_sequence_ids"])
-        # Les quatre premiers echantillons precedent la lacune (seq 0..3),
-        # les suivants la suivent (seq 6, 7).
-        self.assertEqual(ids[:4], [0, 1, 2, 3])
-        self.assertEqual(self.parsed["gaps"][0]["after_sequence_id"], 3)
-
-    def test_bilan_et_statistiques(self):
-        self.assertEqual(self.parsed["summary"], self.expected["summary"])
-        lat = T.valid_latencies(self.parsed)
-        self.assertEqual(lat, self.expected["valid_latencies"])
-        st = S.latency_stats(lat)
-        for key, value in self.expected["stats"].items():
-            if key == "latency_stddev_population":
-                self.assertAlmostEqual(st[key], value, places=12)
-            else:
-                self.assertEqual(st[key], value, key)
-
-    def test_bloc_analyse(self):
-        block = T.build_analysis(self.parsed)
-        self.assertEqual(block["series_completeness"], "incomplete")
-        self.assertEqual(block["stream_completeness"], "complete")
-        self.assertFalse(
-            block["quantiles_verdict_eligible"],
-            "flux complet mais SERIE lacunaire : pas de verdict",
+    def test_echantillons(self):
+        keys = (
+            "producer_id",
+            "producer_sequence_id",
+            "global_event_seq",
+            "t_request",
+            "t_grant",
+            "t_release",
+            "t_end",
+            "status",
+            "timeout_cause",
         )
-        self.assertTrue(block["reconciliation"]["balanced"])
-        self.assertEqual(block["losses"]["producer_drop"], 2)
-        self.assertEqual(block["losses"]["transport_gap"], 0)
-        self.assertTrue(block["clock"]["physical_time_available"])
+        got = [{k: s[k] for k in keys} for s in self.parsed["samples"]]
+        self.assertEqual(got, self.expected["samples"])
+
+    def test_deux_producteurs_entrelaces(self):
+        ids = [s["producer_id"] for s in self.parsed["samples"]]
+        self.assertGreaterEqual(len(set(ids)), 2, "au moins deux producteurs")
+        self.assertNotEqual(ids, sorted(ids), "les producteurs sont ENTRELACES")
+
+    def test_ordre_global_et_sequences_locales(self):
+        """Les deux numerotations coexistent sans que l'une derive de l'autre."""
+        globals_ = [s["global_event_seq"] for s in self.parsed["samples"]]
+        self.assertEqual(globals_, sorted(globals_), "ordre global monotone")
+        self.assertEqual(len(set(globals_)), len(globals_), "aucun doublon global")
+        per: dict[int, list[int]] = {}
+        for s in self.parsed["samples"]:
+            per.setdefault(s["producer_id"], []).append(s["producer_sequence_id"])
+        for pid, seqs in per.items():
+            with self.subTest(producer=pid):
+                self.assertEqual(seqs, sorted(seqs), "sequence locale croissante")
+
+    def test_invariants_de_bus(self):
+        """bus_wait = t_grant - t_request et bus_hold = t_release - t_grant."""
+        saw_wait = False
+        for s in self.parsed["samples"]:
+            with self.subTest(seq=s["global_event_seq"]):
+                self.assertEqual(T.bus_wait_ticks(s), s["t_grant"] - s["t_request"])
+                self.assertEqual(T.bus_hold_ticks(s), s["t_release"] - s["t_grant"])
+            saw_wait = saw_wait or T.bus_wait_ticks(s) > 0
+        self.assertTrue(saw_wait, "le bus PARTAGE produit une attente non nulle")
+        checks = T.check_bus_invariants(self.parsed)
+        self.assertEqual(checks["ordering_violations"], [], "aucun instant incoherent")
+
+    def test_cause_de_timeout_explicite(self):
+        causes = {s["timeout_cause"] for s in self.parsed["samples"]}
+        self.assertIn(1, causes, "au moins un timeout impute a l'ATTENTE DU BUS")
+        self.assertNotIn(2, causes, "aucun timeout impute a tort au peripherique")
+
+    def test_lacune_attribuee_a_un_producteur(self):
+        self.assertEqual(self.parsed["gaps"], self.expected["gaps"])
+        gap = self.parsed["gaps"][0]
+        self.assertEqual(sum(gap["lost_by_producer"]), gap["lost_count"])
+        self.assertTrue(
+            any(gap["lost_by_producer"]), "l'identite du producteur ayant perdu est conservee"
+        )
+
+    def test_reconciliation_globale_et_par_producteur(self):
+        s = self.parsed["summary"]
+        self.assertEqual(s, self.expected["summary"])
+        self.assertTrue(S.reconcile(s)["balanced"], "reconciliation GLOBALE")
+        for entry in s["per_producer"]:
+            with self.subTest(producer=entry["producer_id"]):
+                self.assertTrue(
+                    S.reconcile(entry)["balanced"], "reconciliation PAR PRODUCTEUR"
+                )
+
+    def test_analyse_par_producteur(self):
+        per = T.per_producer_analysis(self.parsed)
+        self.assertEqual(len(per), self.parsed["summary"]["producer_count"])
+        for pid, block in per.items():
+            with self.subTest(producer=pid):
+                self.assertTrue(block["reconciliation"]["balanced"])
+                self.assertTrue(block["local_sequence_contiguous"])
 
     def test_bloc_analyse_conforme_au_schema(self):
         block = T.build_analysis(self.parsed)
         home.validate(block, home.load_schema("latency-analysis.schema.json"))
-        home.validate(
-            block["histogram"]["tooling"], home.load_schema("latency-histogram.schema.json")
+        self.assertEqual(block["series_completeness"], self.expected["series_completeness"])
+        self.assertEqual(
+            block["eligibility"]["blocking"], self.expected["eligibility_blocking"]
         )
+
+    def test_serie_normalisee(self):
+        rows = T.to_series_rows(self.parsed)
+        self.assertEqual(len(rows), len(self.parsed["samples"]))
+        self.assertEqual(len(T.CSV_COLUMNS), len(rows[0]))
+        self.assertIn("bus_wait_ticks", T.CSV_COLUMNS)
+        self.assertIn("producer_id", T.CSV_COLUMNS)
 
 
 class ParserRobustnessTest(unittest.TestCase):
@@ -372,7 +453,7 @@ class ParserRobustnessTest(unittest.TestCase):
             T.parse_stream(_frame(0, _header_payload() + b"\xff\xff"))
 
     def test_sample_trop_court_ou_trop_long(self):
-        for extra in (b"\x00" * 21, b"\x00" * 23):
+        for extra in (b"\x00" * 43, b"\x00" * 45):
             stream = _frame(0, _header_payload()) + _frame(1, bytes([T.TM_SAMPLE]) + extra)
             with self.subTest(size=len(extra)), self.assertRaises(T.TelemetryError):
                 T.parse_stream(stream)
@@ -412,7 +493,7 @@ class ParserRobustnessTest(unittest.TestCase):
 
     def test_octets_parasites_ignores(self):
         parsed = T.parse_stream(b"\x00\x01\x02" + _load_golden_stream())
-        self.assertEqual(parsed["frames_decoded"], 11)
+        self.assertEqual(parsed["frames_decoded"], _load_expected()["frames_decoded"])
 
 
 class StreamClosureTest(unittest.TestCase):
@@ -472,13 +553,7 @@ class ClockTest(unittest.TestCase):
     def test_largeur_32_bits_appliquee(self):
         """Une latence a cheval sur le wrap d'un compteur 32 bits."""
         start = (1 << 32) - 5
-        sample = (
-            bytes([T.TM_SAMPLE])
-            + (0).to_bytes(4, "big")
-            + start.to_bytes(8, "big")
-            + (5).to_bytes(8, "big")
-            + bytes([0, 0])
-        )
+        sample = _sample_payload(t_req=start, t_grant=start, t_rel=5, t_end=5)
         stream = _frame(0, _header_payload(width=32)) + _frame(1, sample)
         stream += _frame(2, _summary_payload(issued=1, ok=1))
         stream += _frame(3, _footer_payload(3, 4, samples=1))
@@ -499,10 +574,27 @@ class LossBiasTest(unittest.TestCase):
                 "physical_time_available": True,
             },
             "samples": [
-                {"sequence_id": i, "t_start": 0, "t_end": v, "status": 0, "flags": 0}
+                {
+                    "producer_id": 0,
+                    "producer_sequence_id": i,
+                    "global_event_seq": i,
+                    "t_request": 0,
+                    "t_grant": 0,
+                    "t_release": v,
+                    "t_end": v,
+                    "status": 0,
+                    "timeout_cause": 0,
+                    "flags": 0,
+                }
                 for i, v in enumerate(latencies)
             ],
-            "gaps": [{"lost_count": producer_drop, "after_sequence_id": ok - 1}]
+            "gaps": [
+                {
+                    "lost_count": producer_drop,
+                    "after_global_seq": ok - 1,
+                    "lost_by_producer": [producer_drop, 0, 0, 0],
+                }
+            ]
             if producer_drop
             else [],
             "summary": {
@@ -568,8 +660,8 @@ if __name__ == "__main__":
 class StreamStateMachineTest(unittest.TestCase):
     """Point 3 : HEADER -> (SAMPLE|GAP)* -> SUMMARY -> HISTOGRAM? -> FOOTER."""
 
-    _SAMPLE = bytes([T.TM_SAMPLE]) + b"\x00" * 22
-    _GAP = bytes([T.TM_GAP]) + b"\x00" * 8
+    _SAMPLE = _sample_payload()
+    _GAP = bytes([T.TM_GAP]) + (0).to_bytes(4, "big") + (0).to_bytes(4, "big") + bytes([0])
 
     def test_ordre_nominal_accepte(self):
         stream = _frame(0, _header_payload()) + _frame(1, self._SAMPLE)

@@ -77,7 +77,7 @@ int bench_telemetry_emit_header(bench_telemetry_t *tm,
   if (lp < 0 || lv < 0 || lm < 0) {
     return 0;
   }
-  const size_t fixed = 1 + 2 + 1 + 1 + 1 + 8 + 4 + 1 + 2;
+  const size_t fixed = 1 + 2 + 1 + 1 + 1 + 8 + 4 + 1 + 2 + 1 + 1 + 1 + 8;
   const size_t need = fixed + 3 + (size_t)lp + (size_t)lv + (size_t)lm;
   if (need > BENCH_FRAME_MAX_PAYLOAD) {
     return 0;  // ne tient pas dans une trame : rejet explicite
@@ -98,6 +98,11 @@ int bench_telemetry_emit_header(bench_telemetry_t *tm,
   body[off++] = h->histogram_enabled;
   bench_wire_put_u16(body + off, h->histogram_version);
   off += 2;
+  body[off++] = h->topology;
+  body[off++] = h->arb_policy;
+  body[off++] = h->producer_count;
+  bench_wire_put_u64(body + off, h->starvation_threshold_ticks);
+  off += 8;
   off = put_str(body, off, h->profile_id, lp);
   off = put_str(body, off, h->variant, lv);
   off = put_str(body, off, h->mode, lm);
@@ -114,11 +119,19 @@ uint32_t bench_telemetry_drain(bench_telemetry_t *tm, uint32_t max_messages) {
     //    depiles tous les echantillons qui la precedent chronologiquement.
     bench_gap_record_t gap;
     if (bench_ring_peek_gap(tm->ring, &gap)) {
-      uint8_t body[9];
-      body[0] = (uint8_t)BENCH_TM_GAP;
-      bench_wire_put_u32(body + 1, gap.lost_count);
-      bench_wire_put_u32(body + 5, gap.after_seq);
-      if (!emit_frame(tm, body, sizeof(body))) {
+      // La lacune conserve QUI a perdu : une perte globale n'efface jamais
+      // l'identite du producteur concerne.
+      uint8_t body[1 + 4 + 4 + 1 + 4 * BENCH_GAP_MAX_PRODUCERS];
+      size_t go = 0;
+      body[go++] = (uint8_t)BENCH_TM_GAP;
+      bench_wire_put_u32(body + go, gap.lost_count); go += 4;
+      bench_wire_put_u32(body + go, gap.after_global_seq); go += 4;
+      body[go++] = (uint8_t)BENCH_GAP_MAX_PRODUCERS;
+      for (uint32_t k = 0; k < BENCH_GAP_MAX_PRODUCERS; k++) {
+        bench_wire_put_u32(body + go, gap.lost_by_producer[k]);
+        go += 4;
+      }
+      if (!emit_frame(tm, body, go)) {
         break;  // refus : on NE consomme PAS, la lacune sera reemise
       }
       bench_ring_commit_gap(tm->ring);  // consommation APRES acceptation
@@ -143,17 +156,39 @@ uint32_t bench_telemetry_drain(bench_telemetry_t *tm, uint32_t max_messages) {
 
 int bench_telemetry_emit_summary(bench_telemetry_t *tm,
                                  const bench_telemetry_summary_t *s) {
-  uint8_t body[1 + 10 * 4 + 8];
+  uint8_t body[BENCH_FRAME_MAX_PAYLOAD];
   size_t off = 0;
   body[off++] = (uint8_t)BENCH_TM_SUMMARY;
-  bench_wire_put_u32(body + off, s->issued); off += 4;
-  bench_wire_put_u32(body + off, s->ok); off += 4;
-  bench_wire_put_u32(body + off, s->timeout); off += 4;
-  bench_wire_put_u32(body + off, s->rejected); off += 4;
-  bench_wire_put_u32(body + off, s->unpaired); off += 4;
-  bench_wire_put_u32(body + off, s->duplicate); off += 4;
-  bench_wire_put_u32(body + off, s->out_of_order); off += 4;
-  bench_wire_put_u32(body + off, s->producer_drop); off += 4;
+  body[off++] = s->producer_count;
+
+  const size_t per = 1 + 16 * 4 + 2 * 8;  // taille d'un bilan de producteur
+  if (off + (size_t)s->producer_count * per + 4 + 4 + 8 > sizeof(body)) {
+    return 0;  // hors gabarit de trame : rejet explicite
+  }
+
+  for (uint8_t i = 0; i < s->producer_count; i++) {
+    const bench_producer_summary_t *p = &s->per_producer[i];
+    body[off++] = p->producer_id;
+    bench_wire_put_u32(body + off, p->issued); off += 4;
+    bench_wire_put_u32(body + off, p->ok); off += 4;
+    bench_wire_put_u32(body + off, p->timeout); off += 4;
+    bench_wire_put_u32(body + off, p->rejected); off += 4;
+    bench_wire_put_u32(body + off, p->unpaired); off += 4;
+    bench_wire_put_u32(body + off, p->duplicate); off += 4;
+    bench_wire_put_u32(body + off, p->out_of_order); off += 4;
+    bench_wire_put_u32(body + off, p->producer_drop); off += 4;
+    bench_wire_put_u32(body + off, p->timeout_bus_wait); off += 4;
+    bench_wire_put_u32(body + off, p->timeout_peripheral_response); off += 4;
+    bench_wire_put_u32(body + off, p->timeout_transport); off += 4;
+    bench_wire_put_u32(body + off, p->timeout_scheduler); off += 4;
+    bench_wire_put_u32(body + off, p->queue_overflow_count); off += 4;
+    bench_wire_put_u32(body + off, p->requests_over_starvation_threshold); off += 4;
+    bench_wire_put_u32(body + off, p->max_queue_depth); off += 4;
+    bench_wire_put_u32(body + off, 0); off += 4;  // reserve (alignement de champ)
+    bench_wire_put_u64(body + off, p->max_bus_wait_ticks); off += 8;
+    bench_wire_put_u64(body + off, p->oldest_pending_age_ticks); off += 8;
+  }
+
   // Le tampon fait AUTORITE sur la qualite de localisation des pertes.
   const uint32_t merged =
       (tm->ring != NULL) ? tm->ring->gap_records_merged : s->gap_records_merged;

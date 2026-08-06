@@ -16,5 +16,6 @@ void run_profile_tests(void);
 void run_engine_tests(void);
 void run_sim_tests(void);
 void run_telemetry_tests(void);
+void run_concurrent_tests(void);
 
 #endif  // BENCH_TESTS_H
